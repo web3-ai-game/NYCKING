@@ -104,6 +104,9 @@
         avatar: '😊',
         bio: '',
         lang: localStorage.getItem('nycking_i18n') || 'en',
+        tier: 'free',
+        tokenBalance: 10000,
+        tokenUsed: 0,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
       });

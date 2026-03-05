@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0a0a0a">
   <meta name="google" content="notranslate">
-  <title>NYCKING Translator</title>
+  <title>NYCKING — Social Translation Platform</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" type="image/png" href="/icons/icon-192.png">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
@@ -36,60 +36,132 @@
     .screen { display:none; flex-direction:column; min-height:100dvh; }
     .screen.active { display:flex; }
 
-    /* ===== HOMEPAGE ===== */
+    /* ===== HOMEPAGE — 3-PAGE CAROUSEL ===== */
     #home-screen {
-      align-items:center; gap:20px;
-      padding:env(safe-area-inset-top,20px) 24px env(safe-area-inset-bottom,20px);
-      text-align:center; overflow-y:auto; justify-content:flex-start;
-      padding-top:48px;
+      align-items:center; gap:0; overflow:hidden;
+      padding:0; position:relative;
     }
-    .home-logo { font-size:42px; font-weight:900; color:var(--accent); letter-spacing:2px; }
-    .home-version { font-size:11px; color:#555; margin-top:-12px; letter-spacing:1px; }
-    .home-tagline { font-size:16px; color:var(--text-dim); line-height:1.6; max-width:340px; }
-    .home-subtitle { font-size:13px; color:#666; line-height:1.5; max-width:340px; }
-    .home-langs {
-      display:grid; grid-template-columns:1fr 1fr; gap:10px;
-      width:100%; max-width:320px;
+    .home-carousel {
+      display:flex; width:400%; height:100dvh;
+      transition:transform .45s cubic-bezier(.4,0,.2,1);
     }
-    .home-lang-card {
-      background:var(--surface); border:1px solid #333; border-radius:16px;
-      padding:14px 10px; cursor:pointer; transition:all .2s;
-      display:flex; flex-direction:column; align-items:center; gap:4px;
+    .home-page {
+      width:calc(100%/4); min-height:100dvh; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:18px;
+      padding:env(safe-area-inset-top,24px) 24px env(safe-area-inset-bottom,24px);
+      text-align:center; overflow-y:auto; position:relative;
     }
-    .home-lang-card:active { transform:scale(0.95); border-color:var(--accent); }
-    .home-lang-card .flag { font-size:28px; }
-    .home-lang-card .lang-name { font-size:16px; font-weight:700; }
-    .home-lang-card .lang-sub { font-size:10px; color:var(--text-dim); }
-    .home-features {
-      display:flex; flex-direction:column; gap:8px;
-      width:100%; max-width:340px; text-align:left;
+    /* Dot indicator */
+    .home-dots {
+      position:fixed; bottom:calc(env(safe-area-inset-bottom,8px)+16px); left:50%;
+      transform:translateX(-50%); display:flex; gap:8px; z-index:50;
     }
-    .home-feat {
-      display:flex; align-items:flex-start; gap:10px;
-      background:var(--surface); border-radius:12px; padding:10px 14px;
-      border:1px solid #222;
+    .home-dot {
+      width:8px; height:8px; border-radius:50%; background:#444;
+      cursor:pointer; transition:all .3s; border:none;
     }
-    .home-feat .feat-icon { font-size:20px; flex-shrink:0; margin-top:1px; }
-    .home-feat .feat-text { font-size:12px; color:var(--text-dim); line-height:1.4; }
-    .home-feat .feat-text strong { color:var(--text); font-weight:700; }
-    .home-tech {
-      display:flex; flex-wrap:wrap; gap:6px; justify-content:center;
-      max-width:340px;
+    .home-dot.active {
+      background:var(--accent); width:24px; border-radius:4px;
+      box-shadow:0 0 10px var(--accent-glow);
     }
-    .tech-tag {
-      font-size:10px; padding:4px 8px; border-radius:8px;
-      background:var(--surface); border:1px solid #333; color:var(--accent2);
-      font-weight:600; letter-spacing:0.3px;
+    /* Glow background */
+    .hero-glow {
+      position:absolute; top:-30%; left:50%; transform:translateX(-50%);
+      width:300px; height:300px; border-radius:50%;
+      background:radial-gradient(circle, rgba(249,115,22,.15) 0%, transparent 70%);
+      animation:glowPulse 4s ease-in-out infinite; pointer-events:none;
     }
+    @keyframes glowPulse { 0%,100%{opacity:.6;transform:translateX(-50%) scale(1)} 50%{opacity:1;transform:translateX(-50%) scale(1.15)} }
+    /* Gradient logo text */
+    .home-logo {
+      font-size:48px; font-weight:900; letter-spacing:3px;
+      background:linear-gradient(135deg, var(--accent), #fbbf24, var(--accent2));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; position:relative; z-index:1;
+    }
+    .home-version { font-size:11px; color:#555; margin-top:-10px; letter-spacing:1px; }
+    .home-tagline { font-size:15px; color:var(--text-dim); line-height:1.6; max-width:320px; }
+    /* Stats row */
+    .home-stats {
+      display:flex; gap:20px; justify-content:center;
+    }
+    .home-stat { text-align:center; }
+    .home-stat .stat-num { font-size:28px; font-weight:900; color:var(--accent); }
+    .home-stat .stat-label { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+    /* Lang flags row */
+    .home-flags { display:flex; gap:12px; font-size:28px; }
+    /* CTA button with ripple */
     .home-enter-btn {
-      width:100%; max-width:320px; padding:16px;
+      width:100%; max-width:300px; padding:16px;
       background:linear-gradient(135deg, var(--accent), #ea580c);
       border:none; border-radius:var(--radius); color:#fff;
-      font-size:18px; font-weight:700; cursor:pointer;
-      box-shadow:0 4px 20px var(--accent-glow); transition:all .2s;
+      font-size:17px; font-weight:700; cursor:pointer;
+      box-shadow:0 4px 24px var(--accent-glow); transition:all .2s;
+      position:relative; overflow:hidden;
     }
-    .home-enter-btn:active { transform:scale(0.97); }
-    .home-footer { font-size:11px; color:#444; margin-top:4px; line-height:1.5; }
+    .home-enter-btn:active { transform:scale(0.96); }
+    .home-enter-btn .ripple {
+      position:absolute; border-radius:50%; background:rgba(255,255,255,.3);
+      transform:scale(0); animation:rippleAnim .6s linear;
+    }
+    @keyframes rippleAnim { to{transform:scale(4);opacity:0} }
+    .home-footer { font-size:10px; color:#444; line-height:1.5; }
+    /* Page 2 — Feature Grid */
+    .feat-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
+      width:100%; max-width:340px;
+    }
+    .feat-card {
+      background:rgba(22,22,22,.7); backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.06); border-radius:16px;
+      padding:16px 12px; cursor:pointer; transition:all .25s;
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      text-align:center; animation:fadeInUp .5s ease both;
+    }
+    .feat-card:nth-child(1){animation-delay:.05s} .feat-card:nth-child(2){animation-delay:.1s}
+    .feat-card:nth-child(3){animation-delay:.15s} .feat-card:nth-child(4){animation-delay:.2s}
+    .feat-card:nth-child(5){animation-delay:.25s} .feat-card:nth-child(6){animation-delay:.3s}
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .feat-card:active { transform:scale(0.96); border-color:var(--accent); }
+    .feat-card .fc-icon { font-size:28px; }
+    .feat-card .fc-name { font-size:13px; font-weight:700; color:var(--text); }
+    .feat-card .fc-desc { font-size:10px; color:var(--text-dim); line-height:1.3; }
+    /* Page 3 — Tech */
+    .tech-highlights {
+      display:flex; flex-direction:column; gap:10px; width:100%; max-width:340px; text-align:left;
+    }
+    .tech-row {
+      display:flex; align-items:flex-start; gap:12px;
+      background:rgba(22,22,22,.6); backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.05); border-radius:14px;
+      padding:14px 16px; animation:fadeInUp .5s ease both;
+    }
+    .tech-row:nth-child(1){animation-delay:.05s} .tech-row:nth-child(2){animation-delay:.1s}
+    .tech-row:nth-child(3){animation-delay:.15s} .tech-row:nth-child(4){animation-delay:.2s}
+    .tech-row:nth-child(5){animation-delay:.25s}
+    .tech-row .tr-icon { font-size:22px; flex-shrink:0; }
+    .tech-row .tr-info { flex:1; }
+    .tech-row .tr-title { font-size:13px; font-weight:700; color:var(--text); }
+    .tech-row .tr-desc { font-size:11px; color:var(--text-dim); line-height:1.4; margin-top:2px; }
+    .tech-tags {
+      display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-width:340px;
+    }
+    .tech-tag {
+      font-size:10px; padding:5px 10px; border-radius:20px;
+      background:rgba(22,22,22,.8); border:1px solid rgba(249,115,22,.2);
+      color:var(--accent2); font-weight:600; letter-spacing:0.3px;
+      animation:floatTag 3s ease-in-out infinite;
+    }
+    .tech-tag:nth-child(odd) { animation-delay:.5s; }
+    @keyframes floatTag { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+    .home-brand-footer {
+      font-size:10px; color:#444; display:flex; flex-direction:column;
+      align-items:center; gap:4px; padding-top:8px;
+    }
+    .home-brand-footer .divider {
+      width:60px; height:1px;
+      background:linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
 
     /* ===== AUTH SCREEN ===== */
     #auth-screen {
@@ -882,77 +954,167 @@
   <button class="i18n-opt" data-lang="my">🇲🇲 မြန်မာ</button>
 </div>
 
-<!-- ===== 1. HOMEPAGE ===== -->
+<!-- ===== 1. HOMEPAGE — 3-PAGE CAROUSEL ===== -->
 <div id="home-screen" class="screen active">
-  <div class="home-logo">NYCKING</div>
-  <div class="home-version">TRANSLATOR v2.1</div>
-  <div class="home-tagline">
-    <span data-i18n="tagline">AI-Powered Multilingual Voice & Text Translation Platform</span>
-  </div>
-  <div class="home-subtitle" data-i18n="home_desc">Built on Google Gemini 2.5 Flash with context-aware neural translation, English-pivot anti-drift architecture, and real-time bilingual chat — designed for seamless cross-language communication.</div>
+  <div class="home-carousel" id="home-carousel">
 
-  <div class="home-langs">
-    <div class="home-lang-card">
-      <div class="flag">🇨🇳</div>
-      <div class="lang-name">中文</div>
-      <div class="lang-sub">Mandarin Chinese</div>
+    <!-- PAGE 1: HERO -->
+    <div class="home-page" id="hp-hero">
+      <div class="hero-glow"></div>
+      <div class="home-logo">NYCKING</div>
+      <div class="home-version">v3.0 &#x2014; Social Translation Platform</div>
+      <div class="home-tagline" data-i18n="tagline">AI Translation &#x00D7; Social &#x00D7; Games</div>
+      <div class="home-flags">
+        <span>&#x1F1E8;&#x1F1F3;</span>
+        <span>&#x1F1FA;&#x1F1F8;</span>
+        <span>&#x1F1F9;&#x1F1ED;</span>
+        <span>&#x1F1F1;&#x1F1E6;</span>
+        <span>&#x1F1F2;&#x1F1F2;</span>
+      </div>
+      <div class="home-stats">
+        <div class="home-stat"><div class="stat-num">5</div><div class="stat-label">Languages</div></div>
+        <div class="home-stat"><div class="stat-num">9</div><div class="stat-label">Tools</div></div>
+        <div class="home-stat"><div class="stat-num">3</div><div class="stat-label">Games</div></div>
+      </div>
+      <button class="home-enter-btn" id="home-enter-btn" data-i18n="enter_btn">Get Started &#x2192;</button>
+      <div class="home-footer">Powered by Gemini 2.5 Flash &amp; Firebase</div>
     </div>
-    <div class="home-lang-card">
-      <div class="flag">🇺🇸</div>
-      <div class="lang-name">English</div>
-      <div class="lang-sub">American English</div>
-    </div>
-    <div class="home-lang-card">
-      <div class="flag">🇹🇭</div>
-      <div class="lang-name">ไทย</div>
-      <div class="lang-sub">Standard Thai</div>
-    </div>
-    <div class="home-lang-card">
-      <div class="flag">🇲🇲</div>
-      <div class="lang-name">မြန်မာ</div>
-      <div class="lang-sub">Standard Burmese</div>
-    </div>
-  </div>
 
-  <div class="home-features">
-    <div class="home-feat">
-      <div class="feat-icon">🎙️</div>
-      <div class="feat-text" data-i18n="feat_voice"><strong>Voice Translate</strong> — Real-time speech recognition with auto-speak. Supports continuous mode and noisy environment optimization.</div>
+    <!-- PAGE 2: FEATURES -->
+    <div class="home-page" id="hp-features">
+      <div class="home-logo" style="font-size:24px">&#x2728; Features</div>
+      <div class="feat-grid">
+        <div class="feat-card" data-goto="voice-screen">
+          <div class="fc-icon">&#x1F3A4;</div>
+          <div class="fc-name" data-i18n="voice_name">Voice Translate</div>
+          <div class="fc-desc" data-i18n="hp_feat_voice">Real-time speech recognition + auto-speak</div>
+        </div>
+        <div class="feat-card" data-goto="text-screen">
+          <div class="fc-icon">&#x1F4DD;</div>
+          <div class="fc-name" data-i18n="text_name">Text Translate</div>
+          <div class="fc-desc" data-i18n="hp_feat_text">Gemini neural translation with context memory</div>
+        </div>
+        <div class="feat-card" data-goto="dm-screen">
+          <div class="fc-icon">&#x1F4AC;</div>
+          <div class="fc-name" data-i18n="tab_messages">Messages</div>
+          <div class="fc-desc" data-i18n="hp_feat_dm">Friend DM with auto-translation</div>
+        </div>
+        <div class="feat-card" data-goto="contacts-screen">
+          <div class="fc-icon">&#x1F465;</div>
+          <div class="fc-name" data-i18n="tab_contacts">Contacts</div>
+          <div class="fc-desc" data-i18n="hp_feat_social">Add friends, moments feed, social</div>
+        </div>
+        <div class="feat-card" data-goto="game-lobby">
+          <div class="fc-icon">&#x1F3AE;</div>
+          <div class="fc-name" data-i18n="games_name">Mini Games</div>
+          <div class="fc-desc" data-i18n="hp_feat_games">2048, Snake, Whack-a-Mole + leaderboard</div>
+        </div>
+        <div class="feat-card" data-goto="screen-coach">
+          <div class="fc-icon">&#x1F4A1;</div>
+          <div class="fc-name" data-i18n="coach_name">AI Assistant</div>
+          <div class="fc-desc" data-i18n="hp_feat_coach">Smart conversation helper powered by Gemini</div>
+        </div>
+      </div>
     </div>
-    <div class="home-feat">
-      <div class="feat-icon">📝</div>
-      <div class="feat-text" data-i18n="feat_text"><strong>Text Translate</strong> — Type or paste any text for instant neural translation. Context memory retains 10+ recent pairs for semantic consistency.</div>
-    </div>
-    <div class="home-feat">
-      <div class="feat-icon">💕</div>
-      <div class="feat-text" data-i18n="feat_chat"><strong>Bilingual Chat Room</strong> — Real-time couples chat with auto-translation. Every message displays in both languages. Firestore cloud persistence + emoji support.</div>
-    </div>
-    <div class="home-feat">
-      <div class="feat-icon">🛡️</div>
-      <div class="feat-text" data-i18n="feat_pivot"><strong>Anti-Drift Engine</strong> — English-pivot architecture prevents Burmese/Lao translation drift. Numbers, units, and proper nouns preserved literally.</div>
-    </div>
-  </div>
 
-  <div class="home-tech">
-    <span class="tech-tag">Gemini 2.5 Flash</span>
-    <span class="tech-tag">Cloud Run</span>
-    <span class="tech-tag">Firebase</span>
-    <span class="tech-tag">Firestore</span>
-    <span class="tech-tag">Web Speech API</span>
-    <span class="tech-tag">TTS Engine</span>
-    <span class="tech-tag">Pivot Translation</span>
-    <span class="tech-tag">Context Memory</span>
-    <span class="tech-tag">PWA</span>
-    <span class="tech-tag">i18n 4-Lang</span>
-  </div>
+    <!-- PAGE 3: PRICING -->
+    <div class="home-page" id="hp-pricing">
+      <div class="home-logo" style="font-size:24px">&#x1F4B0; Plans</div>
+      <div style="display:flex;gap:10px;width:100%;max-width:340px">
+        <!-- Free -->
+        <div style="flex:1;background:rgba(22,22,22,.7);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--text)">Free</div>
+          <div style="font-size:28px;font-weight:900;color:var(--accent);margin:8px 0">$0</div>
+          <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px">10K tokens/month</div>
+          <div style="font-size:11px;color:var(--text-dim);text-align:left;line-height:1.8">
+            &#x2705; Voice Translate<br>&#x2705; Text Translate<br>&#x2705; Chat Room<br>&#x2705; Mini Games<br>&#x274C; AI Assistant<br>&#x274C; Unlimited Friends
+          </div>
+        </div>
+        <!-- Pro -->
+        <div style="flex:1;background:rgba(22,22,22,.7);backdrop-filter:blur(12px);border:2px solid var(--accent);border-radius:16px;padding:16px;text-align:center;position:relative">
+          <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:10px">POPULAR</div>
+          <div style="font-size:20px;font-weight:800;color:var(--accent)">Pro</div>
+          <div style="font-size:28px;font-weight:900;color:var(--accent);margin:8px 0">$3<span style="font-size:12px;color:var(--text-dim)">/mo</span></div>
+          <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px">100K tokens/month</div>
+          <div style="font-size:11px;color:var(--text-dim);text-align:left;line-height:1.8">
+            &#x2705; Everything in Free<br>&#x2705; AI Assistant<br>&#x2705; Unlimited Friends<br>&#x2705; Moments Feed<br>&#x2705; Priority Translation<br>&#x2705; No Limits
+          </div>
+        </div>
+      </div>
+      <button class="home-enter-btn" id="upgrade-btn" style="margin-top:12px;max-width:300px" data-i18n="pricing_upgrade">Upgrade to Pro &#x2192;</button>
+      <div style="font-size:10px;color:#555;margin-top:4px">Contact us or use invite code to upgrade</div>
+    </div>
 
-  <button class="home-enter-btn" id="home-enter-btn" data-i18n="enter_btn">Enter Translator →</button>
-  <div class="home-footer" data-i18n="footer">v2.1 · Private Access · PIN Required · Made with ❤️</div>
+    <!-- PAGE 4: TECH -->
+    <div class="home-page" id="hp-tech">
+      <div class="home-logo" style="font-size:24px">&#x26A1; Under the Hood</div>
+      <div class="tech-highlights">
+        <div class="tech-row">
+          <span class="tr-icon">&#x1F6E1;</span>
+          <div class="tr-info">
+            <div class="tr-title">Anti-Drift Engine</div>
+            <div class="tr-desc">English-pivot architecture prevents Burmese/Lao/Thai translation drift</div>
+          </div>
+        </div>
+        <div class="tech-row">
+          <span class="tr-icon">&#x1F525;</span>
+          <div class="tr-info">
+            <div class="tr-title">Firebase Full Stack</div>
+            <div class="tr-desc">Auth + Firestore + Hosting + Cloud Run — real-time social platform</div>
+          </div>
+        </div>
+        <div class="tech-row">
+          <span class="tr-icon">&#x26A1;</span>
+          <div class="tr-info">
+            <div class="tr-title">Gemini 2.5 Flash</div>
+            <div class="tr-desc">Low-latency neural translation with thinking disabled for speed</div>
+          </div>
+        </div>
+        <div class="tech-row">
+          <span class="tr-icon">&#x1F310;</span>
+          <div class="tr-info">
+            <div class="tr-title">PWA + i18n</div>
+            <div class="tr-desc">Offline-capable, installable, 4-language UI (EN/CN/TH/MY)</div>
+          </div>
+        </div>
+        <div class="tech-row">
+          <span class="tr-icon">&#x1F512;</span>
+          <div class="tr-info">
+            <div class="tr-title">Secure Social</div>
+            <div class="tr-desc">Firebase Auth + ID token verification + Firestore persistence</div>
+          </div>
+        </div>
+      </div>
+      <div class="tech-tags">
+        <span class="tech-tag">Gemini 2.5</span>
+        <span class="tech-tag">Cloud Run</span>
+        <span class="tech-tag">Firestore</span>
+        <span class="tech-tag">Firebase Auth</span>
+        <span class="tech-tag">Web Speech</span>
+        <span class="tech-tag">TTS</span>
+        <span class="tech-tag">PWA</span>
+        <span class="tech-tag">i18n</span>
+      </div>
+      <div class="home-brand-footer">
+        <div class="divider"></div>
+        <span>Made with &#x2764;&#xFE0F; &mdash; Open Source</span>
+        <span style="color:#333">NYCKING v3.0 &copy; 2026</span>
+      </div>
+    </div>
+
+  </div>
+  <!-- Dot navigation -->
+  <div class="home-dots" id="home-dots">
+    <button class="home-dot active" data-page="0"></button>
+    <button class="home-dot" data-page="1"></button>
+    <button class="home-dot" data-page="2"></button>
+    <button class="home-dot" data-page="3"></button>
+  </div>
 </div>
 
 <!-- ===== 2. AUTH SCREEN ===== -->
 <div id="auth-screen" class="screen">
-  <div class="auth-icon">�</div>
+  <div class="auth-icon">&#x1F44B;</div>
   <div class="auth-title">NYCKING</div>
   <div class="auth-sub" data-i18n="auth_welcome">Sign in to access all features</div>
   <div class="auth-error" id="auth-error"></div>
@@ -1017,6 +1179,12 @@
       </div>
       <div class="mod-arrow">›</div>
     </div>
+  </div>
+
+  <!-- Module action buttons -->
+  <div style="display:flex;gap:10px;width:100%;max-width:340px;margin-top:8px">
+    <button id="mod-home-btn" style="flex:1;padding:12px;border-radius:12px;background:var(--surface);border:1px solid #333;color:var(--text-dim);font-size:13px;cursor:pointer" data-i18n="back">&#x2190; Home</button>
+    <button id="mod-signout-btn" style="flex:1;padding:12px;border-radius:12px;background:none;border:1px solid var(--error);color:var(--error);font-size:13px;cursor:pointer" data-i18n="me_logout">Sign Out</button>
   </div>
 
   <!-- Install App Banner -->
@@ -1405,6 +1573,10 @@
   <div class="me-name" id="me-name">User</div>
   <div class="me-username" id="me-username">@user</div>
   <div class="me-uid" id="me-uid">UID: —</div>
+  <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+    <span id="me-tier-badge" style="padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;background:var(--surface);border:1px solid #333;color:var(--text-dim)">FREE</span>
+    <span style="font-size:12px;color:var(--text-dim)">&#x26A1; <span id="me-token-bal">10,000</span> tokens</span>
+  </div>
 
   <div class="me-section">
     <div class="me-section-title" data-i18n="me_profile">Profile</div>
@@ -1456,7 +1628,7 @@
 <!-- Bottom Tab Bar -->
 <div class="tab-bar" id="tab-bar">
   <button class="tab-item active" data-tab="module-screen">
-    <span class="tab-icon">🔧</span>
+    <span class="tab-icon">&#x1F527;</span>
     <span data-i18n="tab_tools">Tools</span>
   </button>
   <button class="tab-item" data-tab="dm-screen">
@@ -1468,7 +1640,7 @@
     <span data-i18n="tab_contacts">Contacts</span>
   </button>
   <button class="tab-item" data-tab="moments-screen">
-    <span class="tab-icon">�</span>
+    <span class="tab-icon">&#x1F4E2;</span>
     <span data-i18n="tab_moments">Moments</span>
   </button>
   <button class="tab-item" data-tab="me-screen">
@@ -1487,24 +1659,93 @@
 <script>
 (function(){
   const screens = document.querySelectorAll('.screen');
+  const tabBar = document.getElementById('tab-bar');
+  const homeDots = document.getElementById('home-dots');
+  const TAB_SCREENS = ['module-screen','dm-screen','contacts-screen','moments-screen','me-screen'];
 
   function show(id) {
     screens.forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+    // Tab bar: show only on tab screens + sub-screens when logged in
+    const isTab = TAB_SCREENS.includes(id) || id.startsWith('screen-') || id.startsWith('voice-') || id.startsWith('text-') || id === 'chat-screen' || id === 'game-lobby';
+    if (tabBar) tabBar.classList.toggle('show', isTab && !!window.NYCKING_AUTH?.currentUser);
+    // Home dots: show only on home
+    if (homeDots) homeDots.style.display = (id === 'home-screen') ? 'flex' : 'none';
+    // Hash route
+    const routeMap = {'home-screen':'home','auth-screen':'auth','module-screen':'tools','dm-screen':'messages','contacts-screen':'contacts','moments-screen':'moments','me-screen':'me'};
+    if (routeMap[id]) history.pushState({screen:id}, '', '#/' + routeMap[id]);
   }
 
-  // Homepage → Auth
-  document.getElementById('home-enter-btn').addEventListener('click', () => {
+  // ─── Homepage Carousel ───
+  const carousel = document.getElementById('home-carousel');
+  let currentPage = 0;
+  function goPage(p) {
+    currentPage = Math.max(0, Math.min(3, p));
+    carousel.style.transform = 'translateX(-' + (currentPage * 100/4) + '%)';
+    document.querySelectorAll('.home-dot').forEach((d,i) => d.classList.toggle('active', i === currentPage));
+  }
+  // Dot clicks
+  document.getElementById('home-dots').addEventListener('click', (e) => {
+    const dot = e.target.closest('.home-dot');
+    if (dot) goPage(parseInt(dot.dataset.page));
+  });
+  // Touch swipe
+  let hStart = null;
+  carousel.addEventListener('touchstart', (e) => { hStart = e.touches[0].clientX; }, {passive:true});
+  carousel.addEventListener('touchend', (e) => {
+    if (hStart === null) return;
+    const dx = e.changedTouches[0].clientX - hStart;
+    if (Math.abs(dx) > 50) goPage(currentPage + (dx < 0 ? 1 : -1));
+    hStart = null;
+  }, {passive:true});
+
+  // ─── Ripple effect on CTA ───
+  document.getElementById('home-enter-btn').addEventListener('click', function(e) {
+    const rect = this.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = Math.max(rect.width, rect.height) + 'px';
+    ripple.style.left = (e.clientX - rect.left - rect.width/2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - rect.height/2) + 'px';
+    this.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+    // Navigate
     const user = window.NYCKING_AUTH && window.NYCKING_AUTH.currentUser;
-    if (user) {
-      show('module-screen');
-    } else {
-      show('auth-screen');
+    setTimeout(() => show(user ? 'module-screen' : 'auth-screen'), 150);
+  });
+
+  // Feature cards on homepage → navigate if logged in
+  document.querySelectorAll('.feat-card[data-goto]').forEach(card => {
+    card.addEventListener('click', () => {
+      const user = window.NYCKING_AUTH && window.NYCKING_AUTH.currentUser;
+      if (user) show(card.dataset.goto);
+      else show('auth-screen');
+    });
+  });
+
+  // ─── Hash router: handle back button ───
+  window.addEventListener('popstate', (e) => {
+    if (e.state?.screen) {
+      screens.forEach(s => s.classList.remove('active'));
+      const el = document.getElementById(e.state.screen);
+      if (el) el.classList.add('active');
     }
   });
 
   // Module back → home
   document.getElementById('module-back').addEventListener('click', () => show('home-screen'));
+  document.getElementById('mod-home-btn').addEventListener('click', () => show('home-screen'));
+  document.getElementById('mod-signout-btn').addEventListener('click', () => {
+    if (window.NYCKING_SIGN_OUT) window.NYCKING_SIGN_OUT();
+  });
+  // Upgrade btn on pricing page
+  const upgradeBtn = document.getElementById('upgrade-btn');
+  if (upgradeBtn) upgradeBtn.addEventListener('click', () => {
+    const user = window.NYCKING_AUTH && window.NYCKING_AUTH.currentUser;
+    if (user) alert('Contact admin for Pro upgrade or use invite code.');
+    else show('auth-screen');
+  });
 
   // Module selection
   document.getElementById('go-voice').addEventListener('click', () => show('voice-screen'));
@@ -1544,14 +1785,14 @@
 (function(){
   const T = {
     en: {
-      tagline:'AI-Powered Multilingual Voice & Text Translation Platform',
-      home_desc:'Built on Google Gemini 2.5 Flash with context-aware neural translation, English-pivot anti-drift architecture, and real-time bilingual chat — designed for seamless cross-language communication.',
-      feat_voice:'<strong>Voice Translate</strong> — Real-time speech recognition with auto-speak. Supports continuous mode and noisy environment optimization.',
-      feat_text:'<strong>Text Translate</strong> — Type or paste any text for instant neural translation. Context memory retains 10+ recent pairs for semantic consistency.',
-      feat_chat:'<strong>Bilingual Chat Room</strong> — Real-time couples chat with auto-translation. Every message displays in both languages. Firestore cloud persistence + emoji support.',
-      feat_pivot:'<strong>Anti-Drift Engine</strong> — English-pivot architecture prevents Burmese/Lao translation drift. Numbers, units, and proper nouns preserved literally.',
-      enter_btn:'Enter Translator →', footer:'v2.1 · Private Access · PIN Required · Made with ❤️',
-      enter_pin:'Enter PIN', pin_sub:'6-digit access code', back:'← Back',
+      tagline:'AI Translation \u00D7 Social \u00D7 Games',
+      enter_btn:'Get Started \u2192', back:'\u2190 Back',
+      hp_feat_voice:'Real-time speech recognition + auto-speak',
+      hp_feat_text:'Gemini neural translation with context memory',
+      hp_feat_dm:'Friend DM with auto-translation',
+      hp_feat_social:'Add friends, moments feed, social',
+      hp_feat_games:'2048, Snake, Whack-a-Mole + leaderboard',
+      hp_feat_coach:'Smart conversation helper powered by Gemini',
       choose_mode:'Choose Mode', select_mode:'Select your translation mode',
       voice_name:'Voice Translate', voice_desc:'Speak and translate in real-time',
       text_name:'Text Translate', text_desc:'Type or paste text to translate',
@@ -1590,14 +1831,14 @@
       moments_placeholder:"What's on your mind?", moments_post:'Post',
     },
     zh: {
-      tagline:'AI 驱动的多语种语音 & 文字翻译平台',
-      home_desc:'基于 Google Gemini 2.5 Flash 构建，集成上下文感知神经翻译、英语中枢防漂移架构、实时双语聊天室 — 专为跨语言无缝沟通而设计。',
-      feat_voice:'<strong>语音翻译</strong> — 实时语音识别 + 自动朗读。支持连续模式和嘈杂环境降噪优化。',
-      feat_text:'<strong>文字翻译</strong> — 输入或粘贴任意文本，即刻获得神经网络翻译。上下文记忆保留 10+ 条历史对话，确保语义连贯。',
-      feat_chat:'<strong>双语聊天室</strong> — 情侣实时聊天 + 自动翻译。每条消息双语同时显示。Firestore 云端持久化 + 表情包支持。',
-      feat_pivot:'<strong>防漂移引擎</strong> — 英语中枢架构，防止缅甸语/老挝语翻译偏移。数字、单位、专有名词原样保留。',
-      enter_btn:'进入翻译器 →', footer:'v2.1 · 私密访问 · 需要 PIN · Made with ❤️',
-      enter_pin:'输入 PIN', pin_sub:'6 位数访问码', back:'← 返回',
+      tagline:'AI 翻译 × 社交 × 游戏',
+      enter_btn:'开始使用 →', back:'← 返回',
+      hp_feat_voice:'实时语音识别 + 自动朗读',
+      hp_feat_text:'Gemini 神经翻译 + 上下文记忆',
+      hp_feat_dm:'好友私聊 + 自动翻译',
+      hp_feat_social:'加好友、朋友圈动态',
+      hp_feat_games:'2048、贪吃蛇、打地鼠 + 排行榜',
+      hp_feat_coach:'Gemini 驱动的智能聊天助手',
       choose_mode:'选择模式', select_mode:'选择你的翻译模式',
       voice_name:'语音翻译', voice_desc:'实时语音翻译',
       text_name:'文字翻译', text_desc:'输入或粘贴文字进行翻译',
@@ -1859,7 +2100,9 @@
 </script>
 
 <!-- Auth -->
-<script src="/src/auth.js?v=1"></script>
+<script src="/src/auth.js?v=2"></script>
+<!-- Token Accounting -->
+<script src="/src/tokens.js?v=1"></script>
 <!-- Profile & Tab Nav -->
 <script src="/src/profile.js?v=2"></script>
 <!-- Social (Friends, DM, Moments) -->

@@ -69,6 +69,16 @@
     $('me-uname-val').textContent = user.username || '—';
     $('me-avatar-val').textContent = user.avatar || '😊';
     $('me-lang-val').textContent = (localStorage.getItem('nycking_i18n') || 'en').toUpperCase();
+    // Tier + Token balance
+    const tier = (user.tier || 'free').toUpperCase();
+    const tierBadge = $('me-tier-badge');
+    if (tierBadge) {
+      tierBadge.textContent = tier;
+      tierBadge.style.borderColor = tier === 'PRO' ? 'var(--accent)' : tier === 'ADMIN' ? 'var(--success)' : '#333';
+      tierBadge.style.color = tier === 'PRO' ? 'var(--accent)' : tier === 'ADMIN' ? 'var(--success)' : 'var(--text-dim)';
+    }
+    const tokenBal = $('me-token-bal');
+    if (tokenBal) tokenBal.textContent = (user.tokenBalance ?? 10000).toLocaleString();
     // Update tab bar Me icon
     $('tab-me-icon').textContent = user.avatar || '😊';
   }
