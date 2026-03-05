@@ -13,6 +13,7 @@ import { trackUsage, initFirestore } from "./middleware/usageTracker";
 import tokenRouter from "./routes/token";
 import translateRouter from "./routes/translate";
 import chatRouter from "./routes/chat";
+import coachRouter from "./routes/coach";
 import healthRouter from "./routes/health";
 
 // Validate required config before starting
@@ -66,6 +67,7 @@ app.use("/api", trackUsage);
 app.use("/api", tokenRouter);
 app.use("/api", translateRouter);
 app.use("/api", chatRouter);
+app.use("/api", coachRouter);
 app.use("/api", healthRouter);
 
 // Root health check (for Cloud Run)

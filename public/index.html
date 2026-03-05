@@ -256,6 +256,50 @@
     .lb-row .lb-game { font-size:12px; color:var(--text-dim); }
     .lb-row .lb-score { margin-left:auto; font-size:16px; font-weight:700; color:var(--accent); }
 
+    /* ===== AI COACH ===== */
+    #screen-coach { padding:calc(env(safe-area-inset-top,8px)+8px) 16px 16px; gap:10px; overflow-y:auto; }
+    .coach-tabs { display:flex; gap:6px; width:100%; max-width:360px; }
+    .coach-tab {
+      flex:1; padding:10px 6px; border-radius:10px; border:1px solid #333;
+      background:var(--surface); color:var(--text-dim); font-size:12px; font-weight:700;
+      cursor:pointer; text-align:center; transition:all .2s;
+    }
+    .coach-tab.active { border-color:var(--accent); color:var(--accent); background:#1a1a2e; }
+    .coach-stage-bar { display:flex; gap:6px; width:100%; max-width:360px; }
+    .coach-stage {
+      flex:1; padding:6px; border-radius:8px; border:1px solid #333;
+      background:var(--surface); color:var(--text-dim); font-size:11px;
+      cursor:pointer; text-align:center; transition:all .15s;
+    }
+    .coach-stage.active { border-color:var(--accent); color:#fff; background:var(--accent); }
+    .coach-input-area { width:100%; max-width:360px; }
+    .coach-input {
+      width:100%; min-height:80px; padding:12px; border-radius:12px;
+      border:1px solid #333; background:var(--surface); color:var(--text);
+      font-size:14px; resize:none; font-family:inherit;
+    }
+    .coach-input:focus { border-color:var(--accent); outline:none; }
+    .coach-send {
+      width:100%; max-width:360px; padding:12px; border-radius:12px; border:none;
+      background:var(--accent); color:#fff; font-size:14px; font-weight:700;
+      cursor:pointer; transition:all .2s;
+    }
+    .coach-send:active { transform:scale(0.97); }
+    .coach-send:disabled { opacity:.5; cursor:not-allowed; }
+    .coach-result {
+      width:100%; max-width:360px; padding:14px; border-radius:12px;
+      background:var(--surface); border:1px solid #222; min-height:60px;
+      font-size:14px; line-height:1.6; white-space:pre-wrap; color:var(--text);
+    }
+    .coach-result .cr-item {
+      padding:8px 0; border-bottom:1px solid #222; cursor:pointer; transition:all .15s;
+    }
+    .coach-result .cr-item:last-child { border-bottom:none; }
+    .coach-result .cr-item:active { color:var(--accent); }
+    .coach-loading { text-align:center; color:var(--text-dim); padding:20px; }
+    .coach-loading .dot-pulse { display:inline-block; animation:dotPulse 1.2s infinite; }
+    @keyframes dotPulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+
     /* ===== SHARED TRANSLATOR STYLES ===== */
     .translator-screen {
       padding:calc(env(safe-area-inset-top,8px)+8px) 16px calc(env(safe-area-inset-bottom,8px)+8px);
@@ -750,6 +794,14 @@
       </div>
       <div class="mod-arrow">›</div>
     </div>
+    <div class="module-card" id="go-coach">
+      <div class="mod-icon">&#x1F4A1;</div>
+      <div class="mod-info">
+        <div class="mod-name" data-i18n="coach_name">AI Assistant</div>
+        <div class="mod-desc" data-i18n="coach_desc">Smart conversation helper</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </div>
   </div>
 
   <!-- Install App Banner -->
@@ -1062,6 +1114,36 @@
   </div>
 </div>
 
+<!-- ===== 12. AI COACH ===== -->
+<div id="screen-coach" class="screen">
+  <div class="header">
+    <button class="back-btn" id="back-coach">&#x2039;</button>
+    <span class="logo">&#x1F4A1; <span data-i18n="coach_name">AI Assistant</span></span>
+  </div>
+  <!-- Mode tabs -->
+  <div class="coach-tabs">
+    <button class="coach-tab active" data-mode="topics">&#x1F4A1; <span data-i18n="coach_topics">Topics</span></button>
+    <button class="coach-tab" data-mode="polish">&#x2728; <span data-i18n="coach_polish">Polish</span></button>
+    <button class="coach-tab" data-mode="reply">&#x1F3AF; <span data-i18n="coach_reply">Reply</span></button>
+  </div>
+  <!-- Stage selector -->
+  <div class="coach-stage-bar">
+    <button class="coach-stage active" data-stage="new" data-i18n="coach_new">Just Met</button>
+    <button class="coach-stage" data-stage="friends" data-i18n="coach_friends">Friends</button>
+    <button class="coach-stage" data-stage="close" data-i18n="coach_close">Close</button>
+  </div>
+  <!-- Input area (hidden for topics mode) -->
+  <div class="coach-input-area" id="coach-input-area" style="display:none">
+    <textarea class="coach-input" id="coach-input" rows="3" data-i18n-placeholder="coach_placeholder" placeholder="Type your message or paste theirs..."></textarea>
+  </div>
+  <!-- Send button -->
+  <button class="coach-send" id="coach-send" data-i18n="coach_go">&#x2728; Get Suggestions</button>
+  <!-- Result area -->
+  <div class="coach-result" id="coach-result">
+    <div style="text-align:center;color:var(--text-dim);padding:10px" data-i18n="coach_hint">Choose a mode and tap the button!</div>
+  </div>
+</div>
+
 <!-- Token cost badge (global) -->
 <div class="cost-badge" id="cost-badge" style="display:none">
   ⚡ <span class="cost-val" id="cost-val">฿0.0000</span>
@@ -1136,6 +1218,8 @@
   document.getElementById('go-text').addEventListener('click', () => show('text-screen'));
   document.getElementById('go-chat').addEventListener('click', () => show('chat-screen'));
   document.getElementById('go-games').addEventListener('click', () => show('game-lobby'));
+  document.getElementById('go-coach').addEventListener('click', () => show('screen-coach'));
+  document.getElementById('back-coach').addEventListener('click', () => show('module-screen'));
 
   // Game lobby navigation
   document.getElementById('games-back').addEventListener('click', () => show('module-screen'));
@@ -1191,6 +1275,11 @@
       leaderboard:'Leaderboard', lb_desc:'View high scores', lb_empty:'No scores yet. Play a game first!',
       g_score:'Score', g_best:'Best', g_retry:'Play Again', g_start:'Start!', g_timesup:"Time's Up!",
       g_2048_hint:'Swipe to move tiles. Merge same numbers!', g_snake_hint:'Swipe to change direction',
+      coach_name:'AI Assistant', coach_desc:'Smart conversation helper',
+      coach_topics:'Topics', coach_polish:'Polish', coach_reply:'Reply',
+      coach_new:'Just Met', coach_friends:'Friends', coach_close:'Close',
+      coach_go:'✨ Get Suggestions', coach_hint:'Choose a mode and tap the button!',
+      coach_placeholder:'Type your message or paste theirs...',
     },
     zh: {
       tagline:'AI 驱动的多语种语音 & 文字翻译平台',
@@ -1220,6 +1309,11 @@
       leaderboard:'排行榜', lb_desc:'查看最高分', lb_empty:'还没有分数，先去玩个游戏吧！',
       g_score:'得分', g_best:'最高', g_retry:'再来一局', g_start:'开始！', g_timesup:'时间到！',
       g_2048_hint:'滑动移动方块，相同数字合并！', g_snake_hint:'滑动改变方向',
+      coach_name:'AI 助手', coach_desc:'智能沟通小帮手',
+      coach_topics:'话题灵感', coach_polish:'消息润色', coach_reply:'回复建议',
+      coach_new:'刚认识', coach_friends:'朋友', coach_close:'亲密',
+      coach_go:'✨ 获取建议', coach_hint:'选择模式，点击按钮！',
+      coach_placeholder:'输入你想说的，或粘贴对方的消息...',
     },
     th: {
       tagline:'แพลตฟอร์มแปลเสียงและข้อความหลายภาษาด้วย AI',
@@ -1249,6 +1343,11 @@
       leaderboard:'ลีดเดอร์บอร์ด', lb_desc:'ดูคะแนนสูงสุด', lb_empty:'ยังไม่มีคะแนน เล่นเกมก่อน!',
       g_score:'คะแนน', g_best:'สูงสุด', g_retry:'เล่นอีกครั้ง', g_start:'เริ่ม!', g_timesup:'หมดเวลา!',
       g_2048_hint:'เลื่อนเพื่อย้ายบล็อก รวมตัวเลขเดียวกัน!', g_snake_hint:'เลื่อนเพื่อเปลี่ยนทิศทาง',
+      coach_name:'ผู้ช่วย AI', coach_desc:'ตัวช่วยสนทนาอัจฉริยะ',
+      coach_topics:'หัวข้อ', coach_polish:'ปรับแต่ง', coach_reply:'แนะนำ',
+      coach_new:'เพิ่งรู้จัก', coach_friends:'เพื่อน', coach_close:'สนิท',
+      coach_go:'✨ รับคำแนะนำ', coach_hint:'เลือกโหมดแล้วกดปุ่ม!',
+      coach_placeholder:'พิมพ์ข้อความหรือวางข้อความของเขา...',
     },
     my: {
       tagline:'AI နဲ့ အသံ & စာသား ဘာသာပြန် ပလက်ဖောင်း',
@@ -1278,6 +1377,11 @@
       leaderboard:'အဆင့်မြင့်ဆုံး', lb_desc:'အမြင့်ဆုံးစကိုက်များကြည့်ပါ', lb_empty:'အမှတ်မရှိသေးပါ။ ဂိမ်းတစ်ခု ကြိုက်ကြည့်ပါ!',
       g_score:'အမှတ်', g_best:'အမြင့်ဆုံး', g_retry:'ထပ်ကြိုက်မယ်', g_start:'စတင်!', g_timesup:'အချိန်ကုန်ပြီ!',
       g_2048_hint:'ပွတ်ပြီး တူညီနံပါတ်များ ပေါင်းစပ်ပါ!', g_snake_hint:'ပွတ်ပြီး အရပ်ပြောင်းပါ',
+      coach_name:'AI လက်ထောက်', coach_desc:'စကားပြောကူညီပေးသူ',
+      coach_topics:'ခေါင်းစဉ်', coach_polish:'ပြင်ဆင်', coach_reply:'အကြံပြု',
+      coach_new:'အသစ်', coach_friends:'သူငယ်ချင်း', coach_close:'ရင်းနှီး',
+      coach_go:'✨ အကြံပြုချက်ယူပါ', coach_hint:'မုဒ်ရွေးပြီး ခလုတ်နှိပ်ပါ!',
+      coach_placeholder:'သင့်မက်ဆေ့ချ်ရိုက်ပါ သို့ သူတို့ရဲ့ကိုကူးထည့်ပါ...',
     }
   };
 
@@ -1412,7 +1516,9 @@
 
 <!-- Games -->
 <script src="/src/games.js?v=1"></script>
+<!-- AI Coach -->
+<script src="/src/coach.js?v=1"></script>
 <!-- App -->
-<script type="module" src="/src/app.js?v=9"></script>
+<script type="module" src="/src/app.js?v=10"></script>
 </body>
 </html>
