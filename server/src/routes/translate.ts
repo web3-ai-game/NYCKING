@@ -3,7 +3,7 @@
  * Languages: Chinese ↔ Thai ↔ English ↔ Lao ↔ Myanmar (all pairs)
  * Myanmar: auto-pivot via English to prevent drift
  * Context: accepts recent ~10 translations for consistency
- * Scenes: travel, romance, business
+ * Scenes: travel, romance, business, phrases
  */
 
 import { Router, Request, Response } from "express";
@@ -24,7 +24,7 @@ const LANG_NAMES: Record<string, string> = {
 const VALID_LANGS = new Set(Object.keys(LANG_NAMES));
 
 // Languages that need English pivot to avoid translation drift
-const PIVOT_LANGS = new Set(["my-MM", "lo-LA"]);
+const PIVOT_LANGS = new Set(["my-MM", "lo-LA", "th-TH"]);
 
 const SCENE_PROMPTS: Record<string, string> = {
   travel: `Context: Travel & Daily Life — asking directions, ordering food, shopping at markets, hotel check-in, transportation, sightseeing.
@@ -35,6 +35,9 @@ Vocabulary style: warm, affectionate, emotionally expressive. Use natural romant
 
   business: `Context: Business & Professional — meetings, contracts, negotiations, risk management, formal discussions, presentations, legal terms.
 Vocabulary style: formal, precise, professional. Use proper business terminology.`,
+
+  phrases: `Context: Common Everyday Phrases — greetings, thank-you, apologies, asking for help, directions, emergencies, polite expressions, basic needs.
+Vocabulary style: simple, clear, universally understood. Prioritize the most natural and commonly used phrasing in the target language.`,
 };
 
 // Gemini 2.5 Flash pricing (USD per 1M tokens)
@@ -95,6 +98,8 @@ Rules:
 - Keep greetings and short phrases concise
 - Be natural and conversational for the given context
 - ANTI-DRIFT: Do NOT mix scripts or borrow words from other languages. Use only the target language's standard script and vocabulary.
+- ACCURACY PRIORITY: Translate the MEANING, not word-by-word. If the input is unclear or fragmented (e.g., from speech recognition), reconstruct the most likely intended sentence first, then translate.
+- For Thai/Lao/Burmese: use the most commonly spoken everyday form. Avoid literary or archaic expressions. Prefer colloquial natural phrasing that native speakers actually use in daily life.
 
 Text:
 ${text}`;
@@ -105,7 +110,7 @@ async function callGemini(prompt: string): Promise<{ text: string; tokensIn: num
     model: "gemini-2.5-flash",
     contents: prompt,
     config: {
-      temperature: 0.3,
+      temperature: 0.2,
       maxOutputTokens: 256,
       thinkingConfig: {
         thinkingBudget: 0,
