@@ -228,6 +228,29 @@
     }
     .cost-badge .cost-val { color:var(--accent); font-weight:700; }
 
+    /* Text input bar */
+    .text-input-bar {
+      display:flex; gap:8px;
+      background:var(--surface); border-radius:var(--radius);
+      padding:8px 10px;
+    }
+    .text-input-bar input {
+      flex:1; background:var(--surface2); border:1px solid #333;
+      color:var(--text); font-size:15px; padding:10px 12px;
+      border-radius:10px; outline:none;
+    }
+    .text-input-bar input:focus { border-color:var(--accent); }
+    .text-input-bar input::placeholder { color:var(--text-dim); }
+    .send-btn {
+      width:44px; height:44px; border-radius:50%;
+      background:var(--accent); border:none; color:#fff;
+      font-size:20px; cursor:pointer; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .15s;
+    }
+    .send-btn:active { transform:scale(0.9); }
+    .send-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
     /* Not supported warning */
     .not-supported {
       background:rgba(239,68,68,0.15); border:1px solid var(--error);
@@ -328,6 +351,12 @@
     <div class="mic-label" id="mic-label">点击开始说话 Tap to speak</div>
   </div>
 
+  <!-- Text input fallback -->
+  <div class="text-input-bar" id="text-input-bar">
+    <input type="text" id="text-input" placeholder="输入文字翻译 Type to translate..." autocomplete="off" enterkeyhint="send">
+    <button class="send-btn" id="send-btn" title="发送翻译">➤</button>
+  </div>
+
   <!-- Controls -->
   <div class="controls">
     <label class="toggle-label">
@@ -417,6 +446,6 @@
 </script>
 
 <!-- App -->
-<script type="module" src="/src/app.js?v=3"></script>
+<script type="module" src="/src/app.js?v=4"></script>
 </body>
 </html>

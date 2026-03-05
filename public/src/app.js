@@ -48,6 +48,8 @@ const sceneBar = $('scene-bar');
 const costBadge = $('cost-badge');
 const costVal = $('cost-val');
 const costTokens = $('cost-tokens');
+const textInput = $('text-input');
+const sendBtn = $('send-btn');
 
 // ─── TTS Voice Map ───
 // Lock to official standard voices per language
@@ -323,6 +325,15 @@ function speak(text, lang) {
   speechSynthesis.speak(utterance);
 }
 
+// ─── Text Input Fallback ───
+function submitTextInput() {
+  const text = textInput.value.trim();
+  if (!text || isTranslating) return;
+  setSourceText(text, false);
+  textInput.value = '';
+  translate(text);
+}
+
 // ─── UI Helpers ───
 function setSourceText(text, isInterim) {
   sourceText.textContent = text;
@@ -418,6 +429,15 @@ function bindEvents() {
   autoSpeakCb.addEventListener('change', () => { autoSpeak = autoSpeakCb.checked; });
   continuousCb.addEventListener('change', () => { continuous = continuousCb.checked; });
   noisyEnvCb.addEventListener('change', () => { noisyEnv = noisyEnvCb.checked; });
+
+  // Text input — send on click or Enter
+  sendBtn.addEventListener('click', () => submitTextInput());
+  textInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.isComposing) {
+      e.preventDefault();
+      submitTextInput();
+    }
+  });
 
   // Scene selector
   sceneBar.addEventListener('click', (e) => {
