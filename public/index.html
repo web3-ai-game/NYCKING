@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" translate="no">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0a0a0a">
+  <meta name="google" content="notranslate">
   <title>NYCKING Translator</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" type="image/png" href="/icons/icon-192.png">
@@ -333,9 +334,13 @@
     }
 
     /* ===== CHAT ROOM ===== */
+    #chat-screen {
+      padding: env(safe-area-inset-top,0) 12px env(safe-area-inset-bottom,0);
+      height:100dvh; overflow:hidden;
+    }
     .chat-setup {
       background:var(--surface); border-radius:var(--radius); padding:16px;
-      display:flex; flex-direction:column; gap:12px;
+      display:flex; flex-direction:column; gap:12px; margin:8px 0;
     }
     .chat-setup-row {
       display:flex; gap:8px; align-items:center;
@@ -355,12 +360,13 @@
     .chat-join-btn:active { transform:scale(0.95); }
     .chat-area {
       flex:1; overflow-y:auto; display:flex; flex-direction:column;
-      gap:10px; padding:8px 0; min-height:200px;
+      gap:8px; padding:6px 0; min-height:0;
+      -webkit-overflow-scrolling:touch;
     }
     .bubble {
-      max-width:85%; padding:10px 14px; border-radius:16px;
-      font-size:14px; line-height:1.5; position:relative;
-      word-break:break-word;
+      max-width:80%; padding:8px 12px; border-radius:14px;
+      font-size:13px; line-height:1.45; position:relative;
+      word-break:break-word; flex-shrink:0;
     }
     .bubble.mine {
       align-self:flex-end; background:#2d4a1e; border-bottom-right-radius:4px;
@@ -369,21 +375,21 @@
       align-self:flex-start; background:var(--surface2); border-bottom-left-radius:4px;
     }
     .bubble .b-name {
-      font-size:11px; font-weight:700; color:var(--accent); margin-bottom:3px;
+      font-size:10px; font-weight:700; color:var(--accent); margin-bottom:2px;
     }
-    .bubble .b-original { margin-bottom:4px; }
+    .bubble .b-original { margin-bottom:3px; }
     .bubble .b-translated {
-      font-size:13px; color:var(--text-dim); border-top:1px solid #333;
-      padding-top:4px; margin-top:4px;
+      font-size:12px; color:var(--text-dim); border-top:1px solid #333;
+      padding-top:3px; margin-top:3px;
     }
     .bubble .b-delete {
-      position:absolute; top:4px; right:6px;
-      background:none; border:none; color:#555; font-size:12px;
+      position:absolute; top:3px; right:5px;
+      background:none; border:none; color:#555; font-size:11px;
       cursor:pointer; opacity:0; transition:opacity .2s;
     }
     .bubble:hover .b-delete, .bubble:active .b-delete { opacity:1; }
     .chat-input-bar {
-      display:flex; gap:8px; padding:8px 0;
+      display:flex; gap:8px; padding:8px 0; flex-shrink:0;
     }
     .chat-input-bar input {
       flex:1; background:var(--surface2); border:1px solid #333;
@@ -393,13 +399,68 @@
     .chat-input-bar input:focus { border-color:var(--accent); }
     .chat-input-bar input::placeholder { color:var(--text-dim); }
     .chat-empty {
-      text-align:center; color:var(--text-dim); font-size:14px;
-      padding:40px 0;
+      text-align:center; color:var(--text-dim); font-size:13px;
+      padding:30px 0;
     }
     .chat-clear-btn {
       background:none; border:none; color:var(--text-dim);
       font-size:12px; cursor:pointer; text-decoration:underline;
     }
+    .online-badge {
+      font-size:11px; color:var(--success); display:inline-flex;
+      align-items:center; gap:4px;
+    }
+    .online-dot {
+      width:7px; height:7px; border-radius:50%; background:var(--success);
+      display:inline-block; animation:pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* i18n switcher */
+    .i18n-btn {
+      position:fixed; top:env(safe-area-inset-top,10px); right:10px; z-index:200;
+      background:var(--surface); border:1px solid #333; border-radius:10px;
+      padding:6px 10px; color:var(--text); font-size:12px; font-weight:700;
+      cursor:pointer; display:flex; align-items:center; gap:4px;
+      backdrop-filter:blur(8px);
+    }
+    .i18n-btn:active { border-color:var(--accent); }
+    .i18n-menu {
+      position:fixed; top:calc(env(safe-area-inset-top,10px)+36px); right:10px; z-index:200;
+      background:var(--surface); border:1px solid #333; border-radius:12px;
+      padding:6px 0; display:none; min-width:130px;
+      box-shadow:0 8px 24px rgba(0,0,0,.5);
+    }
+    .i18n-menu.open { display:block; }
+    .i18n-opt {
+      display:block; width:100%; background:none; border:none;
+      color:var(--text); font-size:13px; padding:8px 14px;
+      text-align:left; cursor:pointer;
+    }
+    .i18n-opt:hover, .i18n-opt.active { background:var(--surface2); color:var(--accent); }
+
+    /* Emoji picker */
+    .emoji-btn {
+      width:40px; height:40px; border-radius:10px; flex-shrink:0;
+      background:var(--surface2); border:1px solid #333;
+      font-size:20px; cursor:pointer; display:flex;
+      align-items:center; justify-content:center;
+    }
+    .emoji-btn:active { border-color:var(--accent); }
+    .emoji-panel {
+      display:none; position:absolute; bottom:52px; left:0; right:0;
+      background:var(--surface); border:1px solid #333; border-radius:12px;
+      padding:10px; max-height:160px; overflow-y:auto;
+      box-shadow:0 -4px 20px rgba(0,0,0,.4);
+    }
+    .emoji-panel.open { display:block; }
+    .emoji-grid {
+      display:grid; grid-template-columns:repeat(8,1fr); gap:4px; text-align:center;
+    }
+    .emoji-grid span {
+      font-size:22px; cursor:pointer; padding:4px; border-radius:8px;
+    }
+    .emoji-grid span:active { background:var(--surface2); }
 
     @media (min-width:600px) {
       .translator-screen { max-width:500px; margin:0 auto; }
@@ -408,12 +469,21 @@
 </head>
 <body>
 
+<!-- i18n switcher -->
+<button class="i18n-btn" id="i18n-btn">🌐 EN</button>
+<div class="i18n-menu" id="i18n-menu">
+  <button class="i18n-opt active" data-lang="en">🇺🇸 English</button>
+  <button class="i18n-opt" data-lang="zh">🇨🇳 中文</button>
+  <button class="i18n-opt" data-lang="th">🇹🇭 ไทย</button>
+  <button class="i18n-opt" data-lang="my">🇲🇲 မြန်မာ</button>
+</div>
+
 <!-- ===== 1. HOMEPAGE ===== -->
 <div id="home-screen" class="screen active">
   <div class="home-logo">NYCKING</div>
   <div class="home-tagline">
-    Real-time Voice & Text Translator<br>
-    <span style="font-size:13px;color:#555">Powered by Gemini AI</span>
+    <span data-i18n="tagline">Real-time Voice & Text Translator</span><br>
+    <span style="font-size:13px;color:#555" data-i18n="powered">Powered by Gemini AI</span>
   </div>
   <div class="home-langs">
     <div class="home-lang-card">
@@ -437,15 +507,15 @@
       <div class="lang-sub">Standard Burmese</div>
     </div>
   </div>
-  <button class="home-enter-btn" id="home-enter-btn">Enter Translator →</button>
-  <div class="home-footer">v2.0 · Private Access · PIN Required</div>
+  <button class="home-enter-btn" id="home-enter-btn" data-i18n="enter_btn">Enter Translator →</button>
+  <div class="home-footer" data-i18n="footer">v2.1 · Private Access · PIN Required</div>
 </div>
 
 <!-- ===== 2. PIN GATE ===== -->
 <div id="pin-screen" class="screen">
   <div class="pin-icon">🔐</div>
-  <div class="pin-title">Enter PIN</div>
-  <div class="pin-subtitle">6-digit access code</div>
+  <div class="pin-title" data-i18n="enter_pin">Enter PIN</div>
+  <div class="pin-subtitle" data-i18n="pin_sub">6-digit access code</div>
   <div class="pin-dots" id="pin-dots">
     <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
     <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
@@ -464,36 +534,36 @@
     <button class="pin-key" data-key="0">0</button>
     <button class="pin-key fn" data-key="clear">C</button>
   </div>
-  <button class="pin-back" id="pin-back">← Back</button>
+  <button class="pin-back" id="pin-back" data-i18n="back">← Back</button>
 </div>
 
 <!-- ===== 3. MODULE SELECTOR ===== -->
 <div id="module-screen" class="screen">
   <div class="home-logo">NYCKING</div>
-  <div class="module-title">Choose Mode</div>
-  <div class="module-sub">Select your translation mode</div>
+  <div class="module-title" data-i18n="choose_mode">Choose Mode</div>
+  <div class="module-sub" data-i18n="select_mode">Select your translation mode</div>
   <div class="module-cards">
     <div class="module-card" id="go-voice">
       <div class="mod-icon">🎙️</div>
       <div class="mod-info">
-        <div class="mod-name">Voice Translate</div>
-        <div class="mod-desc">语音翻译 · Speak and translate in real-time</div>
+        <div class="mod-name" data-i18n="voice_name">Voice Translate</div>
+        <div class="mod-desc" data-i18n="voice_desc">Speak and translate in real-time</div>
       </div>
       <div class="mod-arrow">›</div>
     </div>
     <div class="module-card" id="go-text">
       <div class="mod-icon">📝</div>
       <div class="mod-info">
-        <div class="mod-name">Text Translate</div>
-        <div class="mod-desc">文字翻译 · Type or paste text to translate</div>
+        <div class="mod-name" data-i18n="text_name">Text Translate</div>
+        <div class="mod-desc" data-i18n="text_desc">Type or paste text to translate</div>
       </div>
       <div class="mod-arrow">›</div>
     </div>
     <div class="module-card" id="go-chat">
       <div class="mod-icon">💕💕💕</div>
       <div class="mod-info">
-        <div class="mod-name">Chat Room</div>
-        <div class="mod-desc">双语聊天室 · Bilingual chat with your partner</div>
+        <div class="mod-name" data-i18n="chat_name">Chat Room</div>
+        <div class="mod-desc" data-i18n="chat_desc">Bilingual chat with your partner</div>
       </div>
       <div class="mod-arrow">›</div>
     </div>
@@ -534,36 +604,36 @@
 
   <div class="text-panel" id="v-source-panel">
     <div class="panel-label"><span>🎙️ SOURCE</span></div>
-    <div class="panel-text placeholder" id="v-source-text">Tap the mic to speak</div>
+    <div class="panel-text placeholder" id="v-source-text" data-i18n="tap_mic">Tap the mic to speak</div>
   </div>
   <div class="text-panel" id="v-target-panel">
     <div class="panel-label">
       <span>🔊 TRANSLATION</span>
       <button class="speak-btn" id="v-speak-btn">🔊</button>
     </div>
-    <div class="panel-text placeholder" id="v-target-text">Translation appears here</div>
+    <div class="panel-text placeholder" id="v-target-text" data-i18n="translation_here">Translation appears here</div>
   </div>
 
   <div class="status-bar" id="v-status"></div>
 
   <div class="mic-section">
     <button class="mic-btn" id="v-mic-btn">🎤</button>
-    <div class="mic-label" id="v-mic-label">Tap to speak</div>
+    <div class="mic-label" id="v-mic-label" data-i18n="tap_speak">Tap to speak</div>
   </div>
 
   <div class="text-input-bar">
-    <input type="text" id="v-text-input" placeholder="Or type here..." autocomplete="off" enterkeyhint="send">
+    <input type="text" id="v-text-input" data-i18n-ph="or_type" placeholder="Or type here..." autocomplete="off" enterkeyhint="send">
     <button class="send-btn" id="v-send-btn">➤</button>
   </div>
 
   <div class="controls">
-    <label class="toggle-label"><input type="checkbox" id="v-auto-speak" checked><span>🔊 Auto-speak</span></label>
-    <label class="toggle-label"><input type="checkbox" id="v-continuous"><span>🔄 Continuous</span></label>
-    <label class="toggle-label"><input type="checkbox" id="v-noisy"><span>📢 Noisy env</span></label>
+    <label class="toggle-label"><input type="checkbox" id="v-auto-speak" checked><span data-i18n="auto_speak">🔊 Auto-speak</span></label>
+    <label class="toggle-label"><input type="checkbox" id="v-continuous"><span data-i18n="continuous">🔄 Continuous</span></label>
+    <label class="toggle-label"><input type="checkbox" id="v-noisy"><span data-i18n="noisy">📢 Noisy env</span></label>
   </div>
 
   <div class="history-section">
-    <div class="history-header">📝 History <span id="v-history-count"></span></div>
+    <div class="history-header" data-i18n="history">📝 History <span id="v-history-count"></span></div>
     <div class="history-list" id="v-history-list"></div>
   </div>
 
@@ -605,10 +675,10 @@
   </div>
 
   <div class="text-area-input">
-    <textarea id="t-input" rows="4" placeholder="Type or paste text to translate..."></textarea>
+    <textarea id="t-input" rows="4" data-i18n-ph="type_paste" placeholder="Type or paste text to translate..."></textarea>
     <div class="text-area-actions">
-      <button class="clear-btn" id="t-clear-btn">Clear</button>
-      <button class="translate-btn" id="t-translate-btn">Translate ➤</button>
+      <button class="clear-btn" id="t-clear-btn" data-i18n="clear">Clear</button>
+      <button class="translate-btn" id="t-translate-btn" data-i18n="translate_btn">Translate ➤</button>
     </div>
   </div>
 
@@ -617,18 +687,18 @@
       <span>🔊 TRANSLATION</span>
       <button class="speak-btn" id="t-speak-btn">🔊</button>
     </div>
-    <div class="panel-text placeholder" id="t-target-text">Translation appears here</div>
+    <div class="panel-text placeholder" id="t-target-text" data-i18n="translation_here">Translation appears here</div>
   </div>
 
   <div class="status-bar" id="t-status"></div>
 
   <div class="controls">
-    <label class="toggle-label"><input type="checkbox" id="t-auto-speak"><span>🔊 Auto-speak</span></label>
-    <label class="toggle-label"><input type="checkbox" id="t-noisy"><span>📢 Noisy env</span></label>
+    <label class="toggle-label"><input type="checkbox" id="t-auto-speak"><span data-i18n="auto_speak">🔊 Auto-speak</span></label>
+    <label class="toggle-label"><input type="checkbox" id="t-noisy"><span data-i18n="noisy">📢 Noisy env</span></label>
   </div>
 
   <div class="history-section">
-    <div class="history-header">📝 History <span id="t-history-count"></span></div>
+    <div class="history-header" data-i18n="history">📝 History <span id="t-history-count"></span></div>
     <div class="history-list" id="t-history-list"></div>
   </div>
 </div>
@@ -637,15 +707,15 @@
 <div id="chat-screen" class="screen translator-screen">
   <div class="header">
     <button class="back-btn" id="chat-back">‹</button>
-    <span class="logo">💕 Chat</span>
-    <button class="chat-clear-btn" id="c-clear-all">Clear all</button>
+    <span class="logo">💕 Chat <span class="online-badge" id="c-online"><span class="online-dot"></span><span id="c-online-count">0</span> online</span></span>
+    <button class="chat-clear-btn" id="c-clear-all" data-i18n="clear_all">Clear all</button>
   </div>
 
   <!-- Setup (shown before joining) -->
   <div class="chat-setup" id="c-setup">
-    <div style="text-align:center;font-size:14px;color:var(--text-dim)">Enter your name & language to start chatting</div>
+    <div style="text-align:center;font-size:14px;color:var(--text-dim)" data-i18n="chat_setup">Enter your name & language to start chatting</div>
     <div class="chat-setup-row">
-      <input type="text" id="c-username" placeholder="Your name..." maxlength="20" autocomplete="off">
+      <input type="text" id="c-username" data-i18n-ph="your_name" placeholder="Your name..." maxlength="20" autocomplete="off">
     </div>
     <div class="chat-setup-row">
       <select id="c-my-lang" class="lang-select">
@@ -664,20 +734,30 @@
         <option value="lo-LA">🇱🇦 ລາວ</option>
       </select>
     </div>
-    <button class="chat-join-btn" id="c-join-btn">💕 Join Chat</button>
+    <button class="chat-join-btn" id="c-join-btn" data-i18n="join_chat">💕 Join Chat</button>
   </div>
 
   <!-- Chat area (shown after joining) -->
   <div class="chat-area" id="c-chat-area" style="display:none">
-    <div class="chat-empty" id="c-empty">No messages yet. Say hi! 👋</div>
+    <div class="chat-empty" id="c-empty" data-i18n="no_msg">No messages yet. Say hi! 👋</div>
   </div>
 
   <div class="status-bar" id="c-status"></div>
 
   <!-- Chat input (shown after joining) -->
-  <div class="chat-input-bar" id="c-input-bar" style="display:none">
-    <input type="text" id="c-msg-input" placeholder="Type a message..." autocomplete="off" enterkeyhint="send">
+  <div class="chat-input-bar" id="c-input-bar" style="display:none;position:relative">
+    <input type="text" id="c-msg-input" data-i18n-ph="type_msg" placeholder="Type a message..." autocomplete="off" enterkeyhint="send">
+    <button class="emoji-btn" id="c-emoji-btn">😊</button>
     <button class="send-btn" id="c-send-btn">➤</button>
+    <div class="emoji-panel" id="c-emoji-panel">
+      <div class="emoji-grid">
+        <span>❤️</span><span>💕</span><span>😘</span><span>🥰</span><span>😍</span><span>😊</span><span>😂</span><span>😅</span>
+        <span>👍</span><span>👋</span><span>🙏</span><span>🤣</span><span>😢</span><span>😤</span><span>😱</span><span>🤔</span>
+        <span>🌹</span><span>🌟</span><span>🎉</span><span>🍎</span><span>☕</span><span>🍜</span><span>🍔</span><span>🍰</span>
+        <span>🚗</span><span>✈️</span><span>🏠</span><span>🌍</span><span>☀️</span><span>🌙</span><span>⚡</span><span>🌈</span>
+        <span>💪</span><span>🔥</span><span>👌</span><span>✌️</span><span>🤟</span><span>🤗</span><span>😎</span><span>🐶</span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -763,6 +843,126 @@
   // Expose for app.js
   window.NYCKING_SHOW = show;
 })();
+
+// ═══ i18n ═══
+(function(){
+  const T = {
+    en: {
+      tagline:'Real-time Voice & Text Translator', powered:'Powered by Gemini AI',
+      enter_btn:'Enter Translator →', footer:'v2.1 · Private Access · PIN Required',
+      enter_pin:'Enter PIN', pin_sub:'6-digit access code', back:'← Back',
+      choose_mode:'Choose Mode', select_mode:'Select your translation mode',
+      voice_name:'Voice Translate', voice_desc:'Speak and translate in real-time',
+      text_name:'Text Translate', text_desc:'Type or paste text to translate',
+      chat_name:'Chat Room', chat_desc:'Bilingual chat with your partner',
+      tap_mic:'Tap the mic to speak', translation_here:'Translation appears here',
+      tap_speak:'Tap to speak', or_type:'Or type here...',
+      auto_speak:'🔊 Auto-speak', continuous:'🔄 Continuous', noisy:'📢 Noisy env',
+      history:'📝 History', type_paste:'Type or paste text to translate...',
+      clear:'Clear', translate_btn:'Translate ➤',
+      clear_all:'Clear all', chat_setup:'Enter your name & language to start chatting',
+      your_name:'Your name...', join_chat:'💕 Join Chat',
+      no_msg:'No messages yet. Say hi! 👋', type_msg:'Type a message...',
+    },
+    zh: {
+      tagline:'实时语音 & 文字翻译器', powered:'由 Gemini AI 驱动',
+      enter_btn:'进入翻译器 →', footer:'v2.1 · 私密访问 · 需要 PIN',
+      enter_pin:'输入 PIN', pin_sub:'6 位数访问码', back:'← 返回',
+      choose_mode:'选择模式', select_mode:'选择你的翻译模式',
+      voice_name:'语音翻译', voice_desc:'实时语音翻译',
+      text_name:'文字翻译', text_desc:'输入或粘贴文字进行翻译',
+      chat_name:'聊天室', chat_desc:'与伴侣双语聊天',
+      tap_mic:'点击麦克风说话', translation_here:'翻译结果显示在这里',
+      tap_speak:'点击说话', or_type:'或在此输入...',
+      auto_speak:'🔊 自动朗读', continuous:'🔄 连续模式', noisy:'📢 嘈杂环境',
+      history:'📝 历史记录', type_paste:'输入或粘贴要翻译的文字...',
+      clear:'清除', translate_btn:'翻译 ➤',
+      clear_all:'全部清除', chat_setup:'输入你的名字和语言开始聊天',
+      your_name:'你的名字...', join_chat:'💕 加入聊天',
+      no_msg:'还没有消息，打个招呼吧！👋', type_msg:'输入消息...',
+    },
+    th: {
+      tagline:'แปลเสียงและข้อความแบบเรียลไทม์', powered:'ขับเคลื่อนโดย Gemini AI',
+      enter_btn:'เข้าสู่ตัวแปล →', footer:'v2.1 · เข้าถึงส่วนตัว · ต้องใช้ PIN',
+      enter_pin:'ใส่ PIN', pin_sub:'รหัสเข้าถึง 6 หลัก', back:'← กลับ',
+      choose_mode:'เลือกโหมด', select_mode:'เลือกโหมดการแปลของคุณ',
+      voice_name:'แปลเสียง', voice_desc:'พูดแล้วแปลแบบเรียลไทม์',
+      text_name:'แปลข้อความ', text_desc:'พิมพ์หรือวางข้อความเพื่อแปล',
+      chat_name:'ห้องแชท', chat_desc:'แชทสองภาษากับคู่ของคุณ',
+      tap_mic:'แตะไมค์เพื่อพูด', translation_here:'คำแปลจะแสดงที่นี่',
+      tap_speak:'แตะเพื่อพูด', or_type:'หรือพิมพ์ที่นี่...',
+      auto_speak:'🔊 อ่านอัตโนมัติ', continuous:'🔄 ต่อเนื่อง', noisy:'📢 เสียงดัง',
+      history:'📝 ประวัติ', type_paste:'พิมพ์หรือวางข้อความเพื่อแปล...',
+      clear:'ล้าง', translate_btn:'แปล ➤',
+      clear_all:'ล้างทั้งหมด', chat_setup:'ใส่ชื่อและภาษาเพื่อเริ่มแชท',
+      your_name:'ชื่อของคุณ...', join_chat:'💕 เข้าร่วมแชท',
+      no_msg:'ยังไม่มีข้อความ ทักทายสิ! 👋', type_msg:'พิมพ์ข้อความ...',
+    },
+    my: {
+      tagline:'အချိန်နှင့်တပြေးညီ အသံ & စာသား ဘာသာပြန်', powered:'Gemini AI ဖြင့် အသုံးပြု',
+      enter_btn:'ဘာသာပြန်ထဲ ဝင်ပါ →', footer:'v2.1 · သီးသန့်ဝင်ရောက် · PIN လိုအပ်',
+      enter_pin:'PIN ထည့်ပါ', pin_sub:'ဂဏန်း ၆ လုံး ဝင်ရောက်ကုဒ်', back:'← နောက်သို့',
+      choose_mode:'မုဒ်ရွေးပါ', select_mode:'သင့်ဘာသာပြန်မုဒ်ကို ရွေးပါ',
+      voice_name:'အသံ ဘာသာပြန်', voice_desc:'ပြောပြီး အချိန်နှင့်တပြေးညီ ဘာသာပြန်ပါ',
+      text_name:'စာသား ဘာသာပြန်', text_desc:'စာရိုက်ပြီး ဘာသာပြန်ပါ',
+      chat_name:'ချက်တ်အခန်း', chat_desc:'သင့်အဖော်နှင့် နှစ်ဘာသာ ချက်တ်',
+      tap_mic:'မိုက်ကိုနှိပ်၍ပြောပါ', translation_here:'ဘာသာပြန်ချက် ဒီမှာပေါ်မယ်',
+      tap_speak:'နှိပ်ပြီး ပြောပါ', or_type:'ဒါမှမဟုတ် ဒီမှာရိုက်ပါ...',
+      auto_speak:'🔊 အလိုအလျောက်ဖတ်', continuous:'🔄 ဆက်တိုက်', noisy:'📢 ဆူညံ',
+      history:'📝 မှတ်တမ်း', type_paste:'ဘာသာပြန်ရန် စာရိုက်ပါ...',
+      clear:'ရှင်းပါ', translate_btn:'ဘာသာပြန် ➤',
+      clear_all:'အားလုံးရှင်းပါ', chat_setup:'ချက်တ်စရန် နာမည်နှင့် ဘာသာစကားထည့်ပါ',
+      your_name:'သင့်နာမည်...', join_chat:'💕 ချက်တ်ဝင်ပါ',
+      no_msg:'မက်ဆေ့ချ် မရှိသေးပါ။ နှုတ်ဆက်ပါ! 👋', type_msg:'မက်ဆေ့ချ် ရိုက်ပါ...',
+    }
+  };
+
+  const LABELS = { en:'EN', zh:'中', th:'TH', my:'MY' };
+  let lang = localStorage.getItem('nycking_i18n') || 'en';
+
+  function apply(l) {
+    lang = l;
+    localStorage.setItem('nycking_i18n', l);
+    const d = T[l] || T.en;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const k = el.dataset.i18n;
+      if (d[k]) el.textContent = d[k];
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+      const k = el.dataset.i18nPh;
+      if (d[k]) el.placeholder = d[k];
+    });
+    document.getElementById('i18n-btn').textContent = '🌐 ' + LABELS[l];
+    document.querySelectorAll('.i18n-opt').forEach(o => o.classList.toggle('active', o.dataset.lang === l));
+  }
+
+  const btn = document.getElementById('i18n-btn');
+  const menu = document.getElementById('i18n-menu');
+  btn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('open'); });
+  menu.addEventListener('click', (e) => {
+    const opt = e.target.closest('[data-lang]');
+    if (opt) { apply(opt.dataset.lang); menu.classList.remove('open'); }
+  });
+  document.addEventListener('click', () => menu.classList.remove('open'));
+
+  // Apply saved language on load
+  apply(lang);
+
+  // Emoji picker
+  const emojiBtn = document.getElementById('c-emoji-btn');
+  const emojiPanel = document.getElementById('c-emoji-panel');
+  const msgInput = document.getElementById('c-msg-input');
+  if (emojiBtn && emojiPanel && msgInput) {
+    emojiBtn.addEventListener('click', (e) => { e.stopPropagation(); emojiPanel.classList.toggle('open'); });
+    emojiPanel.addEventListener('click', (e) => {
+      if (e.target.tagName === 'SPAN') {
+        msgInput.value += e.target.textContent;
+        msgInput.focus();
+      }
+    });
+    document.addEventListener('click', () => emojiPanel.classList.remove('open'));
+  }
+})();
 </script>
 
 <!-- Dev mode -->
@@ -773,6 +973,6 @@
 </script>
 
 <!-- App -->
-<script type="module" src="/src/app.js?v=6"></script>
+<script type="module" src="/src/app.js?v=7"></script>
 </body>
 </html>

@@ -464,9 +464,11 @@ const ChatMod = (() => {
   let myLang = 'zh-CN';
   let partnerLang = 'my-MM';
   let pollTimer = null;
+  let pingTimer = null;
   let lastTimestamp = 0;
   let messages = [];
   let isSending = false;
+  const onlineCountEl = $('c-online-count');
 
   function setStatus(msg, type) {
     status.textContent = msg;
@@ -528,6 +530,8 @@ const ChatMod = (() => {
       if (messages.length > 0) {
         lastTimestamp = Math.max(...messages.map(m => m.timestamp));
       }
+      // Update online count
+      if (data.online) updateOnline(data.online);
       renderMessages();
     } catch (err) {
       console.error('[chat] fetch error:', err);
@@ -594,14 +598,32 @@ const ChatMod = (() => {
     }
   }
 
+  function updateOnline(list) {
+    onlineCountEl.textContent = list.length;
+  }
+
+  async function sendPing() {
+    if (!myName) return;
+    try {
+      await fetch(`${API_BASE}/api/chat/ping`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: myName, lang: myLang }),
+      });
+    } catch {}
+  }
+
   function startPolling() {
     stopPolling();
     fetchMessages(true);
+    sendPing();
     pollTimer = setInterval(() => fetchMessages(false), 3000);
+    pingTimer = setInterval(sendPing, 10000);
   }
 
   function stopPolling() {
     if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
   }
 
   function join() {

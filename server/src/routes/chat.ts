@@ -26,6 +26,10 @@ const COLLECTION = "nycking_chat";
 // Memory fallback if Firestore unavailable
 let memoryMessages: ChatMessage[] = [];
 
+// Online presence — in-memory heartbeat map (name → last ping timestamp)
+const onlineUsers: Map<string, { name: string; lang: string; ts: number }> = new Map();
+const ONLINE_TIMEOUT = 15_000; // 15s no heartbeat = offline
+
 async function getFirestore(): Promise<FirebaseFirestore.Firestore | null> {
   if (firestore) return firestore;
   try {
@@ -56,14 +60,21 @@ router.get("/chat", async (req: Request, res: Response) => {
         id: doc.id,
         ...doc.data(),
       })) as ChatMessage[];
-      return res.json({ messages });
+      // Prune stale users
+      const now = Date.now();
+      for (const [k, v] of onlineUsers) { if (now - v.ts > ONLINE_TIMEOUT) onlineUsers.delete(k); }
+      const online = Array.from(onlineUsers.values()).map(u => ({ name: u.name, lang: u.lang }));
+      return res.json({ messages, online });
     }
 
     // Memory fallback
     const filtered = since > 0
       ? memoryMessages.filter(m => m.timestamp > since)
       : memoryMessages;
-    return res.json({ messages: filtered });
+    const now = Date.now();
+    for (const [k, v] of onlineUsers) { if (now - v.ts > ONLINE_TIMEOUT) onlineUsers.delete(k); }
+    const online = Array.from(onlineUsers.values()).map(u => ({ name: u.name, lang: u.lang }));
+    return res.json({ messages: filtered, online });
   } catch (err) {
     logger.error("Chat GET failed", { error: err });
     return res.status(500).json({ error: "Failed to get messages" });
@@ -183,6 +194,19 @@ Text: ${txt}`;
     logger.error("Chat POST failed", { error: err });
     return res.status(500).json({ error: "Failed to send message" });
   }
+});
+
+// POST /api/chat/ping — heartbeat for online presence
+router.post("/chat/ping", (req: Request, res: Response) => {
+  const { name, lang } = req.body;
+  if (name && typeof name === "string") {
+    onlineUsers.set(name, { name: name.trim().slice(0, 20), lang: lang || "en-US", ts: Date.now() });
+  }
+  // Prune stale
+  const now = Date.now();
+  for (const [k, v] of onlineUsers) { if (now - v.ts > ONLINE_TIMEOUT) onlineUsers.delete(k); }
+  const online = Array.from(onlineUsers.values()).map(u => ({ name: u.name, lang: u.lang }));
+  return res.json({ online });
 });
 
 // DELETE /api/chat/:id — delete a message
