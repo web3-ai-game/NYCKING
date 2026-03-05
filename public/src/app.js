@@ -517,13 +517,15 @@ const ChatMod = (() => {
       if (!resp.ok) return;
       const data = await resp.json();
 
+      let changed = false;
       if (full) {
         messages = data.messages || [];
+        changed = true;
       } else if (data.messages?.length) {
         // Merge new messages
         const existingIds = new Set(messages.map(m => m.id));
         for (const m of data.messages) {
-          if (!existingIds.has(m.id)) messages.push(m);
+          if (!existingIds.has(m.id)) { messages.push(m); changed = true; }
         }
       }
 
@@ -532,7 +534,7 @@ const ChatMod = (() => {
       }
       // Update online count
       if (data.online) updateOnline(data.online);
-      renderMessages();
+      if (changed) renderMessages();
     } catch (err) {
       console.error('[chat] fetch error:', err);
     }
@@ -617,7 +619,7 @@ const ChatMod = (() => {
     stopPolling();
     fetchMessages(true);
     sendPing();
-    pollTimer = setInterval(() => fetchMessages(false), 3000);
+    pollTimer = setInterval(() => fetchMessages(false), 7000);
     pingTimer = setInterval(sendPing, 10000);
   }
 

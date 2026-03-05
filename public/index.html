@@ -628,6 +628,7 @@
 
 <!-- ===== 3. MODULE SELECTOR ===== -->
 <div id="module-screen" class="screen">
+  <button class="back-btn" id="module-back" style="position:absolute;top:env(safe-area-inset-top,12px);left:12px;z-index:10">‹</button>
   <div class="home-logo">NYCKING</div>
   <div class="module-title" data-i18n="choose_mode">Choose Mode</div>
   <div class="module-sub" data-i18n="select_mode">Select your translation mode</div>
@@ -649,7 +650,7 @@
       <div class="mod-arrow">›</div>
     </div>
     <div class="module-card" id="go-chat">
-      <div class="mod-icon">�</div>
+      <div class="mod-icon">&#x1F4AC;</div>
       <div class="mod-info">
         <div class="mod-name" data-i18n="chat_name">Chat Room</div>
         <div class="mod-desc" data-i18n="chat_desc">Bilingual chat with your partner</div>
@@ -809,7 +810,8 @@
 <div id="chat-screen" class="screen translator-screen">
   <div class="header">
     <button class="back-btn" id="chat-back">‹</button>
-    <span class="logo">� Chat <span class="online-badge" id="c-online"><span class="online-dot"></span><span id="c-online-count">0</span> online</span></span>
+    <span class="logo">&#x1F4AC; Chat <span class="online-badge" id="c-online"><span class="online-dot"></span><span id="c-online-count">0</span> online</span></span>
+    <span class="header-badge" id="c-lang-badge" style="font-size:10px;opacity:.6">EN</span>
     <button class="chat-clear-btn" id="c-clear-all" data-i18n="clear_all">Clear all</button>
   </div>
 
@@ -928,6 +930,9 @@
       }, 200);
     }
   });
+
+  // Module back → home
+  document.getElementById('module-back').addEventListener('click', () => show('home-screen'));
 
   // Module selection
   document.getElementById('go-voice').addEventListener('click', () => show('voice-screen'));
@@ -1064,6 +1069,8 @@
       if (d[k]) el.placeholder = d[k];
     });
     document.getElementById('i18n-btn').textContent = '🌐 ' + LABELS[l];
+    const cBadge = document.getElementById('c-lang-badge');
+    if (cBadge) cBadge.textContent = LABELS[l];
     document.querySelectorAll('.i18n-opt').forEach(o => o.classList.toggle('active', o.dataset.lang === l));
   }
 
