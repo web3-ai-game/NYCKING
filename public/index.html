@@ -141,6 +141,36 @@
     .module-card .mod-desc { font-size:12px; color:var(--text-dim); margin-top:3px; }
     .module-card .mod-arrow { color:var(--text-dim); font-size:20px; }
 
+    /* Install banner */
+    .install-banner {
+      width:100%; max-width:340px; padding:14px 16px;
+      background:linear-gradient(135deg, #1a1a2e, #16213e);
+      border:1px solid var(--accent); border-radius:16px;
+      display:none; align-items:center; gap:12px;
+      position:relative; animation:installPulse 2s ease-in-out infinite;
+    }
+    .install-banner.show { display:flex; }
+    @keyframes installPulse {
+      0%,100% { box-shadow:0 0 8px rgba(249,115,22,0.2); }
+      50% { box-shadow:0 0 20px rgba(249,115,22,0.4); }
+    }
+    .install-icon { font-size:32px; flex-shrink:0; }
+    .install-info { flex:1; }
+    .install-title { font-size:14px; font-weight:700; color:#fff; }
+    .install-desc { font-size:11px; color:var(--text-dim); margin-top:2px; line-height:1.3; }
+    .install-btn {
+      padding:8px 16px; border-radius:10px; border:none;
+      background:var(--accent); color:#fff; font-size:13px;
+      font-weight:700; cursor:pointer; white-space:nowrap;
+      flex-shrink:0; transition:all .2s;
+    }
+    .install-btn:active { transform:scale(0.95); }
+    .install-dismiss {
+      position:absolute; top:6px; right:8px; background:none;
+      border:none; color:#666; font-size:16px; cursor:pointer;
+      padding:2px 6px; line-height:1;
+    }
+
     /* ===== SHARED TRANSLATOR STYLES ===== */
     .translator-screen {
       padding:calc(env(safe-area-inset-top,8px)+8px) 16px calc(env(safe-area-inset-bottom,8px)+8px);
@@ -627,6 +657,17 @@
       <div class="mod-arrow">›</div>
     </div>
   </div>
+
+  <!-- Install App Banner -->
+  <div class="install-banner" id="install-banner">
+    <button class="install-dismiss" id="install-dismiss">&times;</button>
+    <div class="install-icon">📲</div>
+    <div class="install-info">
+      <div class="install-title" data-i18n="install_title">Install NYCKING App</div>
+      <div class="install-desc" data-i18n="install_desc">Add to home screen for quick access. Works offline like a native app.</div>
+    </div>
+    <button class="install-btn" id="install-btn" data-i18n="install_btn">Install</button>
+  </div>
 </div>
 
 <!-- ===== 4. VOICE TRANSLATOR ===== -->
@@ -930,6 +971,7 @@
       clear_all:'Clear all', chat_setup:'Enter your name & language to start chatting',
       your_name:'Your name...', join_chat:'💕 Join Chat',
       no_msg:'No messages yet. Say hi! 👋', type_msg:'Type a message...',
+      install_title:'Install NYCKING App', install_desc:'Add to home screen for quick access. Works offline like a native app.', install_btn:'Install',
     },
     zh: {
       tagline:'AI 驱动的多语种语音 & 文字翻译平台',
@@ -953,6 +995,7 @@
       clear_all:'全部清除', chat_setup:'输入你的名字和语言开始聊天',
       your_name:'你的名字...', join_chat:'💕 加入聊天',
       no_msg:'还没有消息，打个招呼吧！👋', type_msg:'输入消息...',
+      install_title:'安装 NYCKING 应用', install_desc:'添加到桌面，一键快速访问。支持离线使用，如原生应用一般。', install_btn:'安装',
     },
     th: {
       tagline:'แพลตฟอร์มแปลเสียงและข้อความหลายภาษาด้วย AI',
@@ -976,6 +1019,7 @@
       clear_all:'ล้างทั้งหมด', chat_setup:'ใส่ชื่อและภาษาเพื่อเริ่มแชท',
       your_name:'ชื่อของคุณ...', join_chat:'💕 เข้าร่วมแชท',
       no_msg:'ยังไม่มีข้อความ ทักทายสิ! 👋', type_msg:'พิมพ์ข้อความ...',
+      install_title:'ติดตั้งแอป NYCKING', install_desc:'เพิ่มลงหน้าจอเพื่อเข้าถึงอย่างรวดเร็ว ใช้งานแบบออฟไลน์ได้', install_btn:'ติดตั้ง',
     },
     my: {
       tagline:'AI နဲ့ အသံ & စာသား ဘာသာပြန် ပလက်ဖောင်း',
@@ -999,6 +1043,7 @@
       clear_all:'အားလုံးရှင်းပါ', chat_setup:'ချက်တ်စရန် နာမည်နှင့် ဘာသာစကားထည့်ပါ',
       your_name:'သင့်နာမည်...', join_chat:'💕 ချက်တ်ဝင်ပါ',
       no_msg:'မက်ဆေ့ချ် မရှိသေးပါ။ နှုတ်ဆက်ပါ! 👋', type_msg:'မက်ဆေ့ချ် ရိုက်ပါ...',
+      install_title:'NYCKING အပ်ပြီ ထည့်သွင်းပါ', install_desc:'ဖုန်းမျက်နှာသို့ ထည့်သွင်းပါ။ အိုင်းမှာ အပ်ပြီကဲ့သို့ အသုံးပြုနိုင်ပါတယ်။', install_btn:'ထည့်သွင်းပါ',
     }
   };
 
@@ -1051,6 +1096,77 @@
 })();
 </script>
 
+<!-- PWA Install Prompt -->
+<script>
+(function(){
+  let deferredPrompt = null;
+  const banner = document.getElementById('install-banner');
+  const installBtn = document.getElementById('install-btn');
+  const dismissBtn = document.getElementById('install-dismiss');
+  const DISMISS_KEY = 'nycking_install_dismissed';
+
+  // Already installed as standalone?
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+  }
+
+  // Show banner if not dismissed and not already installed
+  function maybeShow() {
+    if (isStandalone()) return;
+    if (localStorage.getItem(DISMISS_KEY)) return;
+    banner.classList.add('show');
+  }
+
+  // Chrome/Edge/Samsung: intercept native install prompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    maybeShow();
+  });
+
+  // For browsers without beforeinstallprompt (Firefox, etc.), show after 3s
+  setTimeout(() => {
+    if (!deferredPrompt && !isStandalone()) maybeShow();
+  }, 3000);
+
+  // Install button click
+  installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const result = await deferredPrompt.userChoice;
+      if (result.outcome === 'accepted') {
+        banner.classList.remove('show');
+      }
+      deferredPrompt = null;
+    } else {
+      // Fallback: show manual instructions
+      const ua = navigator.userAgent.toLowerCase();
+      let msg = 'Tap the browser menu (⋮) → "Add to Home screen" or "Install app"';
+      if (ua.includes('firefox')) {
+        msg = 'Tap ⋮ menu → "Install" or "Add to Home screen"';
+      } else if (ua.includes('samsung')) {
+        msg = 'Tap ☰ menu → "Add page to" → "Home screen"';
+      }
+      alert(msg);
+    }
+  });
+
+  // Dismiss
+  dismissBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    banner.classList.remove('show');
+    localStorage.setItem(DISMISS_KEY, '1');
+  });
+
+  // Hide after successful install
+  window.addEventListener('appinstalled', () => {
+    banner.classList.remove('show');
+    deferredPrompt = null;
+  });
+})();
+</script>
+
 <!-- Dev mode -->
 <script>
   if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
@@ -1059,6 +1175,6 @@
 </script>
 
 <!-- App -->
-<script type="module" src="/src/app.js?v=7"></script>
+<script type="module" src="/src/app.js?v=8"></script>
 </body>
 </html>
