@@ -142,6 +142,97 @@
       color:var(--text-dim); font-size:14px; cursor:pointer;
     }
 
+    /* ===== BOTTOM TAB BAR ===== */
+    .tab-bar {
+      display:none; position:fixed; bottom:0; left:0; right:0; z-index:100;
+      background:var(--surface); border-top:1px solid #222;
+      padding:4px 0 calc(env(safe-area-inset-bottom,4px)+4px);
+      justify-content:space-around; align-items:center;
+    }
+    .tab-bar.show { display:flex; }
+    .tab-item {
+      display:flex; flex-direction:column; align-items:center; gap:2px;
+      background:none; border:none; color:var(--text-dim);
+      font-size:10px; cursor:pointer; padding:4px 8px; min-width:56px;
+      transition:color .15s;
+    }
+    .tab-item .tab-icon { font-size:22px; line-height:1; }
+    .tab-item.active { color:var(--accent); }
+    .tab-item .tab-badge {
+      position:absolute; top:-2px; right:8px; width:8px; height:8px;
+      border-radius:50%; background:var(--error); display:none;
+    }
+
+    /* ===== TAB SCREENS (with bottom padding for tab bar) ===== */
+    .tab-screen { padding-bottom:64px !important; }
+
+    /* ===== PROFILE / ME PAGE ===== */
+    #me-screen {
+      align-items:center; gap:16px;
+      padding:calc(env(safe-area-inset-top,8px)+16px) 24px calc(env(safe-area-inset-bottom,8px)+72px);
+      overflow-y:auto;
+    }
+    .me-avatar { font-size:64px; line-height:1; }
+    .me-name { font-size:20px; font-weight:800; color:var(--text); }
+    .me-username { font-size:13px; color:var(--text-dim); }
+    .me-uid { font-size:10px; color:#555; font-family:monospace; }
+    .me-section { width:100%; max-width:340px; margin-top:8px; }
+    .me-section-title { font-size:12px; color:var(--text-dim); font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+    .me-row {
+      display:flex; align-items:center; gap:12px; padding:14px 16px;
+      background:var(--surface); border:1px solid #222; border-radius:12px;
+      margin-bottom:6px; cursor:pointer; transition:all .15s;
+    }
+    .me-row:active { border-color:var(--accent); }
+    .me-row .me-row-icon { font-size:18px; flex-shrink:0; }
+    .me-row .me-row-label { flex:1; font-size:14px; }
+    .me-row .me-row-value { font-size:13px; color:var(--text-dim); }
+    .me-row .me-row-arrow { color:var(--text-dim); font-size:16px; }
+    .me-logout {
+      width:100%; max-width:340px; padding:14px; border-radius:12px;
+      border:1px solid var(--error); background:none;
+      color:var(--error); font-size:14px; font-weight:700;
+      cursor:pointer; margin-top:12px; transition:all .2s;
+    }
+    .me-logout:active { background:var(--error); color:#fff; }
+
+    /* ===== EDIT PROFILE MODAL ===== */
+    .edit-modal {
+      display:none; position:fixed; inset:0; z-index:300;
+      background:rgba(0,0,0,.7); align-items:center; justify-content:center;
+      padding:20px;
+    }
+    .edit-modal.show { display:flex; }
+    .edit-modal-box {
+      background:var(--bg); border:1px solid #333; border-radius:16px;
+      padding:24px; width:100%; max-width:320px;
+    }
+    .edit-modal-title { font-size:18px; font-weight:700; margin-bottom:16px; }
+    .edit-modal-box .auth-input { margin-bottom:10px; }
+    .edit-modal-actions { display:flex; gap:8px; margin-top:12px; }
+    .edit-modal-actions button { flex:1; }
+    .btn-cancel {
+      padding:12px; border-radius:10px; background:var(--surface);
+      border:1px solid #333; color:var(--text); font-size:14px; cursor:pointer;
+    }
+    .btn-save {
+      padding:12px; border-radius:10px; background:var(--accent);
+      border:none; color:#fff; font-size:14px; font-weight:700; cursor:pointer;
+    }
+
+    /* Avatar picker grid */
+    .avatar-grid {
+      display:grid; grid-template-columns:repeat(6,1fr); gap:6px;
+      margin:8px 0;
+    }
+    .avatar-grid span {
+      font-size:28px; text-align:center; cursor:pointer;
+      padding:6px; border-radius:10px; border:2px solid transparent;
+    }
+    .avatar-grid span:active, .avatar-grid span.selected {
+      border-color:var(--accent); background:var(--surface);
+    }
+
     /* ===== MODULE SELECTOR ===== */
     #module-screen {
       align-items:center; justify-content:center; gap:20px;
@@ -1176,6 +1267,84 @@
   </div>
 </div>
 
+<!-- ===== 13. ME / PROFILE ===== -->
+<div id="me-screen" class="screen">
+  <div class="me-avatar" id="me-avatar">😊</div>
+  <div class="me-name" id="me-name">User</div>
+  <div class="me-username" id="me-username">@user</div>
+  <div class="me-uid" id="me-uid">UID: —</div>
+
+  <div class="me-section">
+    <div class="me-section-title" data-i18n="me_profile">Profile</div>
+    <div class="me-row" id="me-edit-name">
+      <span class="me-row-icon">✏️</span>
+      <span class="me-row-label" data-i18n="me_display_name">Display Name</span>
+      <span class="me-row-value" id="me-name-val">—</span>
+      <span class="me-row-arrow">›</span>
+    </div>
+    <div class="me-row" id="me-edit-username">
+      <span class="me-row-icon">@</span>
+      <span class="me-row-label" data-i18n="me_username">Username</span>
+      <span class="me-row-value" id="me-uname-val">—</span>
+      <span class="me-row-arrow">›</span>
+    </div>
+    <div class="me-row" id="me-edit-avatar">
+      <span class="me-row-icon">🎨</span>
+      <span class="me-row-label" data-i18n="me_avatar">Avatar</span>
+      <span class="me-row-value" id="me-avatar-val">😊</span>
+      <span class="me-row-arrow">›</span>
+    </div>
+  </div>
+
+  <div class="me-section">
+    <div class="me-section-title" data-i18n="me_settings">Settings</div>
+    <div class="me-row" id="me-edit-lang">
+      <span class="me-row-icon">🌐</span>
+      <span class="me-row-label" data-i18n="me_language">Language</span>
+      <span class="me-row-value" id="me-lang-val">EN</span>
+      <span class="me-row-arrow">›</span>
+    </div>
+  </div>
+
+  <button class="me-logout" id="me-logout" data-i18n="me_logout">Sign Out</button>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="edit-modal" id="edit-modal">
+  <div class="edit-modal-box">
+    <div class="edit-modal-title" id="edit-modal-title">Edit</div>
+    <div id="edit-modal-body"></div>
+    <div class="edit-modal-actions">
+      <button class="btn-cancel" id="edit-cancel" data-i18n="me_cancel">Cancel</button>
+      <button class="btn-save" id="edit-save" data-i18n="me_save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Tab Bar -->
+<div class="tab-bar" id="tab-bar">
+  <button class="tab-item active" data-tab="module-screen">
+    <span class="tab-icon">🔧</span>
+    <span data-i18n="tab_tools">Tools</span>
+  </button>
+  <button class="tab-item" data-tab="chat-screen">
+    <span class="tab-icon">💬</span>
+    <span data-i18n="tab_chat">Chat</span>
+  </button>
+  <button class="tab-item" data-tab="game-lobby">
+    <span class="tab-icon">🎮</span>
+    <span data-i18n="tab_games">Games</span>
+  </button>
+  <button class="tab-item" data-tab="screen-coach">
+    <span class="tab-icon">💡</span>
+    <span data-i18n="tab_ai">AI</span>
+  </button>
+  <button class="tab-item" data-tab="me-screen">
+    <span class="tab-icon" id="tab-me-icon">😊</span>
+    <span data-i18n="tab_me">Me</span>
+  </button>
+</div>
+
 <!-- Token cost badge (global) -->
 <div class="cost-badge" id="cost-badge" style="display:none">
   ⚡ <span class="cost-val" id="cost-val">฿0.0000</span>
@@ -1279,6 +1448,10 @@
       auth_login:'Sign In', auth_register:'Register',
       auth_or:'or', auth_google:'Continue with Google',
       auth_no_account:'No account? Register', auth_have_account:'Have an account? Sign In',
+      tab_tools:'Tools', tab_chat:'Chat', tab_games:'Games', tab_ai:'AI', tab_me:'Me',
+      me_profile:'Profile', me_settings:'Settings', me_display_name:'Display Name',
+      me_username:'Username', me_avatar:'Avatar', me_language:'Language',
+      me_logout:'Sign Out', me_cancel:'Cancel', me_save:'Save',
     },
     zh: {
       tagline:'AI 驱动的多语种语音 & 文字翻译平台',
@@ -1317,6 +1490,10 @@
       auth_login:'登录', auth_register:'注册',
       auth_or:'或者', auth_google:'使用 Google 登录',
       auth_no_account:'没有账号？注册', auth_have_account:'已有账号？登录',
+      tab_tools:'工具', tab_chat:'聊天', tab_games:'游戏', tab_ai:'AI', tab_me:'我的',
+      me_profile:'个人资料', me_settings:'设置', me_display_name:'昵称',
+      me_username:'用户名', me_avatar:'头像', me_language:'语言',
+      me_logout:'退出登录', me_cancel:'取消', me_save:'保存',
     },
     th: {
       tagline:'แพลตฟอร์มแปลเสียงและข้อความหลายภาษาด้วย AI',
@@ -1355,6 +1532,10 @@
       auth_login:'เข้าสู่ระบบ', auth_register:'ลงทะเบียน',
       auth_or:'หรือ', auth_google:'เข้าสู่ระบบด้วย Google',
       auth_no_account:'ยังไม่มีบัญชี? ลงทะเบียน', auth_have_account:'มีบัญชีแล้ว? เข้าสู่ระบบ',
+      tab_tools:'เครื่องมือ', tab_chat:'แชท', tab_games:'เกม', tab_ai:'AI', tab_me:'ของฉัน',
+      me_profile:'โปรไฟล์', me_settings:'ตั้งค่า', me_display_name:'ชื่อที่แสดง',
+      me_username:'ชื่อผู้ใช้', me_avatar:'รูปโปรไฟล์', me_language:'ภาษา',
+      me_logout:'ออกจากระบบ', me_cancel:'ยกเลิก', me_save:'บันทึก',
     },
     my: {
       tagline:'AI နဲ့ အသံ & စာသား ဘာသာပြန် ပလက်ဖောင်း',
@@ -1393,6 +1574,10 @@
       auth_login:'ဝင်ရောက်ပါ', auth_register:'စာရင်းသွင်းပါ',
       auth_or:'သို့', auth_google:'Google နဲ့ ဝင်ရောက်ပါ',
       auth_no_account:'အကောင့်မရှိသေး? စာရင်းသွင်းပါ', auth_have_account:'အကောင့်ရှိပြီ? ဝင်ရောက်ပါ',
+      tab_tools:'ကိရိယာများ', tab_chat:'ချက်တ်', tab_games:'ဂိမ်း', tab_ai:'AI', tab_me:'ကျွန်ုပ်',
+      me_profile:'ပရိုဖိုင်', me_settings:'ဆက်တင်များ', me_display_name:'ပြစ်ရမည်',
+      me_username:'အသုံးပြုသူအမည်', me_avatar:'ပရိုဖိုင်ပုံ', me_language:'ဘာသာစကား',
+      me_logout:'ထွက်ပါ', me_cancel:'ပယ်ဖျက်ပါ', me_save:'သိမ်းပါ',
     }
   };
 
@@ -1527,6 +1712,8 @@
 
 <!-- Auth -->
 <script src="/src/auth.js?v=1"></script>
+<!-- Profile & Tab Nav -->
+<script src="/src/profile.js?v=1"></script>
 <!-- Games -->
 <script src="/src/games.js?v=1"></script>
 <!-- AI Coach -->
