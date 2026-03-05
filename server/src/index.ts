@@ -12,6 +12,7 @@ import { apiLimiter } from "./middleware/rateLimiter";
 import { trackUsage, initFirestore } from "./middleware/usageTracker";
 import tokenRouter from "./routes/token";
 import translateRouter from "./routes/translate";
+import chatRouter from "./routes/chat";
 import healthRouter from "./routes/health";
 
 // Validate required config before starting
@@ -45,7 +46,7 @@ app.use(
       logger.warn("CORS blocked", { origin });
       return callback(new Error("Not allowed by CORS"));
     },
-    methods: ["GET", "POST", "OPTIONS"],
+    methods: ["GET", "POST", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
     maxAge: 86400,
@@ -64,6 +65,7 @@ app.use("/api", trackUsage);
 // Routes
 app.use("/api", tokenRouter);
 app.use("/api", translateRouter);
+app.use("/api", chatRouter);
 app.use("/api", healthRouter);
 
 // Root health check (for Cloud Run)

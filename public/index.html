@@ -332,6 +332,75 @@
       text-align:center; color:var(--error); font-size:14px;
     }
 
+    /* ===== CHAT ROOM ===== */
+    .chat-setup {
+      background:var(--surface); border-radius:var(--radius); padding:16px;
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .chat-setup-row {
+      display:flex; gap:8px; align-items:center;
+    }
+    .chat-setup-row input {
+      flex:1; background:var(--surface2); border:1px solid #333;
+      color:var(--text); font-size:15px; padding:10px 12px;
+      border-radius:10px; outline:none;
+    }
+    .chat-setup-row input:focus { border-color:var(--accent); }
+    .chat-setup-row input::placeholder { color:var(--text-dim); }
+    .chat-join-btn {
+      padding:10px 20px; border-radius:10px;
+      background:var(--accent); border:none; color:#fff;
+      font-size:14px; font-weight:700; cursor:pointer;
+    }
+    .chat-join-btn:active { transform:scale(0.95); }
+    .chat-area {
+      flex:1; overflow-y:auto; display:flex; flex-direction:column;
+      gap:10px; padding:8px 0; min-height:200px;
+    }
+    .bubble {
+      max-width:85%; padding:10px 14px; border-radius:16px;
+      font-size:14px; line-height:1.5; position:relative;
+      word-break:break-word;
+    }
+    .bubble.mine {
+      align-self:flex-end; background:#2d4a1e; border-bottom-right-radius:4px;
+    }
+    .bubble.theirs {
+      align-self:flex-start; background:var(--surface2); border-bottom-left-radius:4px;
+    }
+    .bubble .b-name {
+      font-size:11px; font-weight:700; color:var(--accent); margin-bottom:3px;
+    }
+    .bubble .b-original { margin-bottom:4px; }
+    .bubble .b-translated {
+      font-size:13px; color:var(--text-dim); border-top:1px solid #333;
+      padding-top:4px; margin-top:4px;
+    }
+    .bubble .b-delete {
+      position:absolute; top:4px; right:6px;
+      background:none; border:none; color:#555; font-size:12px;
+      cursor:pointer; opacity:0; transition:opacity .2s;
+    }
+    .bubble:hover .b-delete, .bubble:active .b-delete { opacity:1; }
+    .chat-input-bar {
+      display:flex; gap:8px; padding:8px 0;
+    }
+    .chat-input-bar input {
+      flex:1; background:var(--surface2); border:1px solid #333;
+      color:var(--text); font-size:15px; padding:10px 12px;
+      border-radius:10px; outline:none;
+    }
+    .chat-input-bar input:focus { border-color:var(--accent); }
+    .chat-input-bar input::placeholder { color:var(--text-dim); }
+    .chat-empty {
+      text-align:center; color:var(--text-dim); font-size:14px;
+      padding:40px 0;
+    }
+    .chat-clear-btn {
+      background:none; border:none; color:var(--text-dim);
+      font-size:12px; cursor:pointer; text-decoration:underline;
+    }
+
     @media (min-width:600px) {
       .translator-screen { max-width:500px; margin:0 auto; }
     }
@@ -417,6 +486,14 @@
       <div class="mod-info">
         <div class="mod-name">Text Translate</div>
         <div class="mod-desc">文字翻译 · Type or paste text to translate</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </div>
+    <div class="module-card" id="go-chat">
+      <div class="mod-icon">💕💕💕</div>
+      <div class="mod-info">
+        <div class="mod-name">Chat Room</div>
+        <div class="mod-desc">双语聊天室 · Bilingual chat with your partner</div>
       </div>
       <div class="mod-arrow">›</div>
     </div>
@@ -556,6 +633,54 @@
   </div>
 </div>
 
+<!-- ===== 6. CHAT ROOM ===== -->
+<div id="chat-screen" class="screen translator-screen">
+  <div class="header">
+    <button class="back-btn" id="chat-back">‹</button>
+    <span class="logo">💕 Chat</span>
+    <button class="chat-clear-btn" id="c-clear-all">Clear all</button>
+  </div>
+
+  <!-- Setup (shown before joining) -->
+  <div class="chat-setup" id="c-setup">
+    <div style="text-align:center;font-size:14px;color:var(--text-dim)">Enter your name & language to start chatting</div>
+    <div class="chat-setup-row">
+      <input type="text" id="c-username" placeholder="Your name..." maxlength="20" autocomplete="off">
+    </div>
+    <div class="chat-setup-row">
+      <select id="c-my-lang" class="lang-select">
+        <option value="zh-CN">🇨🇳 中文</option>
+        <option value="en-US">🇺🇸 English</option>
+        <option value="th-TH">🇹🇭 ไทย</option>
+        <option value="lo-LA">🇱🇦 ລາວ</option>
+        <option value="my-MM">🇲🇲 မြန်မာ</option>
+      </select>
+      <span style="color:var(--text-dim)">→</span>
+      <select id="c-partner-lang" class="lang-select">
+        <option value="my-MM">🇲🇲 မြန်မာ</option>
+        <option value="zh-CN">🇨🇳 中文</option>
+        <option value="en-US">🇺🇸 English</option>
+        <option value="th-TH">🇹🇭 ไทย</option>
+        <option value="lo-LA">🇱🇦 ລາວ</option>
+      </select>
+    </div>
+    <button class="chat-join-btn" id="c-join-btn">💕 Join Chat</button>
+  </div>
+
+  <!-- Chat area (shown after joining) -->
+  <div class="chat-area" id="c-chat-area" style="display:none">
+    <div class="chat-empty" id="c-empty">No messages yet. Say hi! 👋</div>
+  </div>
+
+  <div class="status-bar" id="c-status"></div>
+
+  <!-- Chat input (shown after joining) -->
+  <div class="chat-input-bar" id="c-input-bar" style="display:none">
+    <input type="text" id="c-msg-input" placeholder="Type a message..." autocomplete="off" enterkeyhint="send">
+    <button class="send-btn" id="c-send-btn">➤</button>
+  </div>
+</div>
+
 <!-- Token cost badge (global) -->
 <div class="cost-badge" id="cost-badge" style="display:none">
   ⚡ <span class="cost-val" id="cost-val">฿0.0000</span>
@@ -625,10 +750,15 @@
   // Module selection
   document.getElementById('go-voice').addEventListener('click', () => show('voice-screen'));
   document.getElementById('go-text').addEventListener('click', () => show('text-screen'));
+  document.getElementById('go-chat').addEventListener('click', () => show('chat-screen'));
 
   // Back buttons
   document.getElementById('voice-back').addEventListener('click', () => show('module-screen'));
   document.getElementById('text-back').addEventListener('click', () => show('module-screen'));
+  document.getElementById('chat-back').addEventListener('click', () => {
+    if (window.NYCKING_CHAT_STOP) window.NYCKING_CHAT_STOP();
+    show('module-screen');
+  });
 
   // Expose for app.js
   window.NYCKING_SHOW = show;
@@ -643,6 +773,6 @@
 </script>
 
 <!-- App -->
-<script type="module" src="/src/app.js?v=5"></script>
+<script type="module" src="/src/app.js?v=6"></script>
 </body>
 </html>
