@@ -1,10 +1,10 @@
 /**
- * Translation endpoint — uses Gemini 2.0 Flash for high-quality contextual translation
+ * Translation endpoint — uses Gemini 2.5 Flash (thinking disabled) for low-latency translation
  * Supports: Chinese ↔ Thai, Chinese ↔ English, English ↔ Thai
  */
 
 import { Router, Request, Response } from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { config } from "../config";
 import { logger } from "../logger";
 
@@ -16,14 +16,14 @@ const LANG_NAMES: Record<string, string> = {
   "en-US": "English",
 };
 
-let genAI: GoogleGenerativeAI | null = null;
+let genAI: GoogleGenAI | null = null;
 
-function getGenAI(): GoogleGenerativeAI {
+function getGenAI(): GoogleGenAI {
   if (!genAI) {
     if (!config.geminiApiKey) {
       throw new Error("GEMINI_API_KEY not configured");
     }
-    genAI = new GoogleGenerativeAI(config.geminiApiKey);
+    genAI = new GoogleGenAI({ apiKey: config.geminiApiKey });
   }
   return genAI;
 }
@@ -48,14 +48,6 @@ router.post("/translate", async (req: Request, res: Response) => {
     const sourceName = LANG_NAMES[sourceLang];
     const targetName = LANG_NAMES[targetLang];
 
-    const model = getGenAI().getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: {
-        temperature: 0.3,
-        maxOutputTokens: 1024,
-      },
-    });
-
     const prompt = `You are an expert translator for travel and casual conversation between ${sourceName} and ${targetName}.
 
 Translate the following text from ${sourceName} to ${targetName}.
@@ -72,8 +64,18 @@ Text to translate:
 ${text}`;
 
     const startMs = Date.now();
-    const result = await model.generateContent(prompt);
-    const translation = result.response.text().trim();
+    const result = await getGenAI().models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        temperature: 0.3,
+        maxOutputTokens: 256,
+        thinkingConfig: {
+          thinkingBudget: 0,
+        },
+      },
+    });
+    const translation = (result.text ?? "").trim();
     const latencyMs = Date.now() - startMs;
 
     logger.info("Translation completed", {
