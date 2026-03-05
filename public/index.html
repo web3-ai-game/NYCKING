@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0a0a0a">
-  <title>NYCKING — 语音翻译</title>
+  <title>NYCKING Translator</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" type="image/png" href="/icons/icon-192.png">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
@@ -28,20 +28,48 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100dvh;
-      overflow-x: hidden;
-      -webkit-tap-highlight-color: transparent;
-      user-select: none;
+      background: var(--bg); color: var(--text);
+      min-height:100dvh; overflow-x:hidden;
+      -webkit-tap-highlight-color:transparent; user-select:none;
     }
     .screen { display:none; flex-direction:column; min-height:100dvh; }
     .screen.active { display:flex; }
 
+    /* ===== HOMEPAGE ===== */
+    #home-screen {
+      align-items:center; justify-content:center; gap:28px;
+      padding:env(safe-area-inset-top,20px) 24px env(safe-area-inset-bottom,20px);
+      text-align:center;
+    }
+    .home-logo { font-size:42px; font-weight:900; color:var(--accent); letter-spacing:2px; }
+    .home-tagline { font-size:16px; color:var(--text-dim); line-height:1.5; }
+    .home-langs {
+      display:grid; grid-template-columns:1fr 1fr; gap:12px;
+      width:100%; max-width:320px;
+    }
+    .home-lang-card {
+      background:var(--surface); border:1px solid #333; border-radius:16px;
+      padding:18px 12px; cursor:pointer; transition:all .2s;
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+    }
+    .home-lang-card:active { transform:scale(0.95); border-color:var(--accent); }
+    .home-lang-card .flag { font-size:32px; }
+    .home-lang-card .lang-name { font-size:18px; font-weight:700; }
+    .home-lang-card .lang-sub { font-size:11px; color:var(--text-dim); }
+    .home-enter-btn {
+      width:100%; max-width:320px; padding:16px;
+      background:linear-gradient(135deg, var(--accent), #ea580c);
+      border:none; border-radius:var(--radius); color:#fff;
+      font-size:18px; font-weight:700; cursor:pointer;
+      box-shadow:0 4px 20px var(--accent-glow); transition:all .2s;
+    }
+    .home-enter-btn:active { transform:scale(0.97); }
+    .home-footer { font-size:11px; color:#444; margin-top:8px; }
+
     /* ===== PIN GATE ===== */
     #pin-screen {
       align-items:center; justify-content:center; gap:24px;
-      padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+      padding:env(safe-area-inset-top,20px) 20px env(safe-area-inset-bottom,20px);
     }
     .pin-icon { font-size:48px; }
     .pin-title { font-size:22px; font-weight:700; }
@@ -63,30 +91,54 @@
     }
     .pin-key:active { background:var(--accent); transform:scale(0.93); }
     .pin-key.fn { font-size:16px; background:transparent; border-color:transparent; }
-
-    /* ===== TRANSLATOR ===== */
-    #translator {
-      padding: calc(env(safe-area-inset-top, 8px) + 8px) 16px calc(env(safe-area-inset-bottom, 8px) + 8px);
-      gap: 10px;
-      flex: 1;
+    .pin-back {
+      margin-top:12px; background:none; border:none;
+      color:var(--text-dim); font-size:14px; cursor:pointer;
     }
 
-    /* Header */
+    /* ===== MODULE SELECTOR ===== */
+    #module-screen {
+      align-items:center; justify-content:center; gap:20px;
+      padding:env(safe-area-inset-top,20px) 24px env(safe-area-inset-bottom,20px);
+    }
+    .module-title { font-size:20px; font-weight:700; }
+    .module-sub { font-size:14px; color:var(--text-dim); }
+    .module-cards { display:flex; flex-direction:column; gap:14px; width:100%; max-width:340px; }
+    .module-card {
+      background:var(--surface); border:1px solid #333;
+      border-radius:16px; padding:24px 20px; cursor:pointer;
+      transition:all .2s; display:flex; align-items:center; gap:16px;
+    }
+    .module-card:active { transform:scale(0.97); border-color:var(--accent); }
+    .module-card .mod-icon { font-size:36px; flex-shrink:0; }
+    .module-card .mod-info { flex:1; }
+    .module-card .mod-name { font-size:18px; font-weight:700; }
+    .module-card .mod-desc { font-size:12px; color:var(--text-dim); margin-top:3px; }
+    .module-card .mod-arrow { color:var(--text-dim); font-size:20px; }
+
+    /* ===== SHARED TRANSLATOR STYLES ===== */
+    .translator-screen {
+      padding:calc(env(safe-area-inset-top,8px)+8px) 16px calc(env(safe-area-inset-bottom,8px)+8px);
+      gap:10px; flex:1;
+    }
     .header {
-      display:flex; align-items:center; justify-content:space-between;
-      padding: 4px 0;
+      display:flex; align-items:center; justify-content:space-between; padding:4px 0;
     }
-    .logo { font-size:22px; font-weight:800; color:var(--accent); letter-spacing:1px; }
+    .logo { font-size:20px; font-weight:800; color:var(--accent); letter-spacing:1px; cursor:pointer; }
     .header-badge {
       font-size:11px; color:var(--text-dim); background:var(--surface);
       padding:4px 10px; border-radius:20px;
     }
+    .back-btn {
+      background:none; border:none; color:var(--text-dim);
+      font-size:22px; cursor:pointer; padding:4px 8px;
+    }
+    .back-btn:active { color:var(--accent); }
 
     /* Language bar */
     .lang-bar {
       display:flex; align-items:center; gap:8px;
-      background:var(--surface); border-radius:var(--radius);
-      padding:10px 12px;
+      background:var(--surface); border-radius:var(--radius); padding:10px 12px;
     }
     .lang-select {
       flex:1; background:var(--surface2); border:1px solid #333;
@@ -106,9 +158,8 @@
 
     /* Scene bar */
     .scene-bar {
-      display:flex; gap:6px;
-      overflow-x:auto; -webkit-overflow-scrolling:touch;
-      padding:2px 0;
+      display:flex; gap:6px; overflow-x:auto;
+      -webkit-overflow-scrolling:touch; padding:2px 0;
     }
     .scene-btn {
       flex-shrink:0; padding:7px 14px; border-radius:20px;
@@ -116,16 +167,13 @@
       color:var(--text-dim); font-size:12px; font-weight:600;
       cursor:pointer; transition:all .2s; white-space:nowrap;
     }
-    .scene-btn.active {
-      background:var(--accent); border-color:var(--accent);
-      color:#fff;
-    }
+    .scene-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
     .scene-btn:active { transform:scale(0.95); }
 
     /* Text panels */
     .text-panel {
       background:var(--surface); border-radius:var(--radius);
-      padding:14px 16px; flex:1; min-height:90px;
+      padding:14px 16px; flex:1; min-height:80px;
       display:flex; flex-direction:column; gap:8px;
       border:1px solid transparent; transition:border-color .3s;
     }
@@ -149,14 +197,12 @@
 
     /* Mic section */
     .mic-section {
-      display:flex; flex-direction:column; align-items:center;
-      gap:8px; padding:6px 0;
+      display:flex; flex-direction:column; align-items:center; gap:8px; padding:6px 0;
     }
     .mic-btn {
       width:76px; height:76px; border-radius:50%;
-      background: linear-gradient(135deg, var(--accent), #ea580c);
-      border:none; color:#fff; font-size:34px;
-      cursor:pointer; position:relative;
+      background:linear-gradient(135deg, var(--accent), #ea580c);
+      border:none; color:#fff; font-size:34px; cursor:pointer;
       display:flex; align-items:center; justify-content:center;
       transition:all .2s; box-shadow:0 4px 20px var(--accent-glow);
     }
@@ -173,10 +219,59 @@
     }
     .mic-label { font-size:13px; color:var(--text-dim); text-align:center; }
 
+    /* Text input bar */
+    .text-input-bar {
+      display:flex; gap:8px;
+      background:var(--surface); border-radius:var(--radius); padding:8px 10px;
+    }
+    .text-input-bar input, .text-input-bar textarea {
+      flex:1; background:var(--surface2); border:1px solid #333;
+      color:var(--text); font-size:15px; padding:10px 12px;
+      border-radius:10px; outline:none; font-family:inherit;
+    }
+    .text-input-bar input:focus, .text-input-bar textarea:focus { border-color:var(--accent); }
+    .text-input-bar input::placeholder, .text-input-bar textarea::placeholder { color:var(--text-dim); }
+    .send-btn {
+      width:44px; height:44px; border-radius:50%;
+      background:var(--accent); border:none; color:#fff;
+      font-size:20px; cursor:pointer; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .15s; align-self:flex-end;
+    }
+    .send-btn:active { transform:scale(0.9); }
+    .send-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+    /* Text translator textarea */
+    .text-area-input {
+      background:var(--surface); border-radius:var(--radius); padding:10px;
+    }
+    .text-area-input textarea {
+      width:100%; min-height:100px; background:var(--surface2);
+      border:1px solid #333; color:var(--text); font-size:16px;
+      padding:12px; border-radius:10px; outline:none;
+      font-family:inherit; resize:vertical; line-height:1.6;
+    }
+    .text-area-input textarea:focus { border-color:var(--accent); }
+    .text-area-input textarea::placeholder { color:var(--text-dim); }
+    .text-area-actions {
+      display:flex; justify-content:flex-end; gap:8px; margin-top:8px;
+    }
+    .text-area-actions button {
+      padding:10px 20px; border-radius:10px; font-size:14px;
+      font-weight:600; cursor:pointer; border:none; transition:all .15s;
+    }
+    .text-area-actions .clear-btn {
+      background:var(--surface2); color:var(--text-dim); border:1px solid #333;
+    }
+    .text-area-actions .translate-btn {
+      background:var(--accent); color:#fff;
+    }
+    .text-area-actions button:active { transform:scale(0.95); }
+    .text-area-actions button:disabled { opacity:0.4; }
+
     /* Status */
     .status-bar {
-      text-align:center; font-size:13px; padding:6px;
-      border-radius:8px; transition:all .3s;
+      text-align:center; font-size:13px; padding:6px; border-radius:8px; transition:all .3s;
     }
     .status-bar.error { color:var(--error); background:rgba(239,68,68,0.1); }
     .status-bar.success { color:var(--success); background:rgba(34,197,94,0.1); }
@@ -187,16 +282,13 @@
 
     /* Controls */
     .controls {
-      display:flex; flex-wrap:wrap; gap:12px; justify-content:center;
-      padding:4px 0;
+      display:flex; flex-wrap:wrap; gap:12px; justify-content:center; padding:4px 0;
     }
     .toggle-label {
       display:flex; align-items:center; gap:5px;
       font-size:12px; color:var(--text-dim); cursor:pointer;
     }
-    .toggle-label input[type="checkbox"] {
-      width:16px; height:16px; accent-color:var(--accent);
-    }
+    .toggle-label input[type="checkbox"] { width:16px; height:16px; accent-color:var(--accent); }
 
     /* History */
     .history-section { margin-top:2px; }
@@ -210,15 +302,14 @@
       max-height:180px; overflow-y:auto;
     }
     .history-item {
-      background:var(--surface); border-radius:10px;
-      padding:8px 12px; font-size:12px;
+      background:var(--surface); border-radius:10px; padding:8px 12px; font-size:12px;
     }
     .history-source { color:var(--text-dim); margin-bottom:3px; }
     .history-target { color:var(--text); }
 
     /* Token cost badge */
     .cost-badge {
-      position:fixed; bottom:env(safe-area-inset-bottom, 12px);
+      position:fixed; bottom:env(safe-area-inset-bottom,12px);
       right:12px; z-index:100;
       background:var(--surface); border:1px solid #333;
       border-radius:20px; padding:6px 12px;
@@ -228,51 +319,64 @@
     }
     .cost-badge .cost-val { color:var(--accent); font-weight:700; }
 
-    /* Text input bar */
-    .text-input-bar {
-      display:flex; gap:8px;
-      background:var(--surface); border-radius:var(--radius);
-      padding:8px 10px;
+    /* Pivot badge */
+    .pivot-badge {
+      font-size:10px; color:var(--warning); background:rgba(234,179,8,0.1);
+      padding:2px 8px; border-radius:8px; display:inline-block;
     }
-    .text-input-bar input {
-      flex:1; background:var(--surface2); border:1px solid #333;
-      color:var(--text); font-size:15px; padding:10px 12px;
-      border-radius:10px; outline:none;
-    }
-    .text-input-bar input:focus { border-color:var(--accent); }
-    .text-input-bar input::placeholder { color:var(--text-dim); }
-    .send-btn {
-      width:44px; height:44px; border-radius:50%;
-      background:var(--accent); border:none; color:#fff;
-      font-size:20px; cursor:pointer; flex-shrink:0;
-      display:flex; align-items:center; justify-content:center;
-      transition:all .15s;
-    }
-    .send-btn:active { transform:scale(0.9); }
-    .send-btn:disabled { opacity:0.4; cursor:not-allowed; }
 
-    /* Not supported warning */
+    /* Not supported */
     .not-supported {
       background:rgba(239,68,68,0.15); border:1px solid var(--error);
       border-radius:var(--radius); padding:16px;
       text-align:center; color:var(--error); font-size:14px;
     }
 
-    /* Responsive */
     @media (min-width:600px) {
-      #translator { max-width:500px; margin:0 auto; }
-      .text-panels { display:flex; gap:12px; }
-      .text-panels .text-panel { flex:1; min-height:160px; }
+      .translator-screen { max-width:500px; margin:0 auto; }
     }
   </style>
 </head>
 <body>
 
-<!-- ===== PIN SCREEN ===== -->
-<div id="pin-screen" class="screen active">
+<!-- ===== 1. HOMEPAGE ===== -->
+<div id="home-screen" class="screen active">
+  <div class="home-logo">NYCKING</div>
+  <div class="home-tagline">
+    Real-time Voice & Text Translator<br>
+    <span style="font-size:13px;color:#555">Powered by Gemini AI</span>
+  </div>
+  <div class="home-langs">
+    <div class="home-lang-card">
+      <div class="flag">🇨🇳</div>
+      <div class="lang-name">中文</div>
+      <div class="lang-sub">Simplified Chinese</div>
+    </div>
+    <div class="home-lang-card">
+      <div class="flag">🇺🇸</div>
+      <div class="lang-name">English</div>
+      <div class="lang-sub">American English</div>
+    </div>
+    <div class="home-lang-card">
+      <div class="flag">🇹🇭</div>
+      <div class="lang-name">ไทย</div>
+      <div class="lang-sub">Standard Thai</div>
+    </div>
+    <div class="home-lang-card">
+      <div class="flag">🇲🇲</div>
+      <div class="lang-name">မြန်မာ</div>
+      <div class="lang-sub">Standard Burmese</div>
+    </div>
+  </div>
+  <button class="home-enter-btn" id="home-enter-btn">Enter Translator →</button>
+  <div class="home-footer">v2.0 · Private Access · PIN Required</div>
+</div>
+
+<!-- ===== 2. PIN GATE ===== -->
+<div id="pin-screen" class="screen">
   <div class="pin-icon">🔐</div>
-  <div class="pin-title">输入访问码 Enter PIN</div>
-  <div class="pin-subtitle">请输入 6 位数字密码</div>
+  <div class="pin-title">Enter PIN</div>
+  <div class="pin-subtitle">6-digit access code</div>
   <div class="pin-dots" id="pin-dots">
     <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
     <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
@@ -291,138 +395,213 @@
     <button class="pin-key" data-key="0">0</button>
     <button class="pin-key fn" data-key="clear">C</button>
   </div>
+  <button class="pin-back" id="pin-back">← Back</button>
 </div>
 
-<!-- ===== TRANSLATOR SCREEN ===== -->
-<div id="translator" class="screen">
-  <!-- Header -->
+<!-- ===== 3. MODULE SELECTOR ===== -->
+<div id="module-screen" class="screen">
+  <div class="home-logo">NYCKING</div>
+  <div class="module-title">Choose Mode</div>
+  <div class="module-sub">Select your translation mode</div>
+  <div class="module-cards">
+    <div class="module-card" id="go-voice">
+      <div class="mod-icon">🎙️</div>
+      <div class="mod-info">
+        <div class="mod-name">Voice Translate</div>
+        <div class="mod-desc">语音翻译 · Speak and translate in real-time</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </div>
+    <div class="module-card" id="go-text">
+      <div class="mod-icon">📝</div>
+      <div class="mod-info">
+        <div class="mod-name">Text Translate</div>
+        <div class="mod-desc">文字翻译 · Type or paste text to translate</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 4. VOICE TRANSLATOR ===== -->
+<div id="voice-screen" class="screen translator-screen">
   <div class="header">
-    <span class="logo">NYCKING</span>
-    <span class="header-badge">Gemini 2.5 Flash</span>
+    <button class="back-btn" id="voice-back">‹</button>
+    <span class="logo" id="voice-logo">🎙️ Voice</span>
+    <span class="header-badge">Gemini 2.5</span>
   </div>
 
-  <!-- Language bar -->
   <div class="lang-bar">
-    <select id="source-lang" class="lang-select">
+    <select id="v-source-lang" class="lang-select">
       <option value="zh-CN">🇨🇳 中文</option>
       <option value="en-US">🇺🇸 English</option>
       <option value="th-TH">🇹🇭 ไทย</option>
       <option value="lo-LA">🇱🇦 ລາວ</option>
+      <option value="my-MM">🇲🇲 မြန်မာ</option>
     </select>
-    <button id="swap-btn" class="swap-btn" title="交换语言">⇄</button>
-    <select id="target-lang" class="lang-select">
+    <button class="swap-btn" id="v-swap-btn" title="Swap">⇄</button>
+    <select id="v-target-lang" class="lang-select">
       <option value="th-TH">🇹🇭 ไทย</option>
       <option value="en-US">🇺🇸 English</option>
       <option value="zh-CN">🇨🇳 中文</option>
       <option value="lo-LA">🇱🇦 ລາວ</option>
+      <option value="my-MM">🇲🇲 မြန်မာ</option>
     </select>
   </div>
 
-  <!-- Scene selector -->
-  <div class="scene-bar" id="scene-bar">
-    <button class="scene-btn active" data-scene="travel">✈️ 旅行休闲</button>
-    <button class="scene-btn" data-scene="romance">💕 感情社交</button>
-    <button class="scene-btn" data-scene="business">💼 商务会谈</button>
+  <div class="scene-bar" id="v-scene-bar">
+    <button class="scene-btn active" data-scene="travel">✈️ Travel</button>
+    <button class="scene-btn" data-scene="romance">💕 Romance</button>
+    <button class="scene-btn" data-scene="business">💼 Business</button>
   </div>
 
-  <!-- Text panels -->
-  <div class="text-panels">
-    <div class="text-panel" id="source-panel">
-      <div class="panel-label">
-        <span>🎙️ 原文 SOURCE</span>
-      </div>
-      <div class="panel-text placeholder" id="source-text">点击麦克风开始说话</div>
+  <div class="text-panel" id="v-source-panel">
+    <div class="panel-label"><span>🎙️ SOURCE</span></div>
+    <div class="panel-text placeholder" id="v-source-text">Tap the mic to speak</div>
+  </div>
+  <div class="text-panel" id="v-target-panel">
+    <div class="panel-label">
+      <span>🔊 TRANSLATION</span>
+      <button class="speak-btn" id="v-speak-btn">🔊</button>
     </div>
-    <div class="text-panel" id="target-panel">
-      <div class="panel-label">
-        <span>🔊 翻译 TRANSLATION</span>
-        <button class="speak-btn" id="speak-btn" title="朗读翻译">🔊</button>
-      </div>
-      <div class="panel-text placeholder" id="target-text">翻译结果显示在这里</div>
-    </div>
+    <div class="panel-text placeholder" id="v-target-text">Translation appears here</div>
   </div>
 
-  <!-- Status -->
-  <div class="status-bar" id="status"></div>
+  <div class="status-bar" id="v-status"></div>
 
-  <!-- Mic button -->
   <div class="mic-section">
-    <button class="mic-btn" id="mic-btn" title="点击说话">🎤</button>
-    <div class="mic-label" id="mic-label">点击开始说话 Tap to speak</div>
+    <button class="mic-btn" id="v-mic-btn">🎤</button>
+    <div class="mic-label" id="v-mic-label">Tap to speak</div>
   </div>
 
-  <!-- Text input fallback -->
-  <div class="text-input-bar" id="text-input-bar">
-    <input type="text" id="text-input" placeholder="输入文字翻译 Type to translate..." autocomplete="off" enterkeyhint="send">
-    <button class="send-btn" id="send-btn" title="发送翻译">➤</button>
+  <div class="text-input-bar">
+    <input type="text" id="v-text-input" placeholder="Or type here..." autocomplete="off" enterkeyhint="send">
+    <button class="send-btn" id="v-send-btn">➤</button>
   </div>
 
-  <!-- Controls -->
   <div class="controls">
-    <label class="toggle-label">
-      <input type="checkbox" id="auto-speak" checked>
-      <span>🔊 自动朗读</span>
-    </label>
-    <label class="toggle-label">
-      <input type="checkbox" id="continuous-mode">
-      <span>🔄 连续模式</span>
-    </label>
-    <label class="toggle-label">
-      <input type="checkbox" id="noisy-env">
-      <span>📢 户外杂音</span>
-    </label>
+    <label class="toggle-label"><input type="checkbox" id="v-auto-speak" checked><span>🔊 Auto-speak</span></label>
+    <label class="toggle-label"><input type="checkbox" id="v-continuous"><span>🔄 Continuous</span></label>
+    <label class="toggle-label"><input type="checkbox" id="v-noisy"><span>📢 Noisy env</span></label>
   </div>
 
-  <!-- History -->
   <div class="history-section">
-    <div class="history-header">📝 翻译记录 <span id="history-count"></span></div>
-    <div class="history-list" id="history-list"></div>
+    <div class="history-header">📝 History <span id="v-history-count"></span></div>
+    <div class="history-list" id="v-history-list"></div>
   </div>
 
-  <!-- Browser support warning (hidden by default) -->
-  <div class="not-supported" id="not-supported" style="display:none">
-    ❌ 您的浏览器不支持语音识别<br>
-    请使用 Chrome、Edge 或 Safari 浏览器
+  <div class="not-supported" id="v-not-supported" style="display:none">
+    ❌ Speech recognition not supported in this browser<br>Use Chrome, Edge, or Safari
   </div>
 </div>
 
-<!-- Token cost badge -->
+<!-- ===== 5. TEXT TRANSLATOR ===== -->
+<div id="text-screen" class="screen translator-screen">
+  <div class="header">
+    <button class="back-btn" id="text-back">‹</button>
+    <span class="logo">📝 Text</span>
+    <span class="header-badge">Gemini 2.5</span>
+  </div>
+
+  <div class="lang-bar">
+    <select id="t-source-lang" class="lang-select">
+      <option value="zh-CN">🇨🇳 中文</option>
+      <option value="en-US">🇺🇸 English</option>
+      <option value="th-TH">🇹🇭 ไทย</option>
+      <option value="lo-LA">🇱🇦 ລາວ</option>
+      <option value="my-MM">🇲🇲 မြန်မာ</option>
+    </select>
+    <button class="swap-btn" id="t-swap-btn" title="Swap">⇄</button>
+    <select id="t-target-lang" class="lang-select">
+      <option value="th-TH">🇹🇭 ไทย</option>
+      <option value="en-US">🇺🇸 English</option>
+      <option value="zh-CN">🇨🇳 中文</option>
+      <option value="lo-LA">🇱🇦 ລາວ</option>
+      <option value="my-MM">🇲🇲 မြန်မာ</option>
+    </select>
+  </div>
+
+  <div class="scene-bar" id="t-scene-bar">
+    <button class="scene-btn active" data-scene="travel">✈️ Travel</button>
+    <button class="scene-btn" data-scene="romance">💕 Romance</button>
+    <button class="scene-btn" data-scene="business">💼 Business</button>
+  </div>
+
+  <div class="text-area-input">
+    <textarea id="t-input" rows="4" placeholder="Type or paste text to translate..."></textarea>
+    <div class="text-area-actions">
+      <button class="clear-btn" id="t-clear-btn">Clear</button>
+      <button class="translate-btn" id="t-translate-btn">Translate ➤</button>
+    </div>
+  </div>
+
+  <div class="text-panel" id="t-target-panel">
+    <div class="panel-label">
+      <span>🔊 TRANSLATION</span>
+      <button class="speak-btn" id="t-speak-btn">🔊</button>
+    </div>
+    <div class="panel-text placeholder" id="t-target-text">Translation appears here</div>
+  </div>
+
+  <div class="status-bar" id="t-status"></div>
+
+  <div class="controls">
+    <label class="toggle-label"><input type="checkbox" id="t-auto-speak"><span>🔊 Auto-speak</span></label>
+    <label class="toggle-label"><input type="checkbox" id="t-noisy"><span>📢 Noisy env</span></label>
+  </div>
+
+  <div class="history-section">
+    <div class="history-header">📝 History <span id="t-history-count"></span></div>
+    <div class="history-list" id="t-history-list"></div>
+  </div>
+</div>
+
+<!-- Token cost badge (global) -->
 <div class="cost-badge" id="cost-badge" style="display:none">
   ⚡ <span class="cost-val" id="cost-val">฿0.0000</span>
   <span id="cost-tokens">0 tokens</span>
 </div>
 
-<!-- PIN logic -->
+<!-- Navigation logic -->
 <script>
 (function(){
   const PIN = '684861';
-  if (sessionStorage.getItem('nycking_auth') === '1') {
-    document.getElementById('pin-screen').classList.remove('active');
-    document.getElementById('translator').classList.add('active');
-    return;
+  const screens = document.querySelectorAll('.screen');
+
+  function show(id) {
+    screens.forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
   }
+
+  // Check if already authed
+  const authed = sessionStorage.getItem('nycking_auth') === '1';
+  if (authed) {
+    show('module-screen');
+  }
+
+  // Homepage → PIN
+  document.getElementById('home-enter-btn').addEventListener('click', () => {
+    if (sessionStorage.getItem('nycking_auth') === '1') {
+      show('module-screen');
+    } else {
+      show('pin-screen');
+    }
+  });
+
+  // PIN back
+  document.getElementById('pin-back').addEventListener('click', () => show('home-screen'));
+
+  // PIN pad
   let code = '';
   const dots = document.querySelectorAll('#pin-dots .pin-dot');
   const pad = document.getElementById('pin-pad');
 
   function updateDots() {
-    dots.forEach((d, i) => {
-      d.classList.toggle('filled', i < code.length);
-      d.classList.remove('error');
-    });
+    dots.forEach((d, i) => { d.classList.toggle('filled', i < code.length); d.classList.remove('error'); });
   }
   function showError() {
     dots.forEach(d => { d.classList.add('error'); d.classList.remove('filled'); });
     setTimeout(() => { code = ''; updateDots(); }, 600);
-  }
-  function checkPin() {
-    if (code === PIN) {
-      sessionStorage.setItem('nycking_auth', '1');
-      document.getElementById('pin-screen').classList.remove('active');
-      document.getElementById('translator').classList.add('active');
-    } else {
-      showError();
-    }
   }
 
   pad.addEventListener('click', (e) => {
@@ -433,12 +612,30 @@
     if (code.length >= 6) return;
     code += key;
     updateDots();
-    if (code.length === 6) setTimeout(checkPin, 200);
+    if (code.length === 6) {
+      setTimeout(() => {
+        if (code === PIN) {
+          sessionStorage.setItem('nycking_auth', '1');
+          show('module-screen');
+        } else { showError(); }
+      }, 200);
+    }
   });
+
+  // Module selection
+  document.getElementById('go-voice').addEventListener('click', () => show('voice-screen'));
+  document.getElementById('go-text').addEventListener('click', () => show('text-screen'));
+
+  // Back buttons
+  document.getElementById('voice-back').addEventListener('click', () => show('module-screen'));
+  document.getElementById('text-back').addEventListener('click', () => show('module-screen'));
+
+  // Expose for app.js
+  window.NYCKING_SHOW = show;
 })();
 </script>
 
-<!-- Dev mode API base -->
+<!-- Dev mode -->
 <script>
   if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
     window.NYCKING_API_BASE = 'http://localhost:8080';
@@ -446,6 +643,6 @@
 </script>
 
 <!-- App -->
-<script type="module" src="/src/app.js?v=4"></script>
+<script type="module" src="/src/app.js?v=5"></script>
 </body>
 </html>

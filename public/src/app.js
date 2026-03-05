@@ -1,369 +1,105 @@
 /**
- * NYCKING Voice Translator — Main App
- * Architecture: Web Speech API (STT) → Gemini (Translate) → SpeechSynthesis (TTS)
- * Languages: Chinese(Simplified) ↔ Thai ↔ English ↔ Lao
- * Scenes: travel / romance / business
+ * NYCKING Translator — Main App (v2)
+ * Modules: Voice Translate + Text Translate
+ * Languages: zh-CN, en-US, th-TH, lo-LA, my-MM
+ * Features: pivot translation, context memory, scene modes
  */
 
 const API_BASE = window.NYCKING_API_BASE || '';
-const ALL_LANGS = ['zh-CN', 'en-US', 'th-TH', 'lo-LA'];
+const ALL_LANGS = ['zh-CN', 'en-US', 'th-TH', 'lo-LA', 'my-MM'];
 
-// ─── State ───
-let isListening = false;
-let isSpeaking = false;
-let isTranslating = false;
-let recognition = null;
-let continuous = false;
-let autoSpeak = true;
-let noisyEnv = false;
-let currentScene = 'travel';
-let stoppingManually = false;
-const history = [];
-
-// Token cost tracking (session total)
+// ─── Shared State ───
 let totalTokensIn = 0;
 let totalTokensOut = 0;
 let totalCostTHB = 0;
 
-// ─── DOM refs ───
+// Shared context memory (last ~10 translations, shared across modules)
+const contextMemory = [];
+const MAX_CONTEXT = 10;
+
+// ─── Global DOM ───
 const $ = (id) => document.getElementById(id);
-const micBtn = $('mic-btn');
-const micLabel = $('mic-label');
-const sourceText = $('source-text');
-const targetText = $('target-text');
-const sourcePanel = $('source-panel');
-const targetPanel = $('target-panel');
-const sourceLangSel = $('source-lang');
-const targetLangSel = $('target-lang');
-const swapBtn = $('swap-btn');
-const speakBtn = $('speak-btn');
-const statusBar = $('status');
-const autoSpeakCb = $('auto-speak');
-const continuousCb = $('continuous-mode');
-const noisyEnvCb = $('noisy-env');
-const historyList = $('history-list');
-const historyCount = $('history-count');
-const notSupported = $('not-supported');
-const sceneBar = $('scene-bar');
 const costBadge = $('cost-badge');
 const costVal = $('cost-val');
 const costTokens = $('cost-tokens');
-const textInput = $('text-input');
-const sendBtn = $('send-btn');
 
-// ─── TTS Voice Map ───
-// Lock to official standard voices per language
-const VOICE_PREFERENCES = {
-  'zh-CN': [
-    'Google 普通话（中国大陆）', 'Google 中文（普通话）',
-    'Microsoft Xiaoxiao', 'Ting-Ting',
-    'zh-CN', 'zh_CN',
-  ],
-  'en-US': [
-    'Google US English', 'Microsoft Mark',
-    'Samantha', 'Alex',
-    'en-US', 'en_US',
-  ],
-  'th-TH': [
-    'Google ไทย', 'Microsoft Pattara',
-    'Kanya', 'Niwat',
-    'th-TH', 'th_TH',
-  ],
-  'lo-LA': [
-    'lo-LA', 'lo_LA', 'lo',
-  ],
+// ─── TTS Voice Preferences ───
+const VOICE_PREFS = {
+  'zh-CN': ['Google 普通话（中国大陆）', 'Google 中文（普通话）', 'Microsoft Xiaoxiao', 'Ting-Ting'],
+  'en-US': ['Google US English', 'Microsoft Mark', 'Samantha', 'Alex'],
+  'th-TH': ['Google ไทย', 'Microsoft Pattara', 'Kanya'],
+  'lo-LA': ['lo-LA', 'lo_LA', 'lo'],
+  'my-MM': ['my-MM', 'my_MM', 'my'],
 };
-
 let voiceCache = {};
 
 function findBestVoice(lang) {
   if (voiceCache[lang]) return voiceCache[lang];
-
   const voices = speechSynthesis.getVoices();
   if (!voices.length) return null;
-
-  const prefs = VOICE_PREFERENCES[lang] || [];
-
-  // Try exact name match from preference list
-  for (const pref of prefs) {
+  for (const pref of (VOICE_PREFS[lang] || [])) {
     const v = voices.find(v => v.name === pref || v.name.includes(pref));
     if (v) { voiceCache[lang] = v; return v; }
   }
-
-  // Try exact lang match
-  const exactLang = voices.find(v => v.lang === lang);
-  if (exactLang) { voiceCache[lang] = exactLang; return exactLang; }
-
-  // Try lang prefix match
-  const langPrefix = lang.split('-')[0];
-  const prefixMatch = voices.find(v => v.lang.startsWith(langPrefix));
-  if (prefixMatch) { voiceCache[lang] = prefixMatch; return prefixMatch; }
-
+  const exact = voices.find(v => v.lang === lang);
+  if (exact) { voiceCache[lang] = exact; return exact; }
+  const prefix = voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+  if (prefix) { voiceCache[lang] = prefix; return prefix; }
   return null;
 }
 
-// ─── Check browser support ───
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (!SpeechRecognition) {
-  if (notSupported) notSupported.style.display = 'block';
-  if (micBtn) micBtn.disabled = true;
-  setStatus('浏览器不支持语音识别，请用 Chrome 或 Safari', 'error');
-}
-
-// ─── Speech Recognition Setup ───
-function initRecognition() {
-  if (!SpeechRecognition) return null;
-
-  const rec = new SpeechRecognition();
-  rec.continuous = false;
-  rec.interimResults = true;
-  rec.maxAlternatives = 1;
-
-  rec.onstart = () => {
-    console.log('[speech] started, lang:', rec.lang);
-    isListening = true;
-    micBtn.classList.add('listening');
-    sourcePanel.classList.add('active');
-    micLabel.textContent = '🔴 正在听... Listening (点击停止)';
-    setStatus('🎙️ 请说话...', 'listening');
-  };
-
-  rec.onresult = (event) => {
-    let interim = '';
-    let final = '';
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const t = event.results[i][0].transcript;
-      if (event.results[i].isFinal) {
-        final += t;
-      } else {
-        interim += t;
-      }
-    }
-
-    if (interim) {
-      setSourceText(interim, true);
-    }
-    if (final) {
-      setSourceText(final, false);
-      translate(final);
-    }
-  };
-
-  rec.onerror = (event) => {
-    console.warn('[speech] error:', event.error);
-    isListening = false;
-    micBtn.classList.remove('listening');
-    sourcePanel.classList.remove('active');
-
-    if (event.error === 'no-speech') {
-      setStatus('没有检测到语音，请再试一次', 'warning');
-      micLabel.textContent = '点击开始说话 Tap to speak';
-    } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-      setStatus('🚫 麦克风权限被拒绝', 'error');
-      micLabel.textContent = '需要麦克风权限';
-    } else if (event.error === 'network') {
-      setStatus('网络错误，请检查网络连接', 'error');
-      micLabel.textContent = '点击重试';
-    } else if (event.error !== 'aborted') {
-      setStatus(`语音识别错误: ${event.error}`, 'error');
-      micLabel.textContent = '点击重试';
-    }
-  };
-
-  rec.onend = () => {
-    console.log('[speech] ended');
-    isListening = false;
-    micBtn.classList.remove('listening');
-    sourcePanel.classList.remove('active');
-
-    if (!stoppingManually && continuous && !isTranslating && !isSpeaking) {
-      setTimeout(() => startListening(), 800);
-    } else if (!isTranslating) {
-      micLabel.textContent = '点击开始说话 Tap to speak';
-    }
-  };
-
-  return rec;
-}
-
-// ─── Start / Stop listening ───
-function startListening() {
-  if (isListening || isSpeaking) return;
-  if (!recognition) recognition = initRecognition();
-  if (!recognition) return;
-
-  stoppingManually = false;
-  recognition.lang = sourceLangSel.value;
-
-  try {
-    recognition.start();
-  } catch (e) {
-    console.warn('[speech] start error:', e.message);
-  }
-}
-
-function stopListening() {
-  if (!isListening || !recognition) return;
-  stoppingManually = true;
-  try {
-    recognition.stop();
-  } catch (e) {
-    console.warn('[speech] stop error:', e.message);
-  }
-  isListening = false;
-  micBtn.classList.remove('listening');
-  micLabel.textContent = '点击开始说话 Tap to speak';
-}
-
-// ─── Translation via Gemini ───
-async function translate(text) {
-  if (!text.trim()) return;
-
-  isTranslating = true;
-  setStatus('⏳ 翻译中...', 'info');
-  setTargetText('...', true);
-  micLabel.textContent = '翻译中...';
-
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-
-    const resp = await fetch(`${API_BASE}/api/translate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text: text.trim(),
-        sourceLang: sourceLangSel.value,
-        targetLang: targetLangSel.value,
-        scene: currentScene,
-        noisyEnv,
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({ message: `HTTP ${resp.status}` }));
-      throw new Error(err.message || `翻译请求失败 (${resp.status})`);
-    }
-
-    const data = await resp.json();
-    setTargetText(data.translation, false);
-    setStatus(`✅ 翻译完成 (${data.latencyMs}ms)`, 'success');
-    addHistory(text, data.translation);
-
-    // Update token cost
-    if (data.tokensIn || data.tokensOut) {
-      totalTokensIn += data.tokensIn || 0;
-      totalTokensOut += data.tokensOut || 0;
-      totalCostTHB += data.costTHB || 0;
-      updateCostBadge();
-    }
-
-    if (autoSpeak && data.translation) {
-      speak(data.translation, targetLangSel.value);
-    } else {
-      micLabel.textContent = '点击开始说话 Tap to speak';
-      if (continuous) setTimeout(() => startListening(), 500);
-    }
-  } catch (err) {
-    console.error('[translate] error:', err);
-    if (err.name === 'AbortError') {
-      setStatus('翻译超时，请重试', 'error');
-    } else {
-      setStatus(`翻译失败: ${err.message}`, 'error');
-    }
-    setTargetText('翻译失败', false);
-    micLabel.textContent = '点击重试';
-  } finally {
-    isTranslating = false;
-  }
-}
-
-// ─── TTS — locked to standard voices ───
-function speak(text, lang) {
-  if (!text || !window.speechSynthesis) return;
-
-  // Cancel any ongoing speech
+function speak(text, lang, onDone) {
+  if (!text || !window.speechSynthesis) { onDone?.(); return; }
   speechSynthesis.cancel();
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = lang;
-  utterance.rate = 0.9;
-  utterance.pitch = 1.0;
-
-  // Use locked voice for the target language
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang;
+  u.rate = 0.9;
   const voice = findBestVoice(lang);
-  if (voice) {
-    utterance.voice = voice;
-    console.log('[tts] using voice:', voice.name, voice.lang);
-  } else {
-    console.log('[tts] no specific voice found for', lang, '- using default');
+  if (voice) u.voice = voice;
+  u.onend = () => onDone?.();
+  u.onerror = () => onDone?.();
+  speechSynthesis.speak(u);
+}
+
+// ─── Translation API ───
+async function translateAPI(text, sourceLang, targetLang, scene, noisyEnv) {
+  const resp = await fetch(`${API_BASE}/api/translate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      text: text.trim(),
+      sourceLang,
+      targetLang,
+      scene,
+      noisyEnv,
+      context: contextMemory.slice(-MAX_CONTEXT),
+    }),
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.message || `HTTP ${resp.status}`);
   }
+  const data = await resp.json();
 
-  utterance.onstart = () => {
-    isSpeaking = true;
-    targetPanel.classList.add('active');
-    micLabel.textContent = '🔊 朗读中...';
-  };
+  // Update context memory
+  contextMemory.push({ source: text.trim(), target: data.translation });
+  if (contextMemory.length > MAX_CONTEXT) contextMemory.shift();
 
-  utterance.onend = () => {
-    isSpeaking = false;
-    targetPanel.classList.remove('active');
-    micLabel.textContent = '点击开始说话 Tap to speak';
-    if (continuous) setTimeout(() => startListening(), 500);
-  };
+  // Update cost
+  totalTokensIn += data.tokensIn || 0;
+  totalTokensOut += data.tokensOut || 0;
+  totalCostTHB += data.costTHB || 0;
+  updateCostBadge();
 
-  utterance.onerror = (e) => {
-    console.warn('[tts] error:', e.error);
-    isSpeaking = false;
-    targetPanel.classList.remove('active');
-    micLabel.textContent = '点击开始说话 Tap to speak';
-    if (continuous) setTimeout(() => startListening(), 500);
-  };
-
-  speechSynthesis.speak(utterance);
+  return data;
 }
 
-// ─── Text Input Fallback ───
-function submitTextInput() {
-  const text = textInput.value.trim();
-  if (!text || isTranslating) return;
-  setSourceText(text, false);
-  textInput.value = '';
-  translate(text);
-}
-
-// ─── UI Helpers ───
-function setSourceText(text, isInterim) {
-  sourceText.textContent = text;
-  sourceText.className = isInterim ? 'panel-text interim' : 'panel-text';
-}
-
-function setTargetText(text, isLoading) {
-  targetText.textContent = text;
-  targetText.className = isLoading ? 'panel-text interim' : 'panel-text';
-}
-
-function setStatus(msg, type) {
-  statusBar.textContent = msg;
-  statusBar.className = `status-bar ${type || ''}`;
-}
-
-function addHistory(source, target) {
-  history.unshift({ source, target, time: Date.now() });
-  if (history.length > 20) history.pop();
-  renderHistory();
-}
-
-function renderHistory() {
-  historyCount.textContent = history.length ? `(${history.length})` : '';
-  historyList.innerHTML = history.map(h => `
-    <div class="history-item">
-      <div class="history-source">${escHtml(h.source)}</div>
-      <div class="history-target">${escHtml(h.target)}</div>
-    </div>
-  `).join('');
+function updateCostBadge() {
+  const total = totalTokensIn + totalTokensOut;
+  costBadge.style.display = total > 0 ? 'flex' : 'none';
+  costVal.textContent = `฿${totalCostTHB.toFixed(4)}`;
+  costTokens.textContent = `${total.toLocaleString()} tok`;
 }
 
 function escHtml(s) {
@@ -372,115 +108,359 @@ function escHtml(s) {
   return d.innerHTML;
 }
 
-function updateCostBadge() {
-  const totalTokens = totalTokensIn + totalTokensOut;
-  costBadge.style.display = totalTokens > 0 ? 'flex' : 'none';
-  costVal.textContent = `฿${totalCostTHB.toFixed(4)}`;
-  costTokens.textContent = `${totalTokens.toLocaleString()} tokens`;
-}
+// ═══════════════════════════════════════
+// VOICE TRANSLATOR MODULE
+// ═══════════════════════════════════════
+const Voice = (() => {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-// ─── Event bindings ───
-function bindEvents() {
-  // Mic button
-  micBtn.addEventListener('click', () => {
-    if (isSpeaking) {
-      speechSynthesis.cancel();
-      isSpeaking = false;
-      return;
-    }
-    if (isListening) {
-      stopListening();
-    } else {
-      startListening();
-    }
-  });
+  // DOM
+  const micBtn = $('v-mic-btn');
+  const micLabel = $('v-mic-label');
+  const srcText = $('v-source-text');
+  const tgtText = $('v-target-text');
+  const srcPanel = $('v-source-panel');
+  const tgtPanel = $('v-target-panel');
+  const srcLang = $('v-source-lang');
+  const tgtLang = $('v-target-lang');
+  const swapBtn = $('v-swap-btn');
+  const speakBtn = $('v-speak-btn');
+  const status = $('v-status');
+  const autoSpeakCb = $('v-auto-speak');
+  const continuousCb = $('v-continuous');
+  const noisyCb = $('v-noisy');
+  const histList = $('v-history-list');
+  const histCount = $('v-history-count');
+  const sceneBar = $('v-scene-bar');
+  const textInput = $('v-text-input');
+  const sendBtn = $('v-send-btn');
+  const notSupported = $('v-not-supported');
 
-  // Swap languages
-  swapBtn.addEventListener('click', () => {
-    const src = sourceLangSel.value;
-    const tgt = targetLangSel.value;
-    sourceLangSel.value = tgt;
-    targetLangSel.value = src;
-  });
+  let recognition = null;
+  let isListening = false;
+  let isSpeaking = false;
+  let isTranslating = false;
+  let stoppingManually = false;
+  let scene = 'travel';
+  const history = [];
 
-  // Prevent same source/target
-  sourceLangSel.addEventListener('change', () => {
-    if (sourceLangSel.value === targetLangSel.value) {
-      const others = ALL_LANGS.filter(l => l !== sourceLangSel.value);
-      targetLangSel.value = others[0];
-    }
-  });
-  targetLangSel.addEventListener('change', () => {
-    if (targetLangSel.value === sourceLangSel.value) {
-      const others = ALL_LANGS.filter(l => l !== targetLangSel.value);
-      sourceLangSel.value = others[0];
-    }
-  });
-
-  // Speak button (replay translation)
-  speakBtn.addEventListener('click', () => {
-    const text = targetText.textContent;
-    if (text && !targetText.classList.contains('placeholder') && !targetText.classList.contains('interim')) {
-      speak(text, targetLangSel.value);
-    }
-  });
-
-  // Controls
-  autoSpeakCb.addEventListener('change', () => { autoSpeak = autoSpeakCb.checked; });
-  continuousCb.addEventListener('change', () => { continuous = continuousCb.checked; });
-  noisyEnvCb.addEventListener('change', () => { noisyEnv = noisyEnvCb.checked; });
-
-  // Text input — send on click or Enter
-  sendBtn.addEventListener('click', () => submitTextInput());
-  textInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.isComposing) {
-      e.preventDefault();
-      submitTextInput();
-    }
-  });
-
-  // Scene selector
-  sceneBar.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-scene]');
-    if (!btn) return;
-    currentScene = btn.dataset.scene;
-    sceneBar.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    console.log('[scene] switched to:', currentScene);
-  });
-
-  // Load voices (async on some browsers)
-  if (window.speechSynthesis) {
-    speechSynthesis.getVoices();
-    speechSynthesis.onvoiceschanged = () => {
-      voiceCache = {}; // Clear cache to re-resolve
-      const voices = speechSynthesis.getVoices();
-      console.log('[tts] voices loaded:', voices.length);
-      // Log available voices for debugging
-      const langGroups = {};
-      voices.forEach(v => {
-        const key = v.lang.split('-')[0];
-        if (!langGroups[key]) langGroups[key] = [];
-        langGroups[key].push(`${v.name} (${v.lang})`);
-      });
-      ['zh', 'en', 'th', 'lo'].forEach(k => {
-        if (langGroups[k]) console.log(`[tts] ${k}:`, langGroups[k].join(', '));
-      });
-    };
+  function setStatus(msg, type) {
+    status.textContent = msg;
+    status.className = `status-bar ${type || ''}`;
   }
-}
+
+  function setSrc(text, interim) {
+    srcText.textContent = text;
+    srcText.className = interim ? 'panel-text interim' : 'panel-text';
+  }
+
+  function setTgt(text, loading) {
+    tgtText.textContent = text;
+    tgtText.className = loading ? 'panel-text interim' : 'panel-text';
+  }
+
+  function addHistory(src, tgt, pivot) {
+    history.unshift({ src, tgt, pivot, time: Date.now() });
+    if (history.length > 20) history.pop();
+    histCount.textContent = history.length ? `(${history.length})` : '';
+    histList.innerHTML = history.map(h =>
+      `<div class="history-item">
+        <div class="history-source">${escHtml(h.src)}${h.pivot ? ' <span class="pivot-badge">via EN</span>' : ''}</div>
+        <div class="history-target">${escHtml(h.tgt)}</div>
+      </div>`
+    ).join('');
+  }
+
+  function initRecognition() {
+    if (!SpeechRecognition) return null;
+    const rec = new SpeechRecognition();
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+
+    rec.onstart = () => {
+      isListening = true;
+      micBtn.classList.add('listening');
+      srcPanel.classList.add('active');
+      micLabel.textContent = '🔴 Listening... (tap to stop)';
+      setStatus('🎙️ Speak now...', 'listening');
+    };
+
+    rec.onresult = (e) => {
+      let interim = '', final = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) final += t; else interim += t;
+      }
+      if (interim) setSrc(interim, true);
+      if (final) { setSrc(final, false); doTranslate(final); }
+    };
+
+    rec.onerror = (e) => {
+      isListening = false;
+      micBtn.classList.remove('listening');
+      srcPanel.classList.remove('active');
+      if (e.error === 'no-speech') setStatus('No speech detected', 'warning');
+      else if (e.error === 'not-allowed') setStatus('🚫 Mic permission denied', 'error');
+      else if (e.error !== 'aborted') setStatus(`Speech error: ${e.error}`, 'error');
+      micLabel.textContent = 'Tap to speak';
+    };
+
+    rec.onend = () => {
+      isListening = false;
+      micBtn.classList.remove('listening');
+      srcPanel.classList.remove('active');
+      if (!stoppingManually && continuousCb.checked && !isTranslating && !isSpeaking) {
+        setTimeout(() => startListening(), 800);
+      } else if (!isTranslating) {
+        micLabel.textContent = 'Tap to speak';
+      }
+    };
+
+    return rec;
+  }
+
+  function startListening() {
+    if (isListening || isSpeaking) return;
+    if (!recognition) recognition = initRecognition();
+    if (!recognition) return;
+    stoppingManually = false;
+    recognition.lang = srcLang.value;
+    try { recognition.start(); } catch (e) {}
+  }
+
+  function stopListening() {
+    if (!isListening || !recognition) return;
+    stoppingManually = true;
+    try { recognition.stop(); } catch (e) {}
+    isListening = false;
+    micBtn.classList.remove('listening');
+    micLabel.textContent = 'Tap to speak';
+  }
+
+  async function doTranslate(text) {
+    if (!text.trim()) return;
+    isTranslating = true;
+    setStatus('⏳ Translating...', 'info');
+    setTgt('...', true);
+    micLabel.textContent = 'Translating...';
+
+    try {
+      const data = await translateAPI(text, srcLang.value, tgtLang.value, scene, noisyCb.checked);
+      setTgt(data.translation, false);
+      const pivotNote = data.pivotUsed ? ' (via EN)' : '';
+      setStatus(`✅ Done ${data.latencyMs}ms${pivotNote}`, 'success');
+      addHistory(text, data.translation, data.pivotUsed);
+
+      if (autoSpeakCb.checked && data.translation) {
+        isSpeaking = true;
+        tgtPanel.classList.add('active');
+        micLabel.textContent = '🔊 Speaking...';
+        speak(data.translation, tgtLang.value, () => {
+          isSpeaking = false;
+          tgtPanel.classList.remove('active');
+          micLabel.textContent = 'Tap to speak';
+          if (continuousCb.checked) setTimeout(() => startListening(), 500);
+        });
+      } else {
+        micLabel.textContent = 'Tap to speak';
+        if (continuousCb.checked) setTimeout(() => startListening(), 500);
+      }
+    } catch (err) {
+      setStatus(`❌ ${err.message}`, 'error');
+      setTgt('Translation failed', false);
+      micLabel.textContent = 'Tap to retry';
+    } finally {
+      isTranslating = false;
+    }
+  }
+
+  function init() {
+    if (!SpeechRecognition && notSupported) notSupported.style.display = 'block';
+    if (!SpeechRecognition && micBtn) micBtn.disabled = true;
+
+    micBtn.addEventListener('click', () => {
+      if (isSpeaking) { speechSynthesis.cancel(); isSpeaking = false; return; }
+      isListening ? stopListening() : startListening();
+    });
+
+    swapBtn.addEventListener('click', () => {
+      const s = srcLang.value, t = tgtLang.value;
+      srcLang.value = t; tgtLang.value = s;
+    });
+
+    srcLang.addEventListener('change', () => {
+      if (srcLang.value === tgtLang.value) {
+        tgtLang.value = ALL_LANGS.find(l => l !== srcLang.value) || 'en-US';
+      }
+    });
+    tgtLang.addEventListener('change', () => {
+      if (tgtLang.value === srcLang.value) {
+        srcLang.value = ALL_LANGS.find(l => l !== tgtLang.value) || 'zh-CN';
+      }
+    });
+
+    speakBtn.addEventListener('click', () => {
+      const t = tgtText.textContent;
+      if (t && !tgtText.classList.contains('placeholder')) speak(t, tgtLang.value, null);
+    });
+
+    sendBtn.addEventListener('click', () => {
+      const t = textInput.value.trim();
+      if (t && !isTranslating) { setSrc(t, false); textInput.value = ''; doTranslate(t); }
+    });
+    textInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.isComposing) {
+        e.preventDefault();
+        sendBtn.click();
+      }
+    });
+
+    sceneBar.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-scene]');
+      if (!btn) return;
+      scene = btn.dataset.scene;
+      sceneBar.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+
+    recognition = initRecognition();
+  }
+
+  return { init };
+})();
+
+// ═══════════════════════════════════════
+// TEXT TRANSLATOR MODULE
+// ═══════════════════════════════════════
+const TextMod = (() => {
+  const srcLang = $('t-source-lang');
+  const tgtLang = $('t-target-lang');
+  const swapBtn = $('t-swap-btn');
+  const input = $('t-input');
+  const clearBtn = $('t-clear-btn');
+  const translateBtn = $('t-translate-btn');
+  const tgtText = $('t-target-text');
+  const tgtPanel = $('t-target-panel');
+  const speakBtn = $('t-speak-btn');
+  const status = $('t-status');
+  const autoSpeakCb = $('t-auto-speak');
+  const noisyCb = $('t-noisy');
+  const sceneBar = $('t-scene-bar');
+  const histList = $('t-history-list');
+  const histCount = $('t-history-count');
+
+  let scene = 'travel';
+  let isTranslating = false;
+  const history = [];
+
+  function setStatus(msg, type) {
+    status.textContent = msg;
+    status.className = `status-bar ${type || ''}`;
+  }
+
+  function setTgt(text, loading) {
+    tgtText.textContent = text;
+    tgtText.className = loading ? 'panel-text interim' : 'panel-text';
+  }
+
+  function addHistory(src, tgt, pivot) {
+    history.unshift({ src, tgt, pivot, time: Date.now() });
+    if (history.length > 30) history.pop();
+    histCount.textContent = history.length ? `(${history.length})` : '';
+    histList.innerHTML = history.map(h =>
+      `<div class="history-item">
+        <div class="history-source">${escHtml(h.src)}${h.pivot ? ' <span class="pivot-badge">via EN</span>' : ''}</div>
+        <div class="history-target">${escHtml(h.tgt)}</div>
+      </div>`
+    ).join('');
+  }
+
+  async function doTranslate() {
+    const text = input.value.trim();
+    if (!text || isTranslating) return;
+    isTranslating = true;
+    translateBtn.disabled = true;
+    setStatus('⏳ Translating...', 'info');
+    setTgt('...', true);
+
+    try {
+      const data = await translateAPI(text, srcLang.value, tgtLang.value, scene, noisyCb.checked);
+      setTgt(data.translation, false);
+      const pivotNote = data.pivotUsed ? ' (via EN)' : '';
+      setStatus(`✅ Done ${data.latencyMs}ms${pivotNote}`, 'success');
+      addHistory(text, data.translation, data.pivotUsed);
+
+      if (autoSpeakCb.checked && data.translation) {
+        speak(data.translation, tgtLang.value, null);
+      }
+    } catch (err) {
+      setStatus(`❌ ${err.message}`, 'error');
+      setTgt('Translation failed', false);
+    } finally {
+      isTranslating = false;
+      translateBtn.disabled = false;
+    }
+  }
+
+  function init() {
+    translateBtn.addEventListener('click', doTranslate);
+    input.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' && (e.ctrlKey || e.metaKey)) && !e.isComposing) {
+        e.preventDefault();
+        doTranslate();
+      }
+    });
+
+    clearBtn.addEventListener('click', () => { input.value = ''; input.focus(); });
+
+    swapBtn.addEventListener('click', () => {
+      const s = srcLang.value, t = tgtLang.value;
+      srcLang.value = t; tgtLang.value = s;
+    });
+
+    srcLang.addEventListener('change', () => {
+      if (srcLang.value === tgtLang.value) tgtLang.value = ALL_LANGS.find(l => l !== srcLang.value) || 'en-US';
+    });
+    tgtLang.addEventListener('change', () => {
+      if (tgtLang.value === srcLang.value) srcLang.value = ALL_LANGS.find(l => l !== tgtLang.value) || 'zh-CN';
+    });
+
+    speakBtn.addEventListener('click', () => {
+      const t = tgtText.textContent;
+      if (t && !tgtText.classList.contains('placeholder')) speak(t, tgtLang.value, null);
+    });
+
+    sceneBar.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-scene]');
+      if (!btn) return;
+      scene = btn.dataset.scene;
+      sceneBar.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  }
+
+  return { init };
+})();
 
 // ─── Init ───
 document.addEventListener('DOMContentLoaded', () => {
-  recognition = initRecognition();
-  bindEvents();
-  console.log('[app] NYCKING Voice Translator ready');
-  console.log('[app] Speech Recognition:', !!SpeechRecognition);
-  console.log('[app] Speech Synthesis:', !!window.speechSynthesis);
-  console.log('[app] Supported langs:', ALL_LANGS.join(', '));
+  Voice.init();
+  TextMod.init();
+
+  // Load TTS voices
+  if (window.speechSynthesis) {
+    speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = () => {
+      voiceCache = {};
+      console.log('[tts] voices loaded:', speechSynthesis.getVoices().length);
+    };
+  }
+
+  console.log('[app] NYCKING v2 ready — Voice + Text modules');
 });
 
-// ─── Service Worker ───
+// Service Worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
