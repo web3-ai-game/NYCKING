@@ -38,25 +38,49 @@
 
     /* ===== HOMEPAGE ===== */
     #home-screen {
-      align-items:center; justify-content:center; gap:28px;
+      align-items:center; gap:20px;
       padding:env(safe-area-inset-top,20px) 24px env(safe-area-inset-bottom,20px);
-      text-align:center;
+      text-align:center; overflow-y:auto; justify-content:flex-start;
+      padding-top:48px;
     }
     .home-logo { font-size:42px; font-weight:900; color:var(--accent); letter-spacing:2px; }
-    .home-tagline { font-size:16px; color:var(--text-dim); line-height:1.5; }
+    .home-version { font-size:11px; color:#555; margin-top:-12px; letter-spacing:1px; }
+    .home-tagline { font-size:16px; color:var(--text-dim); line-height:1.6; max-width:340px; }
+    .home-subtitle { font-size:13px; color:#666; line-height:1.5; max-width:340px; }
     .home-langs {
-      display:grid; grid-template-columns:1fr 1fr; gap:12px;
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
       width:100%; max-width:320px;
     }
     .home-lang-card {
       background:var(--surface); border:1px solid #333; border-radius:16px;
-      padding:18px 12px; cursor:pointer; transition:all .2s;
-      display:flex; flex-direction:column; align-items:center; gap:6px;
+      padding:14px 10px; cursor:pointer; transition:all .2s;
+      display:flex; flex-direction:column; align-items:center; gap:4px;
     }
     .home-lang-card:active { transform:scale(0.95); border-color:var(--accent); }
-    .home-lang-card .flag { font-size:32px; }
-    .home-lang-card .lang-name { font-size:18px; font-weight:700; }
-    .home-lang-card .lang-sub { font-size:11px; color:var(--text-dim); }
+    .home-lang-card .flag { font-size:28px; }
+    .home-lang-card .lang-name { font-size:16px; font-weight:700; }
+    .home-lang-card .lang-sub { font-size:10px; color:var(--text-dim); }
+    .home-features {
+      display:flex; flex-direction:column; gap:8px;
+      width:100%; max-width:340px; text-align:left;
+    }
+    .home-feat {
+      display:flex; align-items:flex-start; gap:10px;
+      background:var(--surface); border-radius:12px; padding:10px 14px;
+      border:1px solid #222;
+    }
+    .home-feat .feat-icon { font-size:20px; flex-shrink:0; margin-top:1px; }
+    .home-feat .feat-text { font-size:12px; color:var(--text-dim); line-height:1.4; }
+    .home-feat .feat-text strong { color:var(--text); font-weight:700; }
+    .home-tech {
+      display:flex; flex-wrap:wrap; gap:6px; justify-content:center;
+      max-width:340px;
+    }
+    .tech-tag {
+      font-size:10px; padding:4px 8px; border-radius:8px;
+      background:var(--surface); border:1px solid #333; color:var(--accent2);
+      font-weight:600; letter-spacing:0.3px;
+    }
     .home-enter-btn {
       width:100%; max-width:320px; padding:16px;
       background:linear-gradient(135deg, var(--accent), #ea580c);
@@ -65,7 +89,7 @@
       box-shadow:0 4px 20px var(--accent-glow); transition:all .2s;
     }
     .home-enter-btn:active { transform:scale(0.97); }
-    .home-footer { font-size:11px; color:#444; margin-top:8px; }
+    .home-footer { font-size:11px; color:#444; margin-top:4px; line-height:1.5; }
 
     /* ===== PIN GATE ===== */
     #pin-screen {
@@ -481,15 +505,17 @@
 <!-- ===== 1. HOMEPAGE ===== -->
 <div id="home-screen" class="screen active">
   <div class="home-logo">NYCKING</div>
+  <div class="home-version">TRANSLATOR v2.1</div>
   <div class="home-tagline">
-    <span data-i18n="tagline">Real-time Voice & Text Translator</span><br>
-    <span style="font-size:13px;color:#555" data-i18n="powered">Powered by Gemini AI</span>
+    <span data-i18n="tagline">AI-Powered Multilingual Voice & Text Translation Platform</span>
   </div>
+  <div class="home-subtitle" data-i18n="home_desc">Built on Google Gemini 2.5 Flash with context-aware neural translation, English-pivot anti-drift architecture, and real-time bilingual chat — designed for seamless cross-language communication.</div>
+
   <div class="home-langs">
     <div class="home-lang-card">
       <div class="flag">🇨🇳</div>
       <div class="lang-name">中文</div>
-      <div class="lang-sub">Simplified Chinese</div>
+      <div class="lang-sub">Mandarin Chinese</div>
     </div>
     <div class="home-lang-card">
       <div class="flag">🇺🇸</div>
@@ -507,8 +533,41 @@
       <div class="lang-sub">Standard Burmese</div>
     </div>
   </div>
+
+  <div class="home-features">
+    <div class="home-feat">
+      <div class="feat-icon">🎙️</div>
+      <div class="feat-text" data-i18n="feat_voice"><strong>Voice Translate</strong> — Real-time speech recognition with auto-speak. Supports continuous mode and noisy environment optimization.</div>
+    </div>
+    <div class="home-feat">
+      <div class="feat-icon">📝</div>
+      <div class="feat-text" data-i18n="feat_text"><strong>Text Translate</strong> — Type or paste any text for instant neural translation. Context memory retains 10+ recent pairs for semantic consistency.</div>
+    </div>
+    <div class="home-feat">
+      <div class="feat-icon">💕</div>
+      <div class="feat-text" data-i18n="feat_chat"><strong>Bilingual Chat Room</strong> — Real-time couples chat with auto-translation. Every message displays in both languages. Firestore cloud persistence + emoji support.</div>
+    </div>
+    <div class="home-feat">
+      <div class="feat-icon">🛡️</div>
+      <div class="feat-text" data-i18n="feat_pivot"><strong>Anti-Drift Engine</strong> — English-pivot architecture prevents Burmese/Lao translation drift. Numbers, units, and proper nouns preserved literally.</div>
+    </div>
+  </div>
+
+  <div class="home-tech">
+    <span class="tech-tag">Gemini 2.5 Flash</span>
+    <span class="tech-tag">Cloud Run</span>
+    <span class="tech-tag">Firebase</span>
+    <span class="tech-tag">Firestore</span>
+    <span class="tech-tag">Web Speech API</span>
+    <span class="tech-tag">TTS Engine</span>
+    <span class="tech-tag">Pivot Translation</span>
+    <span class="tech-tag">Context Memory</span>
+    <span class="tech-tag">PWA</span>
+    <span class="tech-tag">i18n 4-Lang</span>
+  </div>
+
   <button class="home-enter-btn" id="home-enter-btn" data-i18n="enter_btn">Enter Translator →</button>
-  <div class="home-footer" data-i18n="footer">v2.1 · Private Access · PIN Required</div>
+  <div class="home-footer" data-i18n="footer">v2.1 · Private Access · PIN Required · Made with ❤️</div>
 </div>
 
 <!-- ===== 2. PIN GATE ===== -->
@@ -633,7 +692,7 @@
   </div>
 
   <div class="history-section">
-    <div class="history-header" data-i18n="history">📝 History <span id="v-history-count"></span></div>
+    <div class="history-header"><span data-i18n="history">📝 History</span> <span id="v-history-count"></span></div>
     <div class="history-list" id="v-history-list"></div>
   </div>
 
@@ -698,7 +757,7 @@
   </div>
 
   <div class="history-section">
-    <div class="history-header" data-i18n="history">📝 History <span id="t-history-count"></span></div>
+    <div class="history-header"><span data-i18n="history">📝 History</span> <span id="t-history-count"></span></div>
     <div class="history-list" id="t-history-list"></div>
   </div>
 </div>
@@ -848,8 +907,13 @@
 (function(){
   const T = {
     en: {
-      tagline:'Real-time Voice & Text Translator', powered:'Powered by Gemini AI',
-      enter_btn:'Enter Translator →', footer:'v2.1 · Private Access · PIN Required',
+      tagline:'AI-Powered Multilingual Voice & Text Translation Platform',
+      home_desc:'Built on Google Gemini 2.5 Flash with context-aware neural translation, English-pivot anti-drift architecture, and real-time bilingual chat — designed for seamless cross-language communication.',
+      feat_voice:'<strong>Voice Translate</strong> — Real-time speech recognition with auto-speak. Supports continuous mode and noisy environment optimization.',
+      feat_text:'<strong>Text Translate</strong> — Type or paste any text for instant neural translation. Context memory retains 10+ recent pairs for semantic consistency.',
+      feat_chat:'<strong>Bilingual Chat Room</strong> — Real-time couples chat with auto-translation. Every message displays in both languages. Firestore cloud persistence + emoji support.',
+      feat_pivot:'<strong>Anti-Drift Engine</strong> — English-pivot architecture prevents Burmese/Lao translation drift. Numbers, units, and proper nouns preserved literally.',
+      enter_btn:'Enter Translator →', footer:'v2.1 · Private Access · PIN Required · Made with ❤️',
       enter_pin:'Enter PIN', pin_sub:'6-digit access code', back:'← Back',
       choose_mode:'Choose Mode', select_mode:'Select your translation mode',
       voice_name:'Voice Translate', voice_desc:'Speak and translate in real-time',
@@ -865,8 +929,13 @@
       no_msg:'No messages yet. Say hi! 👋', type_msg:'Type a message...',
     },
     zh: {
-      tagline:'实时语音 & 文字翻译器', powered:'由 Gemini AI 驱动',
-      enter_btn:'进入翻译器 →', footer:'v2.1 · 私密访问 · 需要 PIN',
+      tagline:'AI 驱动的多语种语音 & 文字翻译平台',
+      home_desc:'基于 Google Gemini 2.5 Flash 构建，集成上下文感知神经翻译、英语中枢防漂移架构、实时双语聊天室 — 专为跨语言无缝沟通而设计。',
+      feat_voice:'<strong>语音翻译</strong> — 实时语音识别 + 自动朗读。支持连续模式和嘈杂环境降噪优化。',
+      feat_text:'<strong>文字翻译</strong> — 输入或粘贴任意文本，即刻获得神经网络翻译。上下文记忆保留 10+ 条历史对话，确保语义连贯。',
+      feat_chat:'<strong>双语聊天室</strong> — 情侣实时聊天 + 自动翻译。每条消息双语同时显示。Firestore 云端持久化 + 表情包支持。',
+      feat_pivot:'<strong>防漂移引擎</strong> — 英语中枢架构，防止缅甸语/老挝语翻译偏移。数字、单位、专有名词原样保留。',
+      enter_btn:'进入翻译器 →', footer:'v2.1 · 私密访问 · 需要 PIN · Made with ❤️',
       enter_pin:'输入 PIN', pin_sub:'6 位数访问码', back:'← 返回',
       choose_mode:'选择模式', select_mode:'选择你的翻译模式',
       voice_name:'语音翻译', voice_desc:'实时语音翻译',
@@ -882,8 +951,13 @@
       no_msg:'还没有消息，打个招呼吧！👋', type_msg:'输入消息...',
     },
     th: {
-      tagline:'แปลเสียงและข้อความแบบเรียลไทม์', powered:'ขับเคลื่อนโดย Gemini AI',
-      enter_btn:'เข้าสู่ตัวแปล →', footer:'v2.1 · เข้าถึงส่วนตัว · ต้องใช้ PIN',
+      tagline:'แพลตฟอร์มแปลเสียงและข้อความหลายภาษาด้วย AI',
+      home_desc:'สร้างบน Google Gemini 2.5 Flash พร้อมการแปลด้วย neural network ที่เข้าใจบริบท, สถาปัตยกรรมป้องกันการเพี้ยนผ่านภาษาอังกฤษ และแชทสองภาษาเรียลไทม์ — ออกแบบมาเพื่อการสื่อสารข้ามภาษาอย่างราบรื่น',
+      feat_voice:'<strong>แปลเสียง</strong> — จดจำเสียงพูดเรียลไทม์พร้อมอ่านอัตโนมัติ รองรับโหมดต่อเนื่องและปรับแต่งสำหรับสภาพแวดล้อมเสียงดัง',
+      feat_text:'<strong>แปลข้อความ</strong> — พิมพ์หรือวางข้อความเพื่อแปลทันทีด้วย neural translation หน่วยความจำบริบทเก็บ 10+ คู่ล่าสุดเพื่อความสอดคล้อง',
+      feat_chat:'<strong>ห้องแชทสองภาษา</strong> — แชทคู่รักเรียลไทม์พร้อมแปลอัตโนมัติ ทุกข้อความแสดงทั้งสองภาษา บันทึกบน Firestore + รองรับอิโมจิ',
+      feat_pivot:'<strong>ระบบป้องกันการเพี้ยน</strong> — สถาปัตยกรรมผ่านภาษาอังกฤษ ป้องกันการแปลเพี้ยนของพม่า/ลาว ตัวเลข หน่วย ชื่อเฉพาะคงไว้ตามต้นฉบับ',
+      enter_btn:'เข้าสู่ตัวแปล →', footer:'v2.1 · เข้าถึงส่วนตัว · ต้องใช้ PIN · Made with ❤️',
       enter_pin:'ใส่ PIN', pin_sub:'รหัสเข้าถึง 6 หลัก', back:'← กลับ',
       choose_mode:'เลือกโหมด', select_mode:'เลือกโหมดการแปลของคุณ',
       voice_name:'แปลเสียง', voice_desc:'พูดแล้วแปลแบบเรียลไทม์',
@@ -899,8 +973,13 @@
       no_msg:'ยังไม่มีข้อความ ทักทายสิ! 👋', type_msg:'พิมพ์ข้อความ...',
     },
     my: {
-      tagline:'အချိန်နှင့်တပြေးညီ အသံ & စာသား ဘာသာပြန်', powered:'Gemini AI ဖြင့် အသုံးပြု',
-      enter_btn:'ဘာသာပြန်ထဲ ဝင်ပါ →', footer:'v2.1 · သီးသန့်ဝင်ရောက် · PIN လိုအပ်',
+      tagline:'AI နဲ့ အသံ & စာသား ဘာသာပြန် ပလက်ဖောင်း',
+      home_desc:'Google Gemini 2.5 Flash ပေါ်မှာတည်ဆောက်ထား။ အကြောင်းအရာနားလည်သော neural ဘာသာပြန်၊ အင်္ဂလိပ်ဗဟိုချက် anti-drift တည်ဆောက်ပုံ နှင့် အချိန်နှင့်တပြေးညီ နှစ်ဘာသာ ချက်တ် — ဘာသာစကားများကြား ချောမွေ့စွာ ဆက်သွယ်နိုင်ရန် ဒီဇိုင်း။',
+      feat_voice:'<strong>အသံ ဘာသာပြန်</strong> — အချိန်နှင့်တပြေးညီ အသံမှတ်သား + အလိုအလျောက်ဖတ်ပြ။ ဆက်တိုက်မုဒ်နှင့် ဆူညံပတ်ဝန်းကျင် ပိုမိုကောင်းမွန်အောင် ပြုလုပ်ခြင်း။',
+      feat_text:'<strong>စာသား ဘာသာပြန်</strong> — စာရိုက်ပါ သို့ ကူးထည့်ပါ neural ဘာသာပြန်ချက်ချင်းရယူပါ။ အကြောင်းအရာမှတ်ဉာဏ် ၁၀+ အတွဲ သိမ်းဆည်း။',
+      feat_chat:'<strong>နှစ်ဘာသာ ချက်တ်အခန်း</strong> — အချိန်နှင့်တပြေးညီ ချက်တ် + အလိုအလျောက် ဘာသာပြန်။ မက်ဆေ့ချ်တိုင်း နှစ်ဘာသာပြ။ Firestore cloud + emoji။',
+      feat_pivot:'<strong>Anti-Drift Engine</strong> — အင်္ဂလိပ်ဗဟိုချက် ဘာသာပြန်လွဲခြင်းကာကွယ်။ ဂဏန်း၊ ယူနစ်၊ အမည်များ မူရင်းအတိုင်းထိန်း။',
+      enter_btn:'ဘာသာပြန်ထဲ ဝင်ပါ →', footer:'v2.1 · သီးသန့်ဝင်ရောက် · PIN လိုအပ် · Made with ❤️',
       enter_pin:'PIN ထည့်ပါ', pin_sub:'ဂဏန်း ၆ လုံး ဝင်ရောက်ကုဒ်', back:'← နောက်သို့',
       choose_mode:'မုဒ်ရွေးပါ', select_mode:'သင့်ဘာသာပြန်မုဒ်ကို ရွေးပါ',
       voice_name:'အသံ ဘာသာပြန်', voice_desc:'ပြောပြီး အချိန်နှင့်တပြေးညီ ဘာသာပြန်ပါ',
@@ -926,7 +1005,8 @@
     const d = T[l] || T.en;
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const k = el.dataset.i18n;
-      if (d[k]) el.textContent = d[k];
+      if (!d[k]) return;
+      if (k.startsWith('feat_')) { el.innerHTML = d[k]; } else { el.textContent = d[k]; }
     });
     document.querySelectorAll('[data-i18n-ph]').forEach(el => {
       const k = el.dataset.i18nPh;
