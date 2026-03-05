@@ -91,33 +91,54 @@
     .home-enter-btn:active { transform:scale(0.97); }
     .home-footer { font-size:11px; color:#444; margin-top:4px; line-height:1.5; }
 
-    /* ===== PIN GATE ===== */
-    #pin-screen {
-      align-items:center; justify-content:center; gap:24px;
-      padding:env(safe-area-inset-top,20px) 20px env(safe-area-inset-bottom,20px);
+    /* ===== AUTH SCREEN ===== */
+    #auth-screen {
+      align-items:center; justify-content:center; gap:16px;
+      padding:env(safe-area-inset-top,20px) 24px env(safe-area-inset-bottom,20px);
     }
-    .pin-icon { font-size:48px; }
-    .pin-title { font-size:22px; font-weight:700; }
-    .pin-subtitle { font-size:14px; color:var(--text-dim); }
-    .pin-dots { display:flex; gap:10px; margin:8px 0; }
-    .pin-dot {
-      width:14px; height:14px; border-radius:50%;
-      border:2px solid var(--text-dim); transition:all .2s;
+    .auth-icon { font-size:56px; margin-bottom:4px; }
+    .auth-title { font-size:24px; font-weight:800; color:var(--accent); }
+    .auth-sub { font-size:13px; color:var(--text-dim); text-align:center; max-width:280px; }
+    .auth-form { display:flex; flex-direction:column; gap:10px; width:100%; max-width:300px; }
+    .auth-input {
+      width:100%; padding:14px 16px; border-radius:12px;
+      background:var(--surface); border:1px solid #333;
+      color:var(--text); font-size:15px; outline:none;
+      font-family:inherit; transition:border-color .2s;
     }
-    .pin-dot.filled { background:var(--accent); border-color:var(--accent); }
-    .pin-dot.error { background:var(--error); border-color:var(--error); }
-    .pin-pad { display:grid; grid-template-columns:repeat(3,72px); gap:12px; }
-    .pin-key {
-      width:72px; height:56px; border-radius:12px;
-      background:var(--surface2); border:1px solid #333;
-      color:var(--text); font-size:22px; font-weight:600;
-      cursor:pointer; transition:all .15s;
-      display:flex; align-items:center; justify-content:center;
+    .auth-input:focus { border-color:var(--accent); }
+    .auth-input::placeholder { color:var(--text-dim); }
+    .auth-btn {
+      width:100%; padding:14px; border-radius:12px; border:none;
+      font-size:16px; font-weight:700; cursor:pointer; transition:all .2s;
     }
-    .pin-key:active { background:var(--accent); transform:scale(0.93); }
-    .pin-key.fn { font-size:16px; background:transparent; border-color:transparent; }
-    .pin-back {
-      margin-top:12px; background:none; border:none;
+    .auth-btn:active { transform:scale(0.97); }
+    .auth-btn.primary {
+      background:linear-gradient(135deg, var(--accent), #ea580c);
+      color:#fff; box-shadow:0 4px 16px var(--accent-glow);
+    }
+    .auth-btn.google {
+      background:var(--surface); border:1px solid #333; color:var(--text);
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .auth-btn.google img { width:20px; height:20px; }
+    .auth-divider {
+      display:flex; align-items:center; gap:12px; width:100%; max-width:300px;
+      color:var(--text-dim); font-size:12px;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content:''; flex:1; height:1px; background:#333;
+    }
+    .auth-toggle {
+      background:none; border:none; color:var(--accent);
+      font-size:13px; cursor:pointer; text-decoration:underline;
+    }
+    .auth-error {
+      color:var(--error); font-size:12px; text-align:center;
+      max-width:300px; min-height:16px;
+    }
+    .auth-back {
+      margin-top:4px; background:none; border:none;
       color:var(--text-dim); font-size:14px; cursor:pointer;
     }
 
@@ -649,6 +670,22 @@
       .translator-screen { max-width:500px; margin:0 auto; }
     }
   </style>
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyAfvhJHP9l7sniPWH9o0gWWm11TDTSKhnE",
+      authDomain: "ai-oece.firebaseapp.com",
+      projectId: "ai-oece",
+      storageBucket: "ai-oece.firebasestorage.app",
+      messagingSenderId: "364611412074",
+      appId: "1:364611412074:web:4f7117c056b8d836496a13"
+    });
+    window.NYCKING_AUTH = firebase.auth();
+    window.NYCKING_DB = firebase.firestore();
+  </script>
 </head>
 <body>
 
@@ -729,30 +766,24 @@
   <div class="home-footer" data-i18n="footer">v2.1 · Private Access · PIN Required · Made with ❤️</div>
 </div>
 
-<!-- ===== 2. PIN GATE ===== -->
-<div id="pin-screen" class="screen">
-  <div class="pin-icon">🔐</div>
-  <div class="pin-title" data-i18n="enter_pin">Enter PIN</div>
-  <div class="pin-subtitle" data-i18n="pin_sub">6-digit access code</div>
-  <div class="pin-dots" id="pin-dots">
-    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-    <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+<!-- ===== 2. AUTH SCREEN ===== -->
+<div id="auth-screen" class="screen">
+  <div class="auth-icon">�</div>
+  <div class="auth-title">NYCKING</div>
+  <div class="auth-sub" data-i18n="auth_welcome">Sign in to access all features</div>
+  <div class="auth-error" id="auth-error"></div>
+  <div class="auth-form" id="auth-form">
+    <input class="auth-input" id="auth-email" type="email" placeholder="Email" autocomplete="email">
+    <input class="auth-input" id="auth-password" type="password" placeholder="Password" autocomplete="current-password">
+    <button class="auth-btn primary" id="auth-submit" data-i18n="auth_login">Sign In</button>
   </div>
-  <div class="pin-pad" id="pin-pad">
-    <button class="pin-key" data-key="1">1</button>
-    <button class="pin-key" data-key="2">2</button>
-    <button class="pin-key" data-key="3">3</button>
-    <button class="pin-key" data-key="4">4</button>
-    <button class="pin-key" data-key="5">5</button>
-    <button class="pin-key" data-key="6">6</button>
-    <button class="pin-key" data-key="7">7</button>
-    <button class="pin-key" data-key="8">8</button>
-    <button class="pin-key" data-key="9">9</button>
-    <button class="pin-key fn" data-key="del">⌫</button>
-    <button class="pin-key" data-key="0">0</button>
-    <button class="pin-key fn" data-key="clear">C</button>
-  </div>
-  <button class="pin-back" id="pin-back" data-i18n="back">← Back</button>
+  <div class="auth-divider" data-i18n="auth_or">or</div>
+  <button class="auth-btn google" id="auth-google" style="max-width:300px">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+    <span data-i18n="auth_google">Continue with Google</span>
+  </button>
+  <button class="auth-toggle" id="auth-toggle" data-i18n="auth_no_account">No account? Register</button>
+  <button class="auth-back" id="auth-back" data-i18n="back">← Back</button>
 </div>
 
 <!-- ===== 3. MODULE SELECTOR ===== -->
@@ -1154,7 +1185,6 @@
 <!-- Navigation logic -->
 <script>
 (function(){
-  const PIN = '684861';
   const screens = document.querySelectorAll('.screen');
 
   function show(id) {
@@ -1162,52 +1192,13 @@
     document.getElementById(id).classList.add('active');
   }
 
-  // Check if already authed
-  const authed = sessionStorage.getItem('nycking_auth') === '1';
-  if (authed) {
-    show('module-screen');
-  }
-
-  // Homepage → PIN
+  // Homepage → Auth
   document.getElementById('home-enter-btn').addEventListener('click', () => {
-    if (sessionStorage.getItem('nycking_auth') === '1') {
+    const user = window.NYCKING_AUTH && window.NYCKING_AUTH.currentUser;
+    if (user) {
       show('module-screen');
     } else {
-      show('pin-screen');
-    }
-  });
-
-  // PIN back
-  document.getElementById('pin-back').addEventListener('click', () => show('home-screen'));
-
-  // PIN pad
-  let code = '';
-  const dots = document.querySelectorAll('#pin-dots .pin-dot');
-  const pad = document.getElementById('pin-pad');
-
-  function updateDots() {
-    dots.forEach((d, i) => { d.classList.toggle('filled', i < code.length); d.classList.remove('error'); });
-  }
-  function showError() {
-    dots.forEach(d => { d.classList.add('error'); d.classList.remove('filled'); });
-    setTimeout(() => { code = ''; updateDots(); }, 600);
-  }
-
-  pad.addEventListener('click', (e) => {
-    const key = e.target.closest('[data-key]')?.dataset.key;
-    if (!key) return;
-    if (key === 'del') { code = code.slice(0,-1); updateDots(); return; }
-    if (key === 'clear') { code = ''; updateDots(); return; }
-    if (code.length >= 6) return;
-    code += key;
-    updateDots();
-    if (code.length === 6) {
-      setTimeout(() => {
-        if (code === PIN) {
-          sessionStorage.setItem('nycking_auth', '1');
-          show('module-screen');
-        } else { showError(); }
-      }, 200);
+      show('auth-screen');
     }
   });
 
@@ -1284,6 +1275,10 @@
       coach_new:'Just Met', coach_friends:'Friends', coach_close:'Close',
       coach_go:'✨ Get Suggestions', coach_hint:'Choose a mode and tap the button!',
       coach_placeholder:'Type your message or paste theirs...',
+      auth_welcome:'Sign in to access all features',
+      auth_login:'Sign In', auth_register:'Register',
+      auth_or:'or', auth_google:'Continue with Google',
+      auth_no_account:'No account? Register', auth_have_account:'Have an account? Sign In',
     },
     zh: {
       tagline:'AI 驱动的多语种语音 & 文字翻译平台',
@@ -1318,6 +1313,10 @@
       coach_new:'刚认识', coach_friends:'朋友', coach_close:'亲密',
       coach_go:'✨ 获取建议', coach_hint:'选择模式，点击按钮！',
       coach_placeholder:'输入你想说的，或粘贴对方的消息...',
+      auth_welcome:'登录解锁所有功能',
+      auth_login:'登录', auth_register:'注册',
+      auth_or:'或者', auth_google:'使用 Google 登录',
+      auth_no_account:'没有账号？注册', auth_have_account:'已有账号？登录',
     },
     th: {
       tagline:'แพลตฟอร์มแปลเสียงและข้อความหลายภาษาด้วย AI',
@@ -1352,6 +1351,10 @@
       coach_new:'เพิ่งรู้จัก', coach_friends:'เพื่อน', coach_close:'สนิท',
       coach_go:'✨ รับคำแนะนำ', coach_hint:'เลือกโหมดแล้วกดปุ่ม!',
       coach_placeholder:'พิมพ์ข้อความหรือวางข้อความของเขา...',
+      auth_welcome:'เข้าสู่ระบบเพื่อใช้งานทุกฟีเจอร์',
+      auth_login:'เข้าสู่ระบบ', auth_register:'ลงทะเบียน',
+      auth_or:'หรือ', auth_google:'เข้าสู่ระบบด้วย Google',
+      auth_no_account:'ยังไม่มีบัญชี? ลงทะเบียน', auth_have_account:'มีบัญชีแล้ว? เข้าสู่ระบบ',
     },
     my: {
       tagline:'AI နဲ့ အသံ & စာသား ဘာသာပြန် ပလက်ဖောင်း',
@@ -1386,6 +1389,10 @@
       coach_new:'အသစ်', coach_friends:'သူငယ်ချင်း', coach_close:'ရင်းနှီး',
       coach_go:'✨ အကြံပြုချက်ယူပါ', coach_hint:'မုဒ်ရွေးပြီး ခလုတ်နှိပ်ပါ!',
       coach_placeholder:'သင့်မက်ဆေ့ချ်ရိုက်ပါ သို့ သူတို့ရဲ့ကိုကူးထည့်ပါ...',
+      auth_welcome:'အင်္ဂလိပ်စမ်းရည်းများအားလုံး ဝင်ရောက်ပါ',
+      auth_login:'ဝင်ရောက်ပါ', auth_register:'စာရင်းသွင်းပါ',
+      auth_or:'သို့', auth_google:'Google နဲ့ ဝင်ရောက်ပါ',
+      auth_no_account:'အကောင့်မရှိသေး? စာရင်းသွင်းပါ', auth_have_account:'အကောင့်ရှိပြီ? ဝင်ရောက်ပါ',
     }
   };
 
@@ -1518,6 +1525,8 @@
   }
 </script>
 
+<!-- Auth -->
+<script src="/src/auth.js?v=1"></script>
 <!-- Games -->
 <script src="/src/games.js?v=1"></script>
 <!-- AI Coach -->
