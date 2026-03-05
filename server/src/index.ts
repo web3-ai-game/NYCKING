@@ -15,6 +15,9 @@ import translateRouter from "./routes/translate";
 import chatRouter from "./routes/chat";
 import coachRouter from "./routes/coach";
 import usersRouter from "./routes/users";
+import friendsRouter from "./routes/friends";
+import dmRouter from "./routes/dm";
+import momentsRouter from "./routes/moments";
 import healthRouter from "./routes/health";
 
 // Validate required config before starting
@@ -70,6 +73,9 @@ app.use("/api", translateRouter);
 app.use("/api", chatRouter);
 app.use("/api", coachRouter);
 app.use("/api", usersRouter);
+app.use("/api", friendsRouter);
+app.use("/api", dmRouter);
+app.use("/api", momentsRouter);
 app.use("/api", healthRouter);
 
 // Root health check (for Cloud Run)
