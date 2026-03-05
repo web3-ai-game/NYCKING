@@ -459,6 +459,7 @@ const ChatMod = (() => {
   const status = $('c-status');
   const emptyMsg = $('c-empty');
   const clearAllBtn = $('c-clear-all');
+  const settingsBtn = $('c-settings-btn');
 
   let myName = '';
   let myLang = 'zh-CN';
@@ -643,6 +644,8 @@ const ChatMod = (() => {
     setup.style.display = 'none';
     chatArea.style.display = 'flex';
     inputBar.style.display = 'flex';
+    settingsBtn.style.display = '';
+    clearAllBtn.style.display = '';
 
     startPolling();
     msgInput.focus();
@@ -680,8 +683,29 @@ const ChatMod = (() => {
 
     clearAllBtn.addEventListener('click', clearAll);
 
-    // Expose stop function for navigation
+    settingsBtn.addEventListener('click', resetToSetup);
+
+    // Expose for navigation
     window.NYCKING_CHAT_STOP = stopPolling;
+    window.NYCKING_CHAT_RESET = resetToSetup;
+  }
+
+  function resetToSetup() {
+    stopPolling();
+    // Restore saved values into inputs so user can edit
+    const savedName = localStorage.getItem('nycking_chat_name');
+    const savedMyLang = localStorage.getItem('nycking_chat_myLang');
+    const savedPartnerLang = localStorage.getItem('nycking_chat_partnerLang');
+    if (savedName) usernameInput.value = savedName;
+    if (savedMyLang) myLangSel.value = savedMyLang;
+    if (savedPartnerLang) partnerLangSel.value = savedPartnerLang;
+    // Show setup, hide chat
+    setup.style.display = '';
+    chatArea.style.display = 'none';
+    inputBar.style.display = 'none';
+    settingsBtn.style.display = 'none';
+    clearAllBtn.style.display = 'none';
+    setStatus('', '');
   }
 
   return { init };

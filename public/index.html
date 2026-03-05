@@ -957,6 +957,7 @@
     <button class="back-btn" id="chat-back">‹</button>
     <span class="logo">&#x1F4AC; Chat <span class="online-badge" id="c-online"><span class="online-dot"></span><span id="c-online-count">0</span> online</span></span>
     <span class="header-badge" id="c-lang-badge" style="font-size:10px;opacity:.6">EN</span>
+    <button class="chat-clear-btn" id="c-settings-btn" style="margin-right:4px">&#x2699;&#xFE0F;</button>
     <button class="chat-clear-btn" id="c-clear-all" data-i18n="clear_all">Clear all</button>
   </div>
 
@@ -1216,7 +1217,10 @@
   // Module selection
   document.getElementById('go-voice').addEventListener('click', () => show('voice-screen'));
   document.getElementById('go-text').addEventListener('click', () => show('text-screen'));
-  document.getElementById('go-chat').addEventListener('click', () => show('chat-screen'));
+  document.getElementById('go-chat').addEventListener('click', () => {
+    show('chat-screen');
+    if (window.NYCKING_CHAT_RESET) window.NYCKING_CHAT_RESET();
+  });
   document.getElementById('go-games').addEventListener('click', () => show('game-lobby'));
   document.getElementById('go-coach').addEventListener('click', () => show('screen-coach'));
   document.getElementById('back-coach').addEventListener('click', () => show('module-screen'));
@@ -1236,7 +1240,7 @@
   document.getElementById('voice-back').addEventListener('click', () => show('module-screen'));
   document.getElementById('text-back').addEventListener('click', () => show('module-screen'));
   document.getElementById('chat-back').addEventListener('click', () => {
-    if (window.NYCKING_CHAT_STOP) window.NYCKING_CHAT_STOP();
+    if (window.NYCKING_CHAT_RESET) window.NYCKING_CHAT_RESET();
     show('module-screen');
   });
 
