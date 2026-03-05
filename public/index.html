@@ -171,6 +171,91 @@
       padding:2px 6px; line-height:1;
     }
 
+    /* ===== GAMES ===== */
+    #game-lobby { align-items:center; justify-content:flex-start; gap:16px;
+      padding:calc(env(safe-area-inset-top,12px)+12px) 20px 20px; overflow-y:auto; }
+    .game-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; max-width:340px; }
+    .game-card {
+      background:var(--surface); border:1px solid #333; border-radius:16px;
+      padding:18px 14px; cursor:pointer; text-align:center; transition:all .2s;
+    }
+    .game-card:active { transform:scale(0.95); border-color:var(--accent); }
+    .game-card .gc-icon { font-size:36px; }
+    .game-card .gc-name { font-size:14px; font-weight:700; margin-top:6px; }
+    .game-card .gc-desc { font-size:10px; color:var(--text-dim); margin-top:2px; }
+    .lb-btn {
+      width:100%; max-width:340px; padding:12px; border-radius:12px;
+      background:linear-gradient(135deg,#1a1a2e,#16213e); border:1px solid #444;
+      color:#fff; font-size:14px; font-weight:700; cursor:pointer; text-align:center;
+    }
+    .lb-btn:active { border-color:var(--accent); }
+    /* Game screen shared */
+    .game-screen {
+      padding:calc(env(safe-area-inset-top,8px)+8px) 12px 12px;
+      gap:8px; align-items:center;
+    }
+    .game-score-bar { display:flex; gap:16px; align-items:center; font-size:13px; font-weight:700; }
+    .game-score-bar .gs-label { color:var(--text-dim); font-size:11px; }
+    .game-score-bar .gs-val { color:var(--accent); font-size:18px; }
+    .game-over-overlay {
+      position:absolute; inset:0; background:rgba(0,0,0,.8);
+      display:none; flex-direction:column; align-items:center; justify-content:center;
+      gap:16px; z-index:50; border-radius:12px;
+    }
+    .game-over-overlay.show { display:flex; }
+    .game-over-overlay .go-title { font-size:28px; font-weight:800; color:var(--accent); }
+    .game-over-overlay .go-score { font-size:16px; color:var(--text); }
+    .game-over-overlay .go-btn {
+      padding:10px 28px; border-radius:12px; border:none;
+      background:var(--accent); color:#fff; font-size:14px; font-weight:700; cursor:pointer;
+    }
+    /* 2048 */
+    .grid-2048 {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:6px;
+      background:#1a1a1a; border-radius:12px; padding:6px;
+      width:100%; max-width:320px; aspect-ratio:1;
+    }
+    .tile-2048 {
+      border-radius:8px; display:flex; align-items:center; justify-content:center;
+      font-weight:800; font-size:22px; transition:all .12s;
+      background:var(--surface2); color:var(--text);
+    }
+    .tile-2048[data-v="2"]   { background:#eee4da; color:#776e65; }
+    .tile-2048[data-v="4"]   { background:#ede0c8; color:#776e65; }
+    .tile-2048[data-v="8"]   { background:#f2b179; color:#fff; }
+    .tile-2048[data-v="16"]  { background:#f59563; color:#fff; }
+    .tile-2048[data-v="32"]  { background:#f67c5f; color:#fff; }
+    .tile-2048[data-v="64"]  { background:#f65e3b; color:#fff; }
+    .tile-2048[data-v="128"] { background:#edcf72; color:#fff; font-size:18px; }
+    .tile-2048[data-v="256"] { background:#edcc61; color:#fff; font-size:18px; }
+    .tile-2048[data-v="512"] { background:#edc850; color:#fff; font-size:18px; }
+    .tile-2048[data-v="1024"]{ background:#edc53f; color:#fff; font-size:15px; }
+    .tile-2048[data-v="2048"]{ background:#edc22e; color:#fff; font-size:15px; }
+    /* Snake */
+    .snake-canvas { border-radius:12px; background:#111; touch-action:none; width:100%; max-width:320px; }
+    /* Whack-a-mole */
+    .mole-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+      width:100%; max-width:300px;
+    }
+    .mole-hole {
+      aspect-ratio:1; border-radius:50%; background:var(--surface2);
+      border:2px solid #333; display:flex; align-items:center; justify-content:center;
+      font-size:36px; cursor:pointer; transition:all .15s; user-select:none;
+    }
+    .mole-hole:active { transform:scale(0.9); }
+    .mole-hole.active { background:#2a2a1a; border-color:var(--accent); animation:moleUp .3s; }
+    @keyframes moleUp { 0%{transform:scale(0.5)} 100%{transform:scale(1)} }
+    /* Leaderboard */
+    .lb-list { width:100%; max-width:340px; }
+    .lb-row {
+      display:flex; align-items:center; gap:12px; padding:10px 14px;
+      background:var(--surface); border:1px solid #222; border-radius:10px; margin-bottom:6px;
+    }
+    .lb-row .lb-rank { font-size:18px; font-weight:800; color:var(--accent); min-width:28px; }
+    .lb-row .lb-game { font-size:12px; color:var(--text-dim); }
+    .lb-row .lb-score { margin-left:auto; font-size:16px; font-weight:700; color:var(--accent); }
+
     /* ===== SHARED TRANSLATOR STYLES ===== */
     .translator-screen {
       padding:calc(env(safe-area-inset-top,8px)+8px) 16px calc(env(safe-area-inset-bottom,8px)+8px);
@@ -657,6 +742,14 @@
       </div>
       <div class="mod-arrow">›</div>
     </div>
+    <div class="module-card" id="go-games">
+      <div class="mod-icon">&#x1F3AE;</div>
+      <div class="mod-info">
+        <div class="mod-name" data-i18n="games_name">Mini Games</div>
+        <div class="mod-desc" data-i18n="games_desc">Play & compete on the leaderboard</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </div>
   </div>
 
   <!-- Install App Banner -->
@@ -865,6 +958,110 @@
   </div>
 </div>
 
+<!-- ===== 7. GAME LOBBY ===== -->
+<div id="game-lobby" class="screen">
+  <button class="back-btn" id="games-back" style="position:absolute;top:env(safe-area-inset-top,12px);left:12px;z-index:10">&#x2039;</button>
+  <div class="home-logo">&#x1F3AE; <span data-i18n="games_name">Mini Games</span></div>
+  <div class="game-cards">
+    <div class="game-card" id="go-2048">
+      <div class="gc-icon">&#x1F522;</div>
+      <div class="gc-name">2048</div>
+      <div class="gc-desc" data-i18n="g_2048_desc">Slide & merge tiles</div>
+    </div>
+    <div class="game-card" id="go-snake">
+      <div class="gc-icon">&#x1F40D;</div>
+      <div class="gc-name">Snake</div>
+      <div class="gc-desc" data-i18n="g_snake_desc">Eat & grow longer</div>
+    </div>
+    <div class="game-card" id="go-mole">
+      <div class="gc-icon">&#x1F439;</div>
+      <div class="gc-name" data-i18n="g_mole_name">Whack-a-Mole</div>
+      <div class="gc-desc" data-i18n="g_mole_desc">Tap the moles fast!</div>
+    </div>
+    <div class="game-card" id="go-leaderboard">
+      <div class="gc-icon">&#x1F3C6;</div>
+      <div class="gc-name" data-i18n="leaderboard">Leaderboard</div>
+      <div class="gc-desc" data-i18n="lb_desc">View high scores</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 8. GAME: 2048 ===== -->
+<div id="screen-2048" class="screen game-screen" style="position:relative">
+  <div class="header">
+    <button class="back-btn" id="back-2048">&#x2039;</button>
+    <span class="logo">2048</span>
+    <span class="header-badge" data-i18n="g_best">Best</span>
+  </div>
+  <div class="game-score-bar">
+    <div><div class="gs-label" data-i18n="g_score">Score</div><div class="gs-val" id="s2048-score">0</div></div>
+    <div><div class="gs-label" data-i18n="g_best">Best</div><div class="gs-val" id="s2048-best">0</div></div>
+  </div>
+  <div class="grid-2048" id="grid-2048"></div>
+  <div style="font-size:11px;color:var(--text-dim);text-align:center" data-i18n="g_2048_hint">Swipe to move tiles. Merge same numbers!</div>
+  <div class="game-over-overlay" id="go-2048-over">
+    <div class="go-title">Game Over</div>
+    <div class="go-score" id="go-2048-fscore"></div>
+    <button class="go-btn" id="go-2048-retry" data-i18n="g_retry">Play Again</button>
+  </div>
+</div>
+
+<!-- ===== 9. GAME: SNAKE ===== -->
+<div id="screen-snake" class="screen game-screen" style="position:relative">
+  <div class="header">
+    <button class="back-btn" id="back-snake">&#x2039;</button>
+    <span class="logo">&#x1F40D; Snake</span>
+    <span class="header-badge" data-i18n="g_best">Best</span>
+  </div>
+  <div class="game-score-bar">
+    <div><div class="gs-label" data-i18n="g_score">Score</div><div class="gs-val" id="snake-score">0</div></div>
+    <div><div class="gs-label" data-i18n="g_best">Best</div><div class="gs-val" id="snake-best">0</div></div>
+  </div>
+  <canvas class="snake-canvas" id="snake-canvas" width="320" height="320"></canvas>
+  <div style="font-size:11px;color:var(--text-dim);text-align:center" data-i18n="g_snake_hint">Swipe to change direction</div>
+  <div class="game-over-overlay" id="go-snake-over">
+    <div class="go-title">Game Over</div>
+    <div class="go-score" id="go-snake-fscore"></div>
+    <button class="go-btn" id="go-snake-retry" data-i18n="g_retry">Play Again</button>
+  </div>
+</div>
+
+<!-- ===== 10. GAME: WHACK-A-MOLE ===== -->
+<div id="screen-mole" class="screen game-screen" style="position:relative">
+  <div class="header">
+    <button class="back-btn" id="back-mole">&#x2039;</button>
+    <span class="logo">&#x1F439; <span data-i18n="g_mole_name">Whack-a-Mole</span></span>
+    <span class="header-badge" id="mole-timer">30s</span>
+  </div>
+  <div class="game-score-bar">
+    <div><div class="gs-label" data-i18n="g_score">Score</div><div class="gs-val" id="mole-score">0</div></div>
+    <div><div class="gs-label" data-i18n="g_best">Best</div><div class="gs-val" id="mole-best">0</div></div>
+  </div>
+  <div class="mole-grid" id="mole-grid">
+    <div class="mole-hole" data-i="0"></div><div class="mole-hole" data-i="1"></div><div class="mole-hole" data-i="2"></div>
+    <div class="mole-hole" data-i="3"></div><div class="mole-hole" data-i="4"></div><div class="mole-hole" data-i="5"></div>
+    <div class="mole-hole" data-i="6"></div><div class="mole-hole" data-i="7"></div><div class="mole-hole" data-i="8"></div>
+  </div>
+  <button class="go-btn" id="mole-start" style="margin-top:12px" data-i18n="g_start">Start!</button>
+  <div class="game-over-overlay" id="go-mole-over">
+    <div class="go-title" data-i18n="g_timesup">Time's Up!</div>
+    <div class="go-score" id="go-mole-fscore"></div>
+    <button class="go-btn" id="go-mole-retry" data-i18n="g_retry">Play Again</button>
+  </div>
+</div>
+
+<!-- ===== 11. LEADERBOARD ===== -->
+<div id="screen-lb" class="screen game-screen">
+  <div class="header">
+    <button class="back-btn" id="back-lb">&#x2039;</button>
+    <span class="logo">&#x1F3C6; <span data-i18n="leaderboard">Leaderboard</span></span>
+    <button class="chat-clear-btn" id="lb-clear" data-i18n="clear_all">Clear all</button>
+  </div>
+  <div class="lb-list" id="lb-list">
+    <div style="text-align:center;color:var(--text-dim);padding:40px 0" data-i18n="lb_empty">No scores yet. Play a game first!</div>
+  </div>
+</div>
+
 <!-- Token cost badge (global) -->
 <div class="cost-badge" id="cost-badge" style="display:none">
   ⚡ <span class="cost-val" id="cost-val">฿0.0000</span>
@@ -938,6 +1135,18 @@
   document.getElementById('go-voice').addEventListener('click', () => show('voice-screen'));
   document.getElementById('go-text').addEventListener('click', () => show('text-screen'));
   document.getElementById('go-chat').addEventListener('click', () => show('chat-screen'));
+  document.getElementById('go-games').addEventListener('click', () => show('game-lobby'));
+
+  // Game lobby navigation
+  document.getElementById('games-back').addEventListener('click', () => show('module-screen'));
+  document.getElementById('go-2048').addEventListener('click', () => { show('screen-2048'); if(window.NYCKING_GAME_START) window.NYCKING_GAME_START('2048'); });
+  document.getElementById('go-snake').addEventListener('click', () => { show('screen-snake'); if(window.NYCKING_GAME_START) window.NYCKING_GAME_START('snake'); });
+  document.getElementById('go-mole').addEventListener('click', () => { show('screen-mole'); if(window.NYCKING_GAME_START) window.NYCKING_GAME_START('mole'); });
+  document.getElementById('go-leaderboard').addEventListener('click', () => { show('screen-lb'); if(window.NYCKING_GAME_START) window.NYCKING_GAME_START('lb'); });
+  document.getElementById('back-2048').addEventListener('click', () => { if(window.NYCKING_GAME_STOP) window.NYCKING_GAME_STOP('2048'); show('game-lobby'); });
+  document.getElementById('back-snake').addEventListener('click', () => { if(window.NYCKING_GAME_STOP) window.NYCKING_GAME_STOP('snake'); show('game-lobby'); });
+  document.getElementById('back-mole').addEventListener('click', () => { if(window.NYCKING_GAME_STOP) window.NYCKING_GAME_STOP('mole'); show('game-lobby'); });
+  document.getElementById('back-lb').addEventListener('click', () => show('game-lobby'));
 
   // Back buttons
   document.getElementById('voice-back').addEventListener('click', () => show('module-screen'));
@@ -977,6 +1186,11 @@
       your_name:'Your name...', join_chat:'💕 Join Chat',
       no_msg:'No messages yet. Say hi! 👋', type_msg:'Type a message...',
       install_title:'Install NYCKING App', install_desc:'Add to home screen for quick access. Works offline like a native app.', install_btn:'Install',
+      games_name:'Mini Games', games_desc:'Play & compete on the leaderboard',
+      g_2048_desc:'Slide & merge tiles', g_snake_desc:'Eat & grow longer', g_mole_name:'Whack-a-Mole', g_mole_desc:'Tap the moles fast!',
+      leaderboard:'Leaderboard', lb_desc:'View high scores', lb_empty:'No scores yet. Play a game first!',
+      g_score:'Score', g_best:'Best', g_retry:'Play Again', g_start:'Start!', g_timesup:"Time's Up!",
+      g_2048_hint:'Swipe to move tiles. Merge same numbers!', g_snake_hint:'Swipe to change direction',
     },
     zh: {
       tagline:'AI 驱动的多语种语音 & 文字翻译平台',
@@ -1001,6 +1215,11 @@
       your_name:'你的名字...', join_chat:'💕 加入聊天',
       no_msg:'还没有消息，打个招呼吧！👋', type_msg:'输入消息...',
       install_title:'安装 NYCKING 应用', install_desc:'添加到桌面，一键快速访问。支持离线使用，如原生应用一般。', install_btn:'安装',
+      games_name:'小游戏', games_desc:'玩游戏，冲排行榜',
+      g_2048_desc:'滑动合并方块', g_snake_desc:'吃东西变更长', g_mole_name:'打地鼠', g_mole_desc:'快速点击地鼠！',
+      leaderboard:'排行榜', lb_desc:'查看最高分', lb_empty:'还没有分数，先去玩个游戏吧！',
+      g_score:'得分', g_best:'最高', g_retry:'再来一局', g_start:'开始！', g_timesup:'时间到！',
+      g_2048_hint:'滑动移动方块，相同数字合并！', g_snake_hint:'滑动改变方向',
     },
     th: {
       tagline:'แพลตฟอร์มแปลเสียงและข้อความหลายภาษาด้วย AI',
@@ -1025,6 +1244,11 @@
       your_name:'ชื่อของคุณ...', join_chat:'💕 เข้าร่วมแชท',
       no_msg:'ยังไม่มีข้อความ ทักทายสิ! 👋', type_msg:'พิมพ์ข้อความ...',
       install_title:'ติดตั้งแอป NYCKING', install_desc:'เพิ่มลงหน้าจอเพื่อเข้าถึงอย่างรวดเร็ว ใช้งานแบบออฟไลน์ได้', install_btn:'ติดตั้ง',
+      games_name:'เกมมินิ', games_desc:'เล่นและแข่งขันบนลีดเดอร์บอร์ด',
+      g_2048_desc:'เลื่อนและรวมบล็อก', g_snake_desc:'กินและโตยาวขึ้น', g_mole_name:'ตีตุ่น', g_mole_desc:'แตะตุ่นให้เร็ว!',
+      leaderboard:'ลีดเดอร์บอร์ด', lb_desc:'ดูคะแนนสูงสุด', lb_empty:'ยังไม่มีคะแนน เล่นเกมก่อน!',
+      g_score:'คะแนน', g_best:'สูงสุด', g_retry:'เล่นอีกครั้ง', g_start:'เริ่ม!', g_timesup:'หมดเวลา!',
+      g_2048_hint:'เลื่อนเพื่อย้ายบล็อก รวมตัวเลขเดียวกัน!', g_snake_hint:'เลื่อนเพื่อเปลี่ยนทิศทาง',
     },
     my: {
       tagline:'AI နဲ့ အသံ & စာသား ဘာသာပြန် ပလက်ဖောင်း',
@@ -1049,6 +1273,11 @@
       your_name:'သင့်နာမည်...', join_chat:'💕 ချက်တ်ဝင်ပါ',
       no_msg:'မက်ဆေ့ချ် မရှိသေးပါ။ နှုတ်ဆက်ပါ! 👋', type_msg:'မက်ဆေ့ချ် ရိုက်ပါ...',
       install_title:'NYCKING အပ်ပြီ ထည့်သွင်းပါ', install_desc:'ဖုန်းမျက်နှာသို့ ထည့်သွင်းပါ။ အိုင်းမှာ အပ်ပြီကဲ့သို့ အသုံးပြုနိုင်ပါတယ်။', install_btn:'ထည့်သွင်းပါ',
+      games_name:'ဂိမ်းငယ်များ', games_desc:'ဂိမ်းကြိုက်မယ်။ အဆင့်မြင့်ဆုံးပါ',
+      g_2048_desc:'ပွတ်ပြီး ပေါင်းစပ်ပါ', g_snake_desc:'စားပြီး ရှည်သွားပါ', g_mole_name:'ကြွက်ရိုက်', g_mole_desc:'ကြွက်ကို မြန်မြန်နှိပ်ပါ!',
+      leaderboard:'အဆင့်မြင့်ဆုံး', lb_desc:'အမြင့်ဆုံးစကိုက်များကြည့်ပါ', lb_empty:'အမှတ်မရှိသေးပါ။ ဂိမ်းတစ်ခု ကြိုက်ကြည့်ပါ!',
+      g_score:'အမှတ်', g_best:'အမြင့်ဆုံး', g_retry:'ထပ်ကြိုက်မယ်', g_start:'စတင်!', g_timesup:'အချိန်ကုန်ပြီ!',
+      g_2048_hint:'ပွတ်ပြီး တူညီနံပါတ်များ ပေါင်းစပ်ပါ!', g_snake_hint:'ပွတ်ပြီး အရပ်ပြောင်းပါ',
     }
   };
 
@@ -1181,7 +1410,9 @@
   }
 </script>
 
+<!-- Games -->
+<script src="/src/games.js?v=1"></script>
 <!-- App -->
-<script type="module" src="/src/app.js?v=8"></script>
+<script type="module" src="/src/app.js?v=9"></script>
 </body>
 </html>
