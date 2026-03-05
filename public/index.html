@@ -67,7 +67,7 @@
     /* ===== TRANSLATOR ===== */
     #translator {
       padding: calc(env(safe-area-inset-top, 8px) + 8px) 16px calc(env(safe-area-inset-bottom, 8px) + 8px);
-      gap: 12px;
+      gap: 10px;
       flex: 1;
     }
 
@@ -104,10 +104,28 @@
     }
     .swap-btn:active { transform:rotate(180deg) scale(0.9); }
 
+    /* Scene bar */
+    .scene-bar {
+      display:flex; gap:6px;
+      overflow-x:auto; -webkit-overflow-scrolling:touch;
+      padding:2px 0;
+    }
+    .scene-btn {
+      flex-shrink:0; padding:7px 14px; border-radius:20px;
+      background:var(--surface); border:1px solid #333;
+      color:var(--text-dim); font-size:12px; font-weight:600;
+      cursor:pointer; transition:all .2s; white-space:nowrap;
+    }
+    .scene-btn.active {
+      background:var(--accent); border-color:var(--accent);
+      color:#fff;
+    }
+    .scene-btn:active { transform:scale(0.95); }
+
     /* Text panels */
     .text-panel {
       background:var(--surface); border-radius:var(--radius);
-      padding:14px 16px; flex:1; min-height:100px;
+      padding:14px 16px; flex:1; min-height:90px;
       display:flex; flex-direction:column; gap:8px;
       border:1px solid transparent; transition:border-color .3s;
     }
@@ -132,12 +150,12 @@
     /* Mic section */
     .mic-section {
       display:flex; flex-direction:column; align-items:center;
-      gap:10px; padding:8px 0;
+      gap:8px; padding:6px 0;
     }
     .mic-btn {
-      width:80px; height:80px; border-radius:50%;
+      width:76px; height:76px; border-radius:50%;
       background: linear-gradient(135deg, var(--accent), #ea580c);
-      border:none; color:#fff; font-size:36px;
+      border:none; color:#fff; font-size:34px;
       cursor:pointer; position:relative;
       display:flex; align-items:center; justify-content:center;
       transition:all .2s; box-shadow:0 4px 20px var(--accent-glow);
@@ -169,34 +187,46 @@
 
     /* Controls */
     .controls {
-      display:flex; gap:16px; justify-content:center;
+      display:flex; flex-wrap:wrap; gap:12px; justify-content:center;
       padding:4px 0;
     }
     .toggle-label {
-      display:flex; align-items:center; gap:6px;
-      font-size:13px; color:var(--text-dim); cursor:pointer;
+      display:flex; align-items:center; gap:5px;
+      font-size:12px; color:var(--text-dim); cursor:pointer;
     }
     .toggle-label input[type="checkbox"] {
-      width:18px; height:18px; accent-color:var(--accent);
+      width:16px; height:16px; accent-color:var(--accent);
     }
 
     /* History */
-    .history-section { margin-top:4px; }
+    .history-section { margin-top:2px; }
     .history-header {
       font-size:12px; color:var(--text-dim); font-weight:600;
       text-transform:uppercase; letter-spacing:1px;
-      padding:6px 0; display:flex; align-items:center; gap:6px;
+      padding:4px 0; display:flex; align-items:center; gap:6px;
     }
     .history-list {
-      display:flex; flex-direction:column; gap:8px;
-      max-height:200px; overflow-y:auto;
+      display:flex; flex-direction:column; gap:6px;
+      max-height:180px; overflow-y:auto;
     }
     .history-item {
       background:var(--surface); border-radius:10px;
-      padding:10px 12px; font-size:13px;
+      padding:8px 12px; font-size:12px;
     }
-    .history-source { color:var(--text-dim); margin-bottom:4px; }
+    .history-source { color:var(--text-dim); margin-bottom:3px; }
     .history-target { color:var(--text); }
+
+    /* Token cost badge */
+    .cost-badge {
+      position:fixed; bottom:env(safe-area-inset-bottom, 12px);
+      right:12px; z-index:100;
+      background:var(--surface); border:1px solid #333;
+      border-radius:20px; padding:6px 12px;
+      font-size:11px; color:var(--text-dim);
+      display:flex; align-items:center; gap:4px;
+      backdrop-filter:blur(8px);
+    }
+    .cost-badge .cost-val { color:var(--accent); font-weight:700; }
 
     /* Not supported warning */
     .not-supported {
@@ -245,7 +275,7 @@
   <!-- Header -->
   <div class="header">
     <span class="logo">NYCKING</span>
-    <span class="header-badge">Gemini 翻译</span>
+    <span class="header-badge">Gemini 2.5 Flash</span>
   </div>
 
   <!-- Language bar -->
@@ -254,13 +284,22 @@
       <option value="zh-CN">🇨🇳 中文</option>
       <option value="en-US">🇺🇸 English</option>
       <option value="th-TH">🇹🇭 ไทย</option>
+      <option value="lo-LA">🇱🇦 ລາວ</option>
     </select>
     <button id="swap-btn" class="swap-btn" title="交换语言">⇄</button>
     <select id="target-lang" class="lang-select">
       <option value="th-TH">🇹🇭 ไทย</option>
       <option value="en-US">🇺🇸 English</option>
       <option value="zh-CN">🇨🇳 中文</option>
+      <option value="lo-LA">🇱🇦 ລາວ</option>
     </select>
+  </div>
+
+  <!-- Scene selector -->
+  <div class="scene-bar" id="scene-bar">
+    <button class="scene-btn active" data-scene="travel">✈️ 旅行休闲</button>
+    <button class="scene-btn" data-scene="romance">💕 感情社交</button>
+    <button class="scene-btn" data-scene="business">💼 商务会谈</button>
   </div>
 
   <!-- Text panels -->
@@ -299,6 +338,10 @@
       <input type="checkbox" id="continuous-mode">
       <span>🔄 连续模式</span>
     </label>
+    <label class="toggle-label">
+      <input type="checkbox" id="noisy-env">
+      <span>📢 户外杂音</span>
+    </label>
   </div>
 
   <!-- History -->
@@ -312,6 +355,12 @@
     ❌ 您的浏览器不支持语音识别<br>
     请使用 Chrome、Edge 或 Safari 浏览器
   </div>
+</div>
+
+<!-- Token cost badge -->
+<div class="cost-badge" id="cost-badge" style="display:none">
+  ⚡ <span class="cost-val" id="cost-val">฿0.0000</span>
+  <span id="cost-tokens">0 tokens</span>
 </div>
 
 <!-- PIN logic -->
@@ -368,6 +417,6 @@
 </script>
 
 <!-- App -->
-<script type="module" src="/src/app.js?v=2"></script>
+<script type="module" src="/src/app.js?v=3"></script>
 </body>
 </html>

@@ -1,10 +1,12 @@
 /**
  * NYCKING Voice Translator — Main App
  * Architecture: Web Speech API (STT) → Gemini (Translate) → SpeechSynthesis (TTS)
- * No WebSocket. No complex connection management. Just works.
+ * Languages: Chinese(Simplified) ↔ Thai ↔ English ↔ Lao
+ * Scenes: travel / romance / business
  */
 
 const API_BASE = window.NYCKING_API_BASE || '';
+const ALL_LANGS = ['zh-CN', 'en-US', 'th-TH', 'lo-LA'];
 
 // ─── State ───
 let isListening = false;
@@ -13,8 +15,15 @@ let isTranslating = false;
 let recognition = null;
 let continuous = false;
 let autoSpeak = true;
+let noisyEnv = false;
+let currentScene = 'travel';
 let stoppingManually = false;
 const history = [];
+
+// Token cost tracking (session total)
+let totalTokensIn = 0;
+let totalTokensOut = 0;
+let totalCostTHB = 0;
 
 // ─── DOM refs ───
 const $ = (id) => document.getElementById(id);
@@ -31,9 +40,65 @@ const speakBtn = $('speak-btn');
 const statusBar = $('status');
 const autoSpeakCb = $('auto-speak');
 const continuousCb = $('continuous-mode');
+const noisyEnvCb = $('noisy-env');
 const historyList = $('history-list');
 const historyCount = $('history-count');
 const notSupported = $('not-supported');
+const sceneBar = $('scene-bar');
+const costBadge = $('cost-badge');
+const costVal = $('cost-val');
+const costTokens = $('cost-tokens');
+
+// ─── TTS Voice Map ───
+// Lock to official standard voices per language
+const VOICE_PREFERENCES = {
+  'zh-CN': [
+    'Google 普通话（中国大陆）', 'Google 中文（普通话）',
+    'Microsoft Xiaoxiao', 'Ting-Ting',
+    'zh-CN', 'zh_CN',
+  ],
+  'en-US': [
+    'Google US English', 'Microsoft Mark',
+    'Samantha', 'Alex',
+    'en-US', 'en_US',
+  ],
+  'th-TH': [
+    'Google ไทย', 'Microsoft Pattara',
+    'Kanya', 'Niwat',
+    'th-TH', 'th_TH',
+  ],
+  'lo-LA': [
+    'lo-LA', 'lo_LA', 'lo',
+  ],
+};
+
+let voiceCache = {};
+
+function findBestVoice(lang) {
+  if (voiceCache[lang]) return voiceCache[lang];
+
+  const voices = speechSynthesis.getVoices();
+  if (!voices.length) return null;
+
+  const prefs = VOICE_PREFERENCES[lang] || [];
+
+  // Try exact name match from preference list
+  for (const pref of prefs) {
+    const v = voices.find(v => v.name === pref || v.name.includes(pref));
+    if (v) { voiceCache[lang] = v; return v; }
+  }
+
+  // Try exact lang match
+  const exactLang = voices.find(v => v.lang === lang);
+  if (exactLang) { voiceCache[lang] = exactLang; return exactLang; }
+
+  // Try lang prefix match
+  const langPrefix = lang.split('-')[0];
+  const prefixMatch = voices.find(v => v.lang.startsWith(langPrefix));
+  if (prefixMatch) { voiceCache[lang] = prefixMatch; return prefixMatch; }
+
+  return null;
+}
 
 // ─── Check browser support ───
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -131,7 +196,6 @@ function startListening() {
   try {
     recognition.start();
   } catch (e) {
-    // Already started — ignore
     console.warn('[speech] start error:', e.message);
   }
 }
@@ -169,6 +233,8 @@ async function translate(text) {
         text: text.trim(),
         sourceLang: sourceLangSel.value,
         targetLang: targetLangSel.value,
+        scene: currentScene,
+        noisyEnv,
       }),
       signal: controller.signal,
     });
@@ -183,6 +249,14 @@ async function translate(text) {
     setTargetText(data.translation, false);
     setStatus(`✅ 翻译完成 (${data.latencyMs}ms)`, 'success');
     addHistory(text, data.translation);
+
+    // Update token cost
+    if (data.tokensIn || data.tokensOut) {
+      totalTokensIn += data.tokensIn || 0;
+      totalTokensOut += data.tokensOut || 0;
+      totalCostTHB += data.costTHB || 0;
+      updateCostBadge();
+    }
 
     if (autoSpeak && data.translation) {
       speak(data.translation, targetLangSel.value);
@@ -204,7 +278,7 @@ async function translate(text) {
   }
 }
 
-// ─── TTS ───
+// ─── TTS — locked to standard voices ───
 function speak(text, lang) {
   if (!text || !window.speechSynthesis) return;
 
@@ -216,12 +290,14 @@ function speak(text, lang) {
   utterance.rate = 0.9;
   utterance.pitch = 1.0;
 
-  // Try to find a good voice
-  const voices = speechSynthesis.getVoices();
-  const langPrefix = lang.split('-')[0];
-  const nativeVoice = voices.find(v => v.lang === lang) ||
-                      voices.find(v => v.lang.startsWith(langPrefix));
-  if (nativeVoice) utterance.voice = nativeVoice;
+  // Use locked voice for the target language
+  const voice = findBestVoice(lang);
+  if (voice) {
+    utterance.voice = voice;
+    console.log('[tts] using voice:', voice.name, voice.lang);
+  } else {
+    console.log('[tts] no specific voice found for', lang, '- using default');
+  }
 
   utterance.onstart = () => {
     isSpeaking = true;
@@ -285,6 +361,13 @@ function escHtml(s) {
   return d.innerHTML;
 }
 
+function updateCostBadge() {
+  const totalTokens = totalTokensIn + totalTokensOut;
+  costBadge.style.display = totalTokens > 0 ? 'flex' : 'none';
+  costVal.textContent = `฿${totalCostTHB.toFixed(4)}`;
+  costTokens.textContent = `${totalTokens.toLocaleString()} tokens`;
+}
+
 // ─── Event bindings ───
 function bindEvents() {
   // Mic button
@@ -312,13 +395,13 @@ function bindEvents() {
   // Prevent same source/target
   sourceLangSel.addEventListener('change', () => {
     if (sourceLangSel.value === targetLangSel.value) {
-      const others = ['zh-CN', 'en-US', 'th-TH'].filter(l => l !== sourceLangSel.value);
+      const others = ALL_LANGS.filter(l => l !== sourceLangSel.value);
       targetLangSel.value = others[0];
     }
   });
   targetLangSel.addEventListener('change', () => {
     if (targetLangSel.value === sourceLangSel.value) {
-      const others = ['zh-CN', 'en-US', 'th-TH'].filter(l => l !== targetLangSel.value);
+      const others = ALL_LANGS.filter(l => l !== targetLangSel.value);
       sourceLangSel.value = others[0];
     }
   });
@@ -334,11 +417,36 @@ function bindEvents() {
   // Controls
   autoSpeakCb.addEventListener('change', () => { autoSpeak = autoSpeakCb.checked; });
   continuousCb.addEventListener('change', () => { continuous = continuousCb.checked; });
+  noisyEnvCb.addEventListener('change', () => { noisyEnv = noisyEnvCb.checked; });
+
+  // Scene selector
+  sceneBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-scene]');
+    if (!btn) return;
+    currentScene = btn.dataset.scene;
+    sceneBar.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    console.log('[scene] switched to:', currentScene);
+  });
 
   // Load voices (async on some browsers)
   if (window.speechSynthesis) {
     speechSynthesis.getVoices();
-    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = () => {
+      voiceCache = {}; // Clear cache to re-resolve
+      const voices = speechSynthesis.getVoices();
+      console.log('[tts] voices loaded:', voices.length);
+      // Log available voices for debugging
+      const langGroups = {};
+      voices.forEach(v => {
+        const key = v.lang.split('-')[0];
+        if (!langGroups[key]) langGroups[key] = [];
+        langGroups[key].push(`${v.name} (${v.lang})`);
+      });
+      ['zh', 'en', 'th', 'lo'].forEach(k => {
+        if (langGroups[k]) console.log(`[tts] ${k}:`, langGroups[k].join(', '));
+      });
+    };
   }
 }
 
@@ -349,6 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('[app] NYCKING Voice Translator ready');
   console.log('[app] Speech Recognition:', !!SpeechRecognition);
   console.log('[app] Speech Synthesis:', !!window.speechSynthesis);
+  console.log('[app] Supported langs:', ALL_LANGS.join(', '));
 });
 
 // ─── Service Worker ───

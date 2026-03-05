@@ -1,4 +1,4 @@
-const CACHE_NAME = "nycking-v7";
+const CACHE_NAME = "nycking-v8";
 const ASSETS = [
   "/",
   "/index.html",
