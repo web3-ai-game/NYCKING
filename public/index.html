@@ -1648,17 +1648,21 @@
 (function(){
   const screens = document.querySelectorAll('.screen');
   const tabBar = document.getElementById('tab-bar');
-  const TAB_SCREENS = ['module-screen','dm-screen','contacts-screen','moments-screen','me-screen'];
+  const TAB_SCREENS = ['module-screen','match-screen','dm-screen','contacts-screen','moments-screen','me-screen'];
+  const HIDE_TAB = ['screen-2048','screen-snake','screen-mole','screen-lb'];
 
   function show(id) {
     screens.forEach(s => s.classList.remove('active'));
     const el = document.getElementById(id);
     if (el) el.classList.add('active');
-    // Tab bar: show only on tab screens + sub-screens when logged in
-    const isTab = TAB_SCREENS.includes(id) || id.startsWith('screen-') || id.startsWith('voice-') || id.startsWith('text-') || id === 'chat-screen' || id === 'game-lobby';
-    if (tabBar) tabBar.classList.toggle('show', isTab && !!window.NYCKING_AUTH?.currentUser);
+    // Scroll to top when going home
+    if (id === 'home-screen') el.scrollTop = 0;
+    // Tab bar: show on main tabs + module sub-screens, hide in games/translators
+    const isLoggedIn = !!window.NYCKING_AUTH?.currentUser;
+    const showTab = isLoggedIn && (TAB_SCREENS.includes(id) || id === 'game-lobby' || id === 'chat-screen') && !HIDE_TAB.includes(id);
+    if (tabBar) tabBar.classList.toggle('show', showTab);
     // Hash route
-    const routeMap = {'home-screen':'home','auth-screen':'auth','module-screen':'tools','dm-screen':'messages','contacts-screen':'contacts','moments-screen':'moments','me-screen':'me'};
+    const routeMap = {'home-screen':'home','auth-screen':'auth','module-screen':'tools','match-screen':'match','dm-screen':'chat','contacts-screen':'friends','moments-screen':'moments','me-screen':'me'};
     if (routeMap[id]) history.pushState({screen:id}, '', '#/' + routeMap[id]);
   }
 
