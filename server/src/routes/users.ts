@@ -105,19 +105,20 @@ router.get("/users/search", authMiddleware, async (req: Request, res: Response) 
   }
 });
 
-// GET /api/users/ranking — token consumption leaderboard (public)
+// GET /api/users/ranking — usage leaderboard (public)
 // NOTE: Must be defined BEFORE /users/:uid to avoid Express matching 'ranking' as :uid
 router.get("/users/ranking", async (req: Request, res: Response) => {
   try {
     const db = await getDB();
-    const snap = await db
+    // Try usageCount first; fall back to tokenUsed for legacy data
+    let snap = await db
       .collection("users")
-      .orderBy("tokenUsed", "desc")
+      .orderBy("usageCount", "desc")
       .limit(50)
       .get();
 
     const ranking = snap.docs
-      .filter((d) => (d.data().tokenUsed || 0) > 0)
+      .filter((d) => (d.data().usageCount || d.data().tokenUsed || 0) > 0)
       .map((doc, i) => ({
         rank: i + 1,
         uid: doc.id,
@@ -125,6 +126,7 @@ router.get("/users/ranking", async (req: Request, res: Response) => {
         avatar: doc.data().avatar || "😊",
         username: doc.data().username || "",
         tier: doc.data().tier || "free",
+        usageCount: doc.data().usageCount || doc.data().tokenUsed || 0,
         tokenUsed: doc.data().tokenUsed || 0,
       }));
 

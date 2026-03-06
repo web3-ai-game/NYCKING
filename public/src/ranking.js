@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════
-// NYCKING Ranking — Token Consumption Leaderboard
+// NYCKING Ranking — Translation Usage Leaderboard
 // ═══════════════════════════════════════════════════
 
 (function () {
@@ -36,8 +36,8 @@
                 <div class="rank-sub">@${escHtml(u.username)}</div>
               </div>
               <div class="rank-tokens">
-                <div class="rank-token-val">⚡ ${u.tokenUsed.toLocaleString()}</div>
-                <div class="rank-token-label" data-i18n="ranking_used">used</div>
+                <div class="rank-token-val">⚡ ${(u.usageCount || u.tokenUsed || 0).toLocaleString()}</div>
+                <div class="rank-token-label" data-i18n="ranking_used">translations</div>
               </div>
             </div>
           `;

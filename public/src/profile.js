@@ -64,7 +64,7 @@
     $('me-uname-val').textContent = user.username || '—';
     $('me-avatar-val').textContent = user.avatar || '😊';
     $('me-lang-val').textContent = (localStorage.getItem('nycking_i18n') || 'en').toUpperCase();
-    // Tier + Token balance
+    // Tier + Usage count
     const tier = (user.tier || 'free').toUpperCase();
     const tierBadge = $('me-tier-badge');
     if (tierBadge) {
@@ -73,12 +73,25 @@
       tierBadge.style.color = tier === 'PRO' ? 'var(--accent)' : tier === 'ADMIN' ? 'var(--success)' : 'var(--text-dim)';
     }
     const tokenBal = $('me-token-bal');
-    if (tokenBal) tokenBal.textContent = (user.tokenBalance ?? 10000).toLocaleString();
+    if (tokenBal) {
+      const usageCount = user.usageCount ?? 0;
+      const usageLimit = user.usageLimit ?? 1000;
+      if (tier === 'ADMIN' || tier === 'PRO' || usageLimit === -1) {
+        tokenBal.textContent = '∞ Unlimited';
+      } else {
+        tokenBal.textContent = Math.max(0, usageLimit - usageCount).toLocaleString();
+      }
+    }
     // Update tab bar Me icon
     $('tab-me-icon').textContent = user.avatar || '😊';
     // Admin panel visibility
     const adminEntry = $('me-go-admin');
     if (adminEntry) adminEntry.style.display = (user.tier === 'admin') ? '' : 'none';
+    // Invite code display
+    const inviteCodeEl = $('my-invite-code');
+    if (inviteCodeEl) inviteCodeEl.textContent = user.inviteCode || '—';
+    const inviteCountEl = $('invite-count');
+    if (inviteCountEl) inviteCountEl.textContent = user.inviteCount || 0;
   }
 
   // ─── Admin panel ───
@@ -107,7 +120,7 @@
         statsEl.innerHTML = [
           { n: stats.totalUsers, l: 'Users' },
           { n: stats.proUsers, l: 'Pro' },
-          { n: Math.round(stats.totalTokenUsed / 1000) + 'K', l: 'Tokens Used' },
+          { n: (stats.totalUsageCount || 0).toLocaleString(), l: 'Total Uses' },
         ].map(s => `<div style="background:var(--surface);border:1px solid #222;border-radius:12px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:900;color:var(--accent)">${s.n}</div><div style="font-size:10px;color:var(--text-dim)">${s.l}</div></div>`).join('');
       }
 
@@ -125,7 +138,7 @@
               <span class="au-avatar">${u.avatar || '😊'}</span>
               <div class="au-info">
                 <div class="au-name">${u.displayName || 'User'}</div>
-                <div class="au-sub">@${u.username || '—'} · ⚡${(u.tokenBalance||0).toLocaleString()}</div>
+                <div class="au-sub">@${u.username || '—'} · ⚡${u.usageLimit === -1 ? '∞' : ((u.usageLimit||1000) - (u.usageCount||0))} uses left</div>
               </div>
               ${isAdmin ? `<span class="au-tier admin-tier">ADMIN</span>` : `<button class="au-tier ${tierClass}" data-uid="${u.uid}" data-next="${nextTier}">${(u.tier||'free').toUpperCase()}</button>`}
             </div>
@@ -157,6 +170,112 @@
     } catch (err) {
       console.error('[admin] load error:', err);
     }
+  }
+
+  // ─── Activation Code System ───
+  const activateBtn = $('activate-btn');
+  const activationInput = $('activation-code-input');
+  const activationMsg = $('activation-msg');
+
+  if (activateBtn) activateBtn.addEventListener('click', async () => {
+    const code = activationInput?.value?.trim()?.toUpperCase();
+    if (!code) { showMsg(activationMsg, 'Please enter an activation code', 'var(--error)'); return; }
+    if (!auth?.currentUser) { showMsg(activationMsg, 'Please sign in first', 'var(--error)'); return; }
+
+    activateBtn.disabled = true;
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const resp = await fetch((window.NYCKING_API_BASE || '') + '/api/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ code }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.ok) {
+        showMsg(activationMsg, '✅ Activated! You now have Pro access for 30 days.', 'var(--success)');
+        activationInput.value = '';
+        // Refresh user profile
+        const snap = await db.collection('users').doc(auth.currentUser.uid).get();
+        if (snap.exists) {
+          Object.assign(window.NYCKING_USER, snap.data());
+          refreshProfile();
+          if (window.NYCKING_REFRESH_TOKENS) window.NYCKING_REFRESH_TOKENS();
+        }
+      } else {
+        showMsg(activationMsg, '❌ ' + (data.error || 'Invalid activation code'), 'var(--error)');
+      }
+    } catch (err) {
+      showMsg(activationMsg, '❌ Network error: ' + err.message, 'var(--error)');
+    } finally {
+      activateBtn.disabled = false;
+    }
+  });
+
+  // ─── Invite System ───
+  const copyInviteBtn = $('copy-invite-btn');
+  const applyInviteBtn = $('apply-invite-btn');
+  const inviteInput = $('invite-code-input');
+  const inviteMsg = $('invite-msg');
+
+  if (copyInviteBtn) copyInviteBtn.addEventListener('click', () => {
+    const code = window.NYCKING_USER?.inviteCode;
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(() => {
+      copyInviteBtn.textContent = 'Copied!';
+      setTimeout(() => { copyInviteBtn.textContent = 'Copy'; }, 2000);
+    }).catch(() => {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = code;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      copyInviteBtn.textContent = 'Copied!';
+      setTimeout(() => { copyInviteBtn.textContent = 'Copy'; }, 2000);
+    });
+  });
+
+  if (applyInviteBtn) applyInviteBtn.addEventListener('click', async () => {
+    const code = inviteInput?.value?.trim()?.toUpperCase();
+    if (!code) { showMsg(inviteMsg, 'Please enter an invite code', 'var(--error)'); return; }
+    if (!auth?.currentUser) { showMsg(inviteMsg, 'Please sign in first', 'var(--error)'); return; }
+
+    applyInviteBtn.disabled = true;
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const resp = await fetch((window.NYCKING_API_BASE || '') + '/api/apply-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ code }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.ok) {
+        showMsg(inviteMsg, '✅ Invite applied! You got +3000 free translations.', 'var(--success)');
+        inviteInput.value = '';
+        // Refresh
+        const snap = await db.collection('users').doc(auth.currentUser.uid).get();
+        if (snap.exists) {
+          Object.assign(window.NYCKING_USER, snap.data());
+          refreshProfile();
+          if (window.NYCKING_REFRESH_TOKENS) window.NYCKING_REFRESH_TOKENS();
+        }
+      } else {
+        showMsg(inviteMsg, '❌ ' + (data.error || 'Invalid invite code'), 'var(--error)');
+      }
+    } catch (err) {
+      showMsg(inviteMsg, '❌ Network error: ' + err.message, 'var(--error)');
+    } finally {
+      applyInviteBtn.disabled = false;
+    }
+  });
+
+  function showMsg(el, text, color) {
+    if (!el) return;
+    el.textContent = text;
+    el.style.color = color || 'var(--text-dim)';
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 5000);
   }
 
   // ─── Sign out ───

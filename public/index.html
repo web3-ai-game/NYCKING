@@ -1089,14 +1089,14 @@
       <div style="flex:1;background:rgba(22,22,22,.7);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;text-align:center">
         <div style="font-size:20px;font-weight:800;color:var(--text)">Free</div>
         <div style="font-size:28px;font-weight:900;color:var(--accent);margin:8px 0">$0</div>
-        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px">10K tokens/month</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px">1,000 translations</div>
         <div style="font-size:11px;color:var(--text-dim);text-align:left;line-height:1.8">&#x2705; Voice Translate<br>&#x2705; Text Translate<br>&#x2705; Chat Room<br>&#x2705; Mini Games<br>&#x274C; AI Assistant<br>&#x274C; Unlimited Friends</div>
       </div>
       <div style="flex:1;background:rgba(22,22,22,.7);backdrop-filter:blur(12px);border:2px solid var(--accent);border-radius:16px;padding:16px;text-align:center;position:relative">
         <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:10px">POPULAR</div>
         <div style="font-size:20px;font-weight:800;color:var(--accent)">Pro</div>
         <div style="font-size:28px;font-weight:900;color:var(--accent);margin:8px 0">$3<span style="font-size:12px;color:var(--text-dim)">/mo</span></div>
-        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px">100K tokens/month</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px">Unlimited translations</div>
         <div style="font-size:11px;color:var(--text-dim);text-align:left;line-height:1.8">&#x2705; Everything in Free<br>&#x2705; AI Assistant<br>&#x2705; Unlimited Friends<br>&#x2705; Moments Feed<br>&#x2705; Priority Translation<br>&#x2705; No Limits</div>
       </div>
     </div>
@@ -1611,7 +1611,35 @@
   <div class="me-uid" id="me-uid">UID: —</div>
   <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
     <span id="me-tier-badge" style="padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;background:var(--surface);border:1px solid #333;color:var(--text-dim)">FREE</span>
-    <span style="font-size:12px;color:var(--text-dim)">&#x26A1; <span id="me-token-bal">10,000</span> tokens</span>
+    <span style="font-size:12px;color:var(--text-dim)">&#x26A1; <span id="me-token-bal">1,000</span> uses remaining</span>
+  </div>
+
+  <!-- Activation Code Section -->
+  <div class="me-section">
+    <div class="me-section-title">🔑 Activation Code</div>
+    <div style="display:flex;gap:6px;padding:0 4px">
+      <input class="auth-input" id="activation-code-input" type="text" placeholder="Enter activation code..." style="flex:1;font-size:12px;padding:8px 10px;margin:0">
+      <button id="activate-btn" style="background:var(--accent);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Activate</button>
+    </div>
+    <div id="activation-msg" style="font-size:11px;color:var(--text-dim);padding:4px 8px;display:none"></div>
+  </div>
+
+  <!-- Invite System Section -->
+  <div class="me-section">
+    <div class="me-section-title">🎁 Invite Friends (+3000 free uses)</div>
+    <div style="padding:0 4px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="font-size:11px;color:var(--text-dim)">Your invite code:</span>
+        <span id="my-invite-code" style="font-size:13px;font-weight:800;color:var(--accent);letter-spacing:1px">—</span>
+        <button id="copy-invite-btn" style="background:var(--surface2);color:var(--text);border:1px solid #333;border-radius:8px;padding:4px 10px;font-size:10px;cursor:pointer">Copy</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Invited: <span id="invite-count" style="color:var(--accent);font-weight:700">0</span> friends</div>
+      <div style="display:flex;gap:6px">
+        <input class="auth-input" id="invite-code-input" type="text" placeholder="Enter friend's invite code..." style="flex:1;font-size:12px;padding:8px 10px;margin:0">
+        <button id="apply-invite-btn" style="background:var(--success);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Apply</button>
+      </div>
+      <div id="invite-msg" style="font-size:11px;color:var(--text-dim);padding:4px 8px;display:none"></div>
+    </div>
   </div>
 
   <div class="me-section">
@@ -1792,7 +1820,7 @@
   const upgradeBtn = document.getElementById('upgrade-btn');
   if (upgradeBtn) upgradeBtn.addEventListener('click', () => {
     const user = window.NYCKING_AUTH && window.NYCKING_AUTH.currentUser;
-    if (user) alert('Contact admin for Pro upgrade or use invite code.');
+    if (user) alert('Enter an activation code on your profile page, or invite friends to earn free translations!');
     else show('auth-screen');
   });
 

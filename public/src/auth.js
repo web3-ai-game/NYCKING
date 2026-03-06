@@ -9,6 +9,9 @@
 
   const $ = (id) => document.getElementById(id);
 
+  // Admin emails — accounts with these emails get admin tier automatically
+  const ADMIN_EMAILS = ['admin@nycking.com', 'admin2@nycking.com'];
+
   // Elements
   const emailInput = $('auth-email');
   const passInput = $('auth-password');
@@ -99,13 +102,21 @@
     }
   });
 
+  // ─── Generate invite code ───
+  function generateInviteCode(uid) {
+    return 'NYC-' + uid.slice(0, 6).toUpperCase();
+  }
+
   // ─── Ensure user profile exists in Firestore ───
   async function ensureUserProfile(user) {
     const ref = db.collection('users').doc(user.uid);
     const snap = await ref.get();
     let isNew = false;
+    const isAdminEmail = ADMIN_EMAILS.includes((user.email || '').toLowerCase());
+
     if (!snap.exists) {
       isNew = true;
+      const tier = isAdminEmail ? 'admin' : 'free';
       await ref.set({
         displayName: user.displayName || user.email.split('@')[0],
         username: user.uid.slice(0, 8),
@@ -113,14 +124,34 @@
         avatar: '😊',
         bio: '',
         lang: localStorage.getItem('nycking_i18n') || 'en',
-        tier: 'free',
-        tokenBalance: 10000,
-        tokenUsed: 0,
+        tier: tier,
+        usageCount: 0,
+        usageLimit: isAdminEmail ? -1 : 1000,  // -1 = unlimited
+        inviteCode: generateInviteCode(user.uid),
+        inviteCount: 0,
+        invitedBy: '',
+        proExpiresAt: null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
       });
     } else {
-      ref.update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
+      const updates = { lastSeen: firebase.firestore.FieldValue.serverTimestamp() };
+      // Auto-upgrade admin emails if not already admin
+      if (isAdminEmail && snap.data()?.tier !== 'admin') {
+        updates.tier = 'admin';
+        updates.usageLimit = -1;
+      }
+      // Migrate legacy token-based users to count-based
+      const data = snap.data();
+      if (data && typeof data.usageCount === 'undefined') {
+        updates.usageCount = 0;
+        updates.usageLimit = data.tier === 'admin' ? -1 : (data.tier === 'pro' ? -1 : 1000);
+        updates.inviteCode = generateInviteCode(user.uid);
+        updates.inviteCount = 0;
+        updates.invitedBy = data.invitedBy || '';
+        updates.proExpiresAt = data.proExpiresAt || null;
+      }
+      ref.update(updates);
     }
     const profile = (await ref.get()).data();
     window.NYCKING_USER = { uid: user.uid, ...profile };

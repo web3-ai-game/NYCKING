@@ -1,0 +1,61 @@
+═══════════════════════════════════════════════════
+NYCKING Admin & System Configuration
+═══════════════════════════════════════════════════
+
+── Admin Accounts ──
+These accounts have full admin access when registered in the system.
+After registration via the app, their Firestore tier will be set to "admin".
+
+  Email: admin@nycking.com
+  Password: NycKing@2026!
+
+  Email: admin2@nycking.com
+  Password: NycKing@Admin2!
+
+── Seed Accounts (pre-registered test users) ──
+
+  Email: seed1@nycking.com   Password: Seed@1234!   Tier: pro
+  Email: seed2@nycking.com   Password: Seed@1234!   Tier: pro
+  Email: seed3@nycking.com   Password: Seed@1234!   Tier: free
+  Email: testuser@nycking.com Password: Test@1234!  Tier: free
+  Email: demo@nycking.com    Password: Demo@1234!   Tier: free
+
+── Activation Codes (each code grants 1 month of Pro access) ──
+
+  NYCKING-PRO-2026-AAAA
+  NYCKING-PRO-2026-BBBB
+  NYCKING-PRO-2026-CCCC
+  NYCKING-PRO-2026-DDDD
+  NYCKING-PRO-2026-EEEE
+  NYCKING-PRO-2026-FFFF
+  NYCKING-PRO-2026-GGGG
+  NYCKING-PRO-2026-HHHH
+  NYCKING-PRO-2026-IIII
+  NYCKING-PRO-2026-JJJJ
+  NYCKING-PRO-2026-KKKK
+  NYCKING-PRO-2026-LLLL
+  NYCKING-PRO-2026-MMMM
+  NYCKING-PRO-2026-NNNN
+  NYCKING-PRO-2026-OOOO
+  NYCKING-PRO-2026-PPPP
+  NYCKING-PRO-2026-QQQQ
+  NYCKING-PRO-2026-RRRR
+  NYCKING-PRO-2026-SSSS
+  NYCKING-PRO-2026-TTTT
+
+── Billing Model ──
+
+  Free tier: 1000 translation uses (count-based, not token-based)
+  Pro tier:  Unlimited translations
+  Admin:     Unlimited translations
+
+  Referral reward: +3000 free translation uses per successful invite
+
+── Notes ──
+
+  1. Admin accounts are identified by email in the ADMIN_EMAILS list
+     in both server (admin.ts) and client (auth.js)
+  2. Activation codes are stored in Firestore collection "activation_codes"
+     and validated server-side via POST /api/activate
+  3. Referral system uses invite codes (auto-generated per user)
+     tracked in Firestore collection "referrals"
