@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: docker build -t nycking-server-ci ./server
       - run: |
-          docker run --rm -e XAI_API_KEY=ci_test -d --name nycking-ci nycking-server-ci
+          docker run --rm -e XAI_API_KEY=ci_test -e GEMINI_API_KEY=ci_test -d --name nycking-ci nycking-server-ci
           sleep 3
           docker exec nycking-ci node -e "
             const http = require('http');
