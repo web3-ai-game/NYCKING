@@ -294,9 +294,10 @@
       const targetLang = langMap[myLang] || 'en-US';
       if (sourceLang === targetLang) return;
 
+      const h = await authHeaders();
       const res = await fetch(`${API}/api/translate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: h,
         body: JSON.stringify({ text, sourceLang, targetLang, scene: 'romance' })
       });
       const data = await res.json();
