@@ -104,7 +104,11 @@
 
   // ─── Generate invite code ───
   function generateInviteCode(uid) {
-    return 'NYC-' + uid.slice(0, 6).toUpperCase();
+    // Use a mix of UID chars + random suffix for non-predictable codes
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let suffix = '';
+    for (let i = 0; i < 4; i++) suffix += chars[Math.floor(Math.random() * chars.length)];
+    return 'NYC-' + uid.slice(0, 4).toUpperCase() + suffix;
   }
 
   // ─── Ensure user profile exists in Firestore ───

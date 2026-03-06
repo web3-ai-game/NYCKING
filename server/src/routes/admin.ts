@@ -11,14 +11,18 @@
 import { Router, Request, Response } from "express";
 import { logger } from "../logger";
 import { authMiddleware } from "../middleware/authMiddleware";
+import * as admin from "firebase-admin";
 
 const router = Router();
+
+// Pro activation duration
+const PRO_DURATION_DAYS = 30;
+const PRO_DURATION_MS = PRO_DURATION_DAYS * 24 * 60 * 60 * 1000;
 
 let firestore: FirebaseFirestore.Firestore | null = null;
 
 async function getDB(): Promise<FirebaseFirestore.Firestore> {
   if (firestore) return firestore;
-  const admin = await import("firebase-admin");
   if (!admin.apps.length) admin.initializeApp();
   firestore = admin.firestore();
   return firestore;
@@ -169,7 +173,7 @@ router.post("/activate", authMiddleware, async (req: Request, res: Response) => 
 
     // Mark code as used
     const now = new Date();
-    const proExpiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // +30 days
+    const proExpiresAt = new Date(now.getTime() + PRO_DURATION_MS);
     await codeRef.update({
       used: true,
       usedBy: req.uid,
@@ -244,7 +248,6 @@ router.post("/apply-invite", authMiddleware, async (req: Request, res: Response)
     });
 
     // Reward BOTH users: inviter gets +3000 uses, invitee gets +3000 uses
-    const admin = await import("firebase-admin");
     const increment = admin.firestore.FieldValue.increment;
 
     // Update inviter: +3000 usage limit, +1 invite count
