@@ -19,6 +19,7 @@ import friendsRouter from "./routes/friends";
 import dmRouter from "./routes/dm";
 import momentsRouter from "./routes/moments";
 import matchRouter from "./routes/match";
+import adminRouter from "./routes/admin";
 import healthRouter from "./routes/health";
 
 // Validate required config before starting
@@ -78,6 +79,7 @@ app.use("/api", friendsRouter);
 app.use("/api", dmRouter);
 app.use("/api", momentsRouter);
 app.use("/api", matchRouter);
+app.use("/api", adminRouter);
 app.use("/api", healthRouter);
 
 // Root health check (for Cloud Run)

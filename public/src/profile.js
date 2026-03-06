@@ -81,6 +81,9 @@
     if (tokenBal) tokenBal.textContent = (user.tokenBalance ?? 10000).toLocaleString();
     // Update tab bar Me icon
     $('tab-me-icon').textContent = user.avatar || '😊';
+    // Admin panel visibility
+    const adminEntry = $('me-go-admin');
+    if (adminEntry) adminEntry.style.display = (user.tier === 'admin') ? '' : 'none';
   }
 
   // ─── Moments entry ───
@@ -88,6 +91,56 @@
   if (momentsBtn) momentsBtn.addEventListener('click', () => {
     if (window.NYCKING_SHOW) window.NYCKING_SHOW('moments-screen');
   });
+
+  // ─── Admin panel ───
+  const adminBtn = $('me-go-admin');
+  if (adminBtn) adminBtn.addEventListener('click', () => {
+    if (window.NYCKING_SHOW) window.NYCKING_SHOW('admin-screen');
+    loadAdmin();
+  });
+  const adminBack = $('admin-back');
+  if (adminBack) adminBack.addEventListener('click', () => {
+    if (window.NYCKING_SHOW) window.NYCKING_SHOW('me-screen');
+  });
+
+  async function loadAdmin() {
+    try {
+      const user = auth?.currentUser;
+      if (!user) return;
+      const token = await user.getIdToken();
+      const h = { 'Authorization': 'Bearer ' + token };
+
+      // Stats
+      const statsRes = await fetch((window.NYCKING_API_BASE || '') + '/api/admin/stats', { headers: h });
+      const stats = await statsRes.json();
+      const statsEl = $('admin-stats');
+      if (statsEl && !stats.error) {
+        statsEl.innerHTML = [
+          { n: stats.totalUsers, l: 'Users' },
+          { n: stats.proUsers, l: 'Pro' },
+          { n: Math.round(stats.totalTokenUsed / 1000) + 'K', l: 'Tokens Used' },
+        ].map(s => `<div style="background:var(--surface);border:1px solid #222;border-radius:12px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:900;color:var(--accent)">${s.n}</div><div style="font-size:10px;color:var(--text-dim)">${s.l}</div></div>`).join('');
+      }
+
+      // Users
+      const usersRes = await fetch((window.NYCKING_API_BASE || '') + '/api/admin/users', { headers: h });
+      const data = await usersRes.json();
+      const usersEl = $('admin-users');
+      if (usersEl && data.users) {
+        usersEl.innerHTML = data.users.map(u => `
+          <div class="social-row" style="margin-bottom:6px">
+            <span class="social-avatar">${u.avatar || '😊'}</span>
+            <div class="social-info">
+              <div class="social-name">${u.displayName || 'User'} <span style="font-size:10px;color:${u.tier==='admin'?'var(--success)':u.tier==='pro'?'var(--accent)':'var(--text-dim)'};font-weight:700">${(u.tier||'free').toUpperCase()}</span></div>
+              <div class="social-sub">@${u.username || '—'} · ⚡${(u.tokenBalance||0).toLocaleString()}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+    } catch (err) {
+      console.error('[admin] load error:', err);
+    }
+  }
 
   // ─── Sign out ───
   $('me-logout').addEventListener('click', () => {

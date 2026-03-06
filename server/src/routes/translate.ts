@@ -10,6 +10,7 @@ import { Router, Request, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
 import { config } from "../config";
 import { logger } from "../logger";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const router = Router();
 
@@ -136,7 +137,7 @@ function needsPivot(sourceLang: string, targetLang: string): boolean {
   return hasPivotLang && !hasEnglish || bothPivot;
 }
 
-router.post("/translate", async (req: Request, res: Response) => {
+router.post("/translate", authMiddleware, async (req: Request, res: Response) => {
   try {
     const { text, sourceLang, targetLang, scene, noisyEnv, context } = req.body;
 

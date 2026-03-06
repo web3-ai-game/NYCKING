@@ -6,6 +6,7 @@
 
 import { Router, Request, Response } from "express";
 import { logger } from "../logger";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const router = Router();
 
@@ -82,7 +83,7 @@ router.get("/chat", async (req: Request, res: Response) => {
 });
 
 // POST /api/chat — send a message (auto-translate via /api/translate internally)
-router.post("/chat", async (req: Request, res: Response) => {
+router.post("/chat", authMiddleware, async (req: Request, res: Response) => {
   try {
     const { senderName, senderLang, targetLang, text, scene } = req.body;
 
@@ -210,7 +211,7 @@ router.post("/chat/ping", (req: Request, res: Response) => {
 });
 
 // DELETE /api/chat/:id — delete a message
-router.delete("/chat/:id", async (req: Request, res: Response) => {
+router.delete("/chat/:id", authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const db = await getFirestore();
@@ -230,7 +231,7 @@ router.delete("/chat/:id", async (req: Request, res: Response) => {
 });
 
 // DELETE /api/chat — clear all messages
-router.delete("/chat", async (_req: Request, res: Response) => {
+router.delete("/chat", authMiddleware, async (_req: Request, res: Response) => {
   try {
     const db = await getFirestore();
     if (db) {

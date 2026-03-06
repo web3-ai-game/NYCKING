@@ -8,6 +8,7 @@ import { Router, Request, Response } from "express";
 import { GoogleGenAI } from "@google/genai";
 import { config } from "../config";
 import { logger } from "../logger";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const router = Router();
 
@@ -99,7 +100,7 @@ const PRICE_INPUT_PER_M = 0.15;
 const PRICE_OUTPUT_PER_M = 0.60;
 const USD_TO_THB = 35;
 
-router.post("/coach", async (req: Request, res: Response) => {
+router.post("/coach", authMiddleware, async (req: Request, res: Response) => {
   try {
     const { mode, lang, stage, text } = req.body;
 

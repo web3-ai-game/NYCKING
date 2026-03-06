@@ -73,9 +73,15 @@
         body.text = inputEl.value.trim();
       }
 
+      const authH = {};
+      try {
+        const user = window.NYCKING_AUTH?.currentUser;
+        if (user) authH['Authorization'] = 'Bearer ' + await user.getIdToken();
+      } catch {}
+
       const res = await fetch(`${API}/api/coach`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authH },
         body: JSON.stringify(body),
       });
 

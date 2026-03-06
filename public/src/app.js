@@ -61,11 +61,20 @@ function speak(text, lang, onDone) {
   speechSynthesis.speak(u);
 }
 
+// ─── Auth Helper ───
+async function getAuthHeader() {
+  const user = window.NYCKING_AUTH?.currentUser;
+  if (!user) return { 'Content-Type': 'application/json' };
+  const token = await user.getIdToken();
+  return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+}
+
 // ─── Translation API ───
 async function translateAPI(text, sourceLang, targetLang, scene, noisyEnv) {
+  const headers = await getAuthHeader();
   const resp = await fetch(`${API_BASE}/api/translate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({
       text: text.trim(),
       sourceLang,
@@ -550,9 +559,10 @@ const ChatMod = (() => {
     setStatus('⏳ Sending...', 'info');
 
     try {
+      const chatHeaders = await getAuthHeader();
       const resp = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: chatHeaders,
         body: JSON.stringify({
           senderName: myName,
           senderLang: myLang,
@@ -581,7 +591,8 @@ const ChatMod = (() => {
 
   async function deleteMessage(id) {
     try {
-      await fetch(`${API_BASE}/api/chat/${id}`, { method: 'DELETE' });
+      const delH = await getAuthHeader();
+      await fetch(`${API_BASE}/api/chat/${id}`, { method: 'DELETE', headers: delH });
       messages = messages.filter(m => m.id !== id);
       renderMessages();
     } catch (err) {
@@ -592,7 +603,8 @@ const ChatMod = (() => {
   async function clearAll() {
     if (!confirm('Delete all chat messages?')) return;
     try {
-      await fetch(`${API_BASE}/api/chat`, { method: 'DELETE' });
+      const clrH = await getAuthHeader();
+      await fetch(`${API_BASE}/api/chat`, { method: 'DELETE', headers: clrH });
       messages = [];
       lastTimestamp = 0;
       renderMessages();

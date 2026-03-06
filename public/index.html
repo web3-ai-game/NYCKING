@@ -1541,7 +1541,10 @@
 
 <!-- ===== 15. MOMENTS ===== -->
 <div id="moments-screen" class="screen">
-  <div class="home-logo" style="font-size:20px;padding-top:8px">📢 <span data-i18n="tab_moments">Moments</span></div>
+  <div class="header" style="padding:calc(env(safe-area-inset-top,8px)+4px) 0 4px">
+    <button class="back-btn" id="moments-back">&#x2039;</button>
+    <span class="logo">&#x1F4E2; <span data-i18n="tab_moments">Moments</span></span>
+  </div>
   <div class="moments-post-bar">
     <textarea id="moments-input" rows="2" data-i18n-placeholder="moments_placeholder" placeholder="What's on your mind?"></textarea>
     <button id="moments-post-btn" data-i18n="moments_post">Post</button>
@@ -1598,7 +1601,28 @@
     </div>
   </div>
 
+  <!-- Admin entry (hidden for non-admin) -->
+  <div class="me-row" id="me-go-admin" style="display:none;border-color:var(--success)">
+    <span class="me-row-icon">&#x1F6E1;</span>
+    <span class="me-row-label" style="color:var(--success);font-weight:700">Admin Panel</span>
+    <span class="me-row-value"></span>
+    <span class="me-row-arrow" style="color:var(--success)">&#x203A;</span>
+  </div>
+
   <button class="me-logout" id="me-logout" data-i18n="me_logout">Sign Out</button>
+</div>
+
+<!-- ===== ADMIN SCREEN ===== -->
+<div id="admin-screen" class="screen" style="padding:calc(env(safe-area-inset-top,8px)+16px) 16px calc(env(safe-area-inset-bottom,8px)+72px);gap:12px;overflow-y:auto;align-items:center">
+  <div class="header" style="padding:0 0 8px">
+    <button class="back-btn" id="admin-back">&#x2039;</button>
+    <span class="logo">&#x1F6E1; Admin Panel</span>
+  </div>
+  <!-- Stats -->
+  <div id="admin-stats" style="width:100%;max-width:340px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
+  <!-- User list -->
+  <div style="width:100%;max-width:340px;font-size:12px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:1px">Users</div>
+  <div id="admin-users" style="width:100%;max-width:340px"></div>
 </div>
 
 <!-- Edit Profile Modal -->
@@ -1732,6 +1756,7 @@
   // Back buttons
   document.getElementById('voice-back').addEventListener('click', () => show('module-screen'));
   document.getElementById('text-back').addEventListener('click', () => show('module-screen'));
+  document.getElementById('moments-back').addEventListener('click', () => show('me-screen'));
   document.getElementById('chat-back').addEventListener('click', () => {
     if (window.NYCKING_CHAT_RESET) window.NYCKING_CHAT_RESET();
     show('module-screen');
