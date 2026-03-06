@@ -196,7 +196,7 @@
       display:flex; flex-direction:column; align-items:center; gap:2px;
       background:none; border:none; color:var(--text-dim);
       font-size:10px; cursor:pointer; padding:4px 8px; min-width:56px;
-      transition:color .15s;
+      transition:color .15s; position:relative;
     }
     .tab-item .tab-icon { font-size:22px; line-height:1; }
     .tab-item.active { color:var(--accent); }
@@ -206,10 +206,8 @@
     }
 
     /* ===== ALL INNER SCREENS: bottom padding for tab bar ===== */
-    .tab-bar.show ~ .screen,
-    .screen.translator-screen,
     #module-screen, #match-screen, #contacts-screen, #dm-screen, #moments-screen, #me-screen,
-    #game-lobby, #screen-coach, #chat-screen {
+    #game-lobby, #chat-screen {
       padding-bottom:calc(env(safe-area-inset-bottom,8px) + 64px) !important;
     }
     #home-screen, #auth-screen { padding-bottom:0 !important; }
@@ -587,6 +585,7 @@
     .coach-loading { text-align:center; color:var(--text-dim); padding:20px; }
     .coach-loading .dot-pulse { display:inline-block; animation:dotPulse 1.2s infinite; }
     @keyframes dotPulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+    @keyframes fadeInUp { 0%{opacity:0;transform:translateX(-50%) translateY(10px)} 100%{opacity:1;transform:translateX(-50%) translateY(0)} }
 
     /* ===== SHARED TRANSLATOR STYLES ===== */
     .translator-screen {
@@ -1403,7 +1402,7 @@
   <div class="grid-2048" id="grid-2048"></div>
   <div style="font-size:11px;color:var(--text-dim);text-align:center" data-i18n="g_2048_hint">Swipe to move tiles. Merge same numbers!</div>
   <div class="game-over-overlay" id="go-2048-over">
-    <div class="go-title">Game Over</div>
+    <div class="go-title" data-i18n="g_gameover">Game Over</div>
     <div class="go-score" id="go-2048-fscore"></div>
     <button class="go-btn" id="go-2048-retry" data-i18n="g_retry">Play Again</button>
   </div>
@@ -1423,7 +1422,7 @@
   <canvas class="snake-canvas" id="snake-canvas" width="320" height="320"></canvas>
   <div style="font-size:11px;color:var(--text-dim);text-align:center" data-i18n="g_snake_hint">Swipe to change direction</div>
   <div class="game-over-overlay" id="go-snake-over">
-    <div class="go-title">Game Over</div>
+    <div class="go-title" data-i18n="g_gameover">Game Over</div>
     <div class="go-score" id="go-snake-fscore"></div>
     <button class="go-btn" id="go-snake-retry" data-i18n="g_retry">Play Again</button>
   </div>
@@ -1485,7 +1484,7 @@
   </div>
   <!-- Input area (hidden for topics mode) -->
   <div class="coach-input-area" id="coach-input-area" style="display:none">
-    <textarea class="coach-input" id="coach-input" rows="3" data-i18n-placeholder="coach_placeholder" placeholder="Type your message or paste theirs..."></textarea>
+    <textarea class="coach-input" id="coach-input" rows="3" data-i18n-ph="coach_placeholder" placeholder="Type your message or paste theirs..."></textarea>
   </div>
   <!-- Send button -->
   <button class="coach-send" id="coach-send" data-i18n="coach_go">&#x2728; Get Suggestions</button>
@@ -1515,7 +1514,7 @@
   <div class="header" style="padding:calc(env(safe-area-inset-top,8px)+4px) 0 4px">
     <span class="logo">&#x1F465; <span data-i18n="tab_contacts">Contacts</span></span>
   </div>
-  <input class="contacts-search" id="contacts-search" type="text" data-i18n-placeholder="contacts_search_ph" placeholder="Search by username...">
+  <input class="contacts-search" id="contacts-search" type="text" data-i18n-ph="contacts_search_ph" placeholder="Search by username...">
   <div id="contacts-search-results"></div>
   <div id="contacts-requests" style="display:none"></div>
   <div id="contacts-list"></div>
@@ -1550,7 +1549,7 @@
     <span class="logo">&#x1F4E2; <span data-i18n="tab_moments">Moments</span></span>
   </div>
   <div class="moments-post-bar">
-    <textarea id="moments-input" rows="2" data-i18n-placeholder="moments_placeholder" placeholder="What's on your mind?"></textarea>
+    <textarea id="moments-input" rows="2" data-i18n-ph="moments_placeholder" placeholder="What's on your mind?"></textarea>
     <button id="moments-post-btn" data-i18n="moments_post">Post</button>
   </div>
   <div id="moments-feed"></div>
@@ -1803,7 +1802,7 @@
       g_2048_desc:'Slide & merge tiles', g_snake_desc:'Eat & grow longer', g_mole_name:'Whack-a-Mole', g_mole_desc:'Tap the moles fast!',
       leaderboard:'Leaderboard', lb_desc:'View high scores', lb_empty:'No scores yet. Play a game first!',
       g_score:'Score', g_best:'Best', g_retry:'Play Again', g_start:'Start!', g_timesup:"Time's Up!",
-      g_2048_hint:'Swipe to move tiles. Merge same numbers!', g_snake_hint:'Swipe to change direction',
+      g_2048_hint:'Swipe to move tiles. Merge same numbers!', g_snake_hint:'Swipe to change direction', g_gameover:'Game Over',
       coach_name:'AI Assistant', coach_desc:'Smart conversation helper',
       coach_topics:'Topics', coach_polish:'Polish', coach_reply:'Reply',
       coach_new:'Just Met', coach_friends:'Friends', coach_close:'Close',
@@ -1852,7 +1851,7 @@
       g_2048_desc:'滑动合并方块', g_snake_desc:'吃东西变更长', g_mole_name:'打地鼠', g_mole_desc:'快速点击地鼠！',
       leaderboard:'排行榜', lb_desc:'查看最高分', lb_empty:'还没有分数，先去玩个游戏吧！',
       g_score:'得分', g_best:'最高', g_retry:'再来一局', g_start:'开始！', g_timesup:'时间到！',
-      g_2048_hint:'滑动移动方块，相同数字合并！', g_snake_hint:'滑动改变方向',
+      g_2048_hint:'滑动移动方块，相同数字合并！', g_snake_hint:'滑动改变方向', g_gameover:'游戏结束',
       coach_name:'AI 助手', coach_desc:'智能沟通小帮手',
       coach_topics:'话题灵感', coach_polish:'消息润色', coach_reply:'回复建议',
       coach_new:'刚认识', coach_friends:'朋友', coach_close:'亲密',
@@ -1901,7 +1900,7 @@
       g_2048_desc:'เลื่อนและรวมบล็อก', g_snake_desc:'กินและโตยาวขึ้น', g_mole_name:'ตีตุ่น', g_mole_desc:'แตะตุ่นให้เร็ว!',
       leaderboard:'ลีดเดอร์บอร์ด', lb_desc:'ดูคะแนนสูงสุด', lb_empty:'ยังไม่มีคะแนน เล่นเกมก่อน!',
       g_score:'คะแนน', g_best:'สูงสุด', g_retry:'เล่นอีกครั้ง', g_start:'เริ่ม!', g_timesup:'หมดเวลา!',
-      g_2048_hint:'เลื่อนเพื่อย้ายบล็อก รวมตัวเลขเดียวกัน!', g_snake_hint:'เลื่อนเพื่อเปลี่ยนทิศทาง',
+      g_2048_hint:'เลื่อนเพื่อย้ายบล็อก รวมตัวเลขเดียวกัน!', g_snake_hint:'เลื่อนเพื่อเปลี่ยนทิศทาง', g_gameover:'จบเกม',
       coach_name:'ผู้ช่วย AI', coach_desc:'ตัวช่วยสนทนาอัจฉริยะ',
       coach_topics:'หัวข้อ', coach_polish:'ปรับแต่ง', coach_reply:'แนะนำ',
       coach_new:'เพิ่งรู้จัก', coach_friends:'เพื่อน', coach_close:'สนิท',
@@ -1950,7 +1949,7 @@
       g_2048_desc:'ပွတ်ပြီး ပေါင်းစပ်ပါ', g_snake_desc:'စားပြီး ရှည်သွားပါ', g_mole_name:'ကြွက်ရိုက်', g_mole_desc:'ကြွက်ကို မြန်မြန်နှိပ်ပါ!',
       leaderboard:'အဆင့်မြင့်ဆုံး', lb_desc:'အမြင့်ဆုံးစကိုက်များကြည့်ပါ', lb_empty:'အမှတ်မရှိသေးပါ။ ဂိမ်းတစ်ခု ကြိုက်ကြည့်ပါ!',
       g_score:'အမှတ်', g_best:'အမြင့်ဆုံး', g_retry:'ထပ်ကြိုက်မယ်', g_start:'စတင်!', g_timesup:'အချိန်ကုန်ပြီ!',
-      g_2048_hint:'ပွတ်ပြီး တူညီနံပါတ်များ ပေါင်းစပ်ပါ!', g_snake_hint:'ပွတ်ပြီး အရပ်ပြောင်းပါ',
+      g_2048_hint:'ပွတ်ပြီး တူညီနံပါတ်များ ပေါင်းစပ်ပါ!', g_snake_hint:'ပွတ်ပြီး အရပ်ပြောင်းပါ', g_gameover:'ဂိမ်းပြီး',
       coach_name:'AI လက်ထောက်', coach_desc:'စကားပြောကူညီပေးသူ',
       coach_topics:'ခေါင်းစဉ်', coach_polish:'ပြင်ဆင်', coach_reply:'အကြံပြု',
       coach_new:'အသစ်', coach_friends:'သူငယ်ချင်း', coach_close:'ရင်းနှီး',
