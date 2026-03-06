@@ -83,6 +83,12 @@
     $('tab-me-icon').textContent = user.avatar || '😊';
   }
 
+  // ─── Moments entry ───
+  const momentsBtn = $('me-go-moments');
+  if (momentsBtn) momentsBtn.addEventListener('click', () => {
+    if (window.NYCKING_SHOW) window.NYCKING_SHOW('moments-screen');
+  });
+
   // ─── Sign out ───
   $('me-logout').addEventListener('click', () => {
     if (confirm('Sign out?')) {

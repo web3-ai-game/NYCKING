@@ -96,7 +96,9 @@
   async function ensureUserProfile(user) {
     const ref = db.collection('users').doc(user.uid);
     const snap = await ref.get();
+    let isNew = false;
     if (!snap.exists) {
+      isNew = true;
       await ref.set({
         displayName: user.displayName || user.email.split('@')[0],
         username: user.uid.slice(0, 8),
@@ -111,26 +113,28 @@
         lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
       });
     } else {
-      // Update last seen
       ref.update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
     }
     const profile = (await ref.get()).data();
     window.NYCKING_USER = { uid: user.uid, ...profile };
-    return profile;
+    return { profile, isNew };
   }
 
   // ─── Auth state listener ───
   auth.onAuthStateChanged(async (user) => {
     if (user) {
+      let isNew = false;
       try {
-        await ensureUserProfile(user);
+        const result = await ensureUserProfile(user);
+        isNew = result.isNew;
       } catch (err) {
         console.error('[auth] profile error:', err);
       }
-      // Navigate to module screen
-      if (window.NYCKING_SHOW) window.NYCKING_SHOW('module-screen');
+      // New user → profile setup, existing → tools
+      if (window.NYCKING_SHOW) {
+        window.NYCKING_SHOW(isNew ? 'me-screen' : 'module-screen');
+      }
     }
-    // If no user, stay on current screen (home or auth)
   });
 
   // ─── Sign out (called from settings) ───
