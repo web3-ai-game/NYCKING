@@ -4,7 +4,7 @@
   "description": "NYCKING Cloud Functions",
   "main": "index.js",
   "engines": {
-    "node": "20"
+    "node": ">=20"
   },
   "dependencies": {
     "firebase-admin": "^12.0.0",

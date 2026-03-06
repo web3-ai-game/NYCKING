@@ -33,7 +33,7 @@ gcloud run deploy "${SERVICE_NAME}" \
   --cpu 1 \
   --timeout 60 \
   --set-env-vars "NODE_ENV=production,GCP_PROJECT_ID=${PROJECT_ID}" \
-  --update-secrets "XAI_API_KEY=XAI_API_KEY:latest"
+  --update-secrets "XAI_API_KEY=XAI_API_KEY:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest"
 
 echo ""
 echo "✅ Deployed! Getting service URL..."
@@ -49,7 +49,7 @@ echo "  1. Test: curl ${URL}/api/health"
 echo "  2. Deploy hosting: firebase deploy --only hosting"
 echo ""
 
-# If --set-secret flag, create the secret first
+# If --set-secret flag, create the secrets first
 if [ "$1" == "--set-secret" ]; then
   echo "🔑 Creating XAI_API_KEY secret..."
   echo "Enter your xAI API key:"
@@ -61,5 +61,18 @@ if [ "$1" == "--set-secret" ]; then
   echo -n "${API_KEY}" | gcloud secrets versions add XAI_API_KEY \
     --data-file=- \
     --project "${PROJECT_ID}"
-  echo "✅ Secret stored in Secret Manager"
+  echo "✅ XAI_API_KEY stored in Secret Manager"
+
+  echo ""
+  echo "🔑 Creating GEMINI_API_KEY secret..."
+  echo "Enter your Gemini API key:"
+  read -s GEMINI_KEY
+  echo -n "${GEMINI_KEY}" | gcloud secrets create GEMINI_API_KEY \
+    --replication-policy="automatic" \
+    --data-file=- \
+    --project "${PROJECT_ID}" 2>/dev/null || \
+  echo -n "${GEMINI_KEY}" | gcloud secrets versions add GEMINI_API_KEY \
+    --data-file=- \
+    --project "${PROJECT_ID}"
+  echo "✅ GEMINI_API_KEY stored in Secret Manager"
 fi
