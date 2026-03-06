@@ -225,15 +225,20 @@
       if (data.messages?.length) {
         const myUid = auth?.currentUser?.uid;
         data.messages.forEach(m => {
-          const div = document.createElement('div');
-          div.className = 'bubble ' + (m.sender === myUid ? 'mine' : 'theirs');
-          div.innerHTML = `<div class="b-original">${escHtml(m.text)}</div>
-            <div class="b-translated" style="font-size:10px;color:#555">${timeAgo(m.createdAt)}</div>`;
-          container.appendChild(div);
+          appendBubble(container, m, myUid);
         });
         container.scrollTop = container.scrollHeight;
       }
     } catch {}
+  }
+
+  function appendBubble(container, m, myUid) {
+    const div = document.createElement('div');
+    div.className = 'bubble ' + (m.sender === myUid ? 'mine' : 'theirs');
+    const translated = m.translatedText ? `<div class="b-translated">${escHtml(m.translatedText)}</div>` : '';
+    div.innerHTML = `<div class="b-original">${escHtml(m.text)}</div>${translated}<div style="font-size:9px;color:#444;margin-top:2px">${timeAgo(m.createdAt)}</div>`;
+    container.appendChild(div);
+    return div;
   }
 
   function startDMPoll() {
@@ -253,10 +258,55 @@
     const text = input?.value?.trim();
     if (!text || !currentConvId) return;
     input.value = '';
+    const myUid = auth?.currentUser?.uid;
+    const now = new Date().toISOString();
+
+    // Instant local append (no wait for server)
+    const container = $('dm-messages');
+    const tempBubble = appendBubble(container, { text, sender: myUid, createdAt: now }, myUid);
+    container.scrollTop = container.scrollHeight;
+
     try {
       const h = await authHeaders();
-      await fetch(`${API}/api/dm/${currentConvId}`, { method: 'POST', headers: h, body: JSON.stringify({ text }) });
-      loadDMMessages();
+      const res = await fetch(`${API}/api/dm/${currentConvId}`, { method: 'POST', headers: h, body: JSON.stringify({ text }) });
+      const data = await res.json();
+
+      // Try auto-translate in background
+      translateInBackground(text, tempBubble);
+
+      // Deduct tokens
+      if (window.NYCKING_DEDUCT_TOKENS) window.NYCKING_DEDUCT_TOKENS(50, 50);
+    } catch {}
+  }
+
+  async function translateInBackground(text, bubbleEl) {
+    try {
+      const user = window.NYCKING_USER;
+      const myLang = user?.lang || 'en';
+      // Detect: if text looks like user's lang, translate to a common target
+      const langMap = { en: 'zh-CN', zh: 'en-US', th: 'en-US', my: 'en-US' };
+      const sourceLang = myLang === 'zh' ? 'zh-CN' : myLang === 'th' ? 'th-TH' : myLang === 'my' ? 'my-MM' : 'en-US';
+      const targetLang = langMap[myLang] || 'en-US';
+      if (sourceLang === targetLang) return;
+
+      const res = await fetch(`${API}/api/translate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, sourceLang, targetLang, scene: 'romance' })
+      });
+      const data = await res.json();
+      if (data.translation && bubbleEl) {
+        const existing = bubbleEl.querySelector('.b-translated');
+        if (existing) {
+          existing.textContent = data.translation;
+        } else {
+          const tDiv = document.createElement('div');
+          tDiv.className = 'b-translated';
+          tDiv.textContent = data.translation;
+          bubbleEl.querySelector('.b-original').after(tDiv);
+        }
+        if (window.NYCKING_DEDUCT_TOKENS) window.NYCKING_DEDUCT_TOKENS(data.tokensIn || 0, data.tokensOut || 0);
+      }
     } catch {}
   }
 
@@ -332,6 +382,9 @@
       }
     } catch {}
   });
+
+  // Expose openDMChat globally for match.js
+  window.NYCKING_OPEN_DM = openDMChat;
 
   // ═══════════════════════════════════════════════
   // NAVIGATION HOOKS — load data when tab shown
