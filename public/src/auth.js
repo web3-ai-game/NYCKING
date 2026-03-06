@@ -20,11 +20,18 @@
 
   let isRegister = false;
 
-  // ─── Toggle login/register mode ───
+  // ─── Toggle login/register mode (i18n aware) ───
+  function getI18n(key, fallback) {
+    try {
+      const lang = localStorage.getItem('nycking_i18n') || 'en';
+      const el = document.querySelector(`[data-i18n="${key}"]`);
+      return el?.textContent || fallback;
+    } catch { return fallback; }
+  }
   toggleBtn.addEventListener('click', () => {
     isRegister = !isRegister;
-    submitBtn.textContent = isRegister ? 'Register' : 'Sign In';
-    toggleBtn.textContent = isRegister ? 'Have an account? Sign In' : 'No account? Register';
+    submitBtn.textContent = isRegister ? getI18n('auth_register', 'Register') : getI18n('auth_login', 'Sign In');
+    toggleBtn.textContent = isRegister ? getI18n('auth_have_account', 'Have an account? Sign In') : getI18n('auth_no_account', 'No account? Register');
     passInput.autocomplete = isRegister ? 'new-password' : 'current-password';
     errorEl.textContent = '';
   });

@@ -86,11 +86,12 @@ async function translateAPI(text, sourceLang, targetLang, scene, noisyEnv) {
   contextMemory.push({ source: text.trim(), target: data.translation });
   if (contextMemory.length > MAX_CONTEXT) contextMemory.shift();
 
-  // Update cost
+  // Update cost + deduct tokens from Firestore
   totalTokensIn += data.tokensIn || 0;
   totalTokensOut += data.tokensOut || 0;
   totalCostTHB += data.costTHB || 0;
   updateCostBadge();
+  if (window.NYCKING_DEDUCT_TOKENS) window.NYCKING_DEDUCT_TOKENS(data.tokensIn || 0, data.tokensOut || 0);
 
   return data;
 }

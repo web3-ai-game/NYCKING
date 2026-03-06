@@ -83,7 +83,7 @@
   };
 
   // ─── Show/hide based on screen ───
-  const HIDE_ON = ['home-screen', 'auth-screen'];
+  const HIDE_ON = ['home-screen', 'auth-screen', 'screen-2048', 'screen-snake', 'screen-mole', 'screen-lb', 'voice-screen', 'text-screen'];
   function updateBadgeVisibility(screenId) {
     if (!auth.currentUser || HIDE_ON.includes(screenId)) {
       badge.style.display = 'none';
