@@ -141,8 +141,53 @@
       if (window.NYCKING_SHOW) {
         window.NYCKING_SHOW(isNew ? 'me-screen' : 'module-screen');
       }
+      // Pro/Admin celebration effect
+      const tier = window.NYCKING_USER?.tier;
+      if (!isNew && (tier === 'pro' || tier === 'admin')) {
+        showProCelebration(tier);
+      }
     }
   });
+
+  // ─── Pro celebration effect (confetti + welcome) ───
+  function showProCelebration(tier) {
+    const container = document.getElementById('confetti-container');
+    if (!container) return;
+    // Spawn confetti pieces
+    const colors = ['#f97316','#fb923c','#fbbf24','#22c55e','#3b82f6','#a855f7','#ef4444','#ec4899'];
+    for (let i = 0; i < 60; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = Math.random() * 100 + '%';
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDelay = Math.random() * 2 + 's';
+      piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      piece.style.width = (6 + Math.random() * 8) + 'px';
+      piece.style.height = (6 + Math.random() * 8) + 'px';
+      container.appendChild(piece);
+    }
+    // Welcome card
+    const welcome = document.createElement('div');
+    welcome.className = 'pro-welcome';
+    welcome.innerHTML = `
+      <div class="pw-icon">${tier === 'admin' ? '🛡️' : '👑'}</div>
+      <div class="pw-title">Welcome back, ${tier.toUpperCase()}!</div>
+      <div class="pw-sub">${tier === 'admin' ? 'Admin panel ready. Full control activated.' : 'Enjoy unlimited translations & premium features!'}</div>
+      <button class="pw-btn" id="pw-dismiss">Let\'s Go!</button>
+    `;
+    document.body.appendChild(welcome);
+    // Dismiss
+    document.getElementById('pw-dismiss').addEventListener('click', () => {
+      welcome.remove();
+      container.innerHTML = '';
+    });
+    // Auto-dismiss after 5s
+    setTimeout(() => {
+      welcome.remove();
+      container.innerHTML = '';
+    }, 5000);
+  }
 
   // ─── Sign out (called from settings) ───
   window.NYCKING_SIGN_OUT = async function () {

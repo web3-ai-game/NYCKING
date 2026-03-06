@@ -8,7 +8,7 @@
   const auth = window.NYCKING_AUTH;
   const db = window.NYCKING_DB;
 
-  const TAB_SCREENS = ['module-screen', 'match-screen', 'dm-screen', 'contacts-screen', 'moments-screen', 'me-screen'];
+  const TAB_SCREENS = ['module-screen', 'ranking-screen', 'moments-screen', 'messages-screen', 'me-screen'];
   const tabBar = $('tab-bar');
 
   // ─── Tab bar logic ───
@@ -81,12 +81,6 @@
     if (adminEntry) adminEntry.style.display = (user.tier === 'admin') ? '' : 'none';
   }
 
-  // ─── Moments entry ───
-  const momentsBtn = $('me-go-moments');
-  if (momentsBtn) momentsBtn.addEventListener('click', () => {
-    if (window.NYCKING_SHOW) window.NYCKING_SHOW('moments-screen');
-  });
-
   // ─── Admin panel ───
   const adminBtn = $('me-go-admin');
   if (adminBtn) adminBtn.addEventListener('click', () => {
@@ -117,20 +111,48 @@
         ].map(s => `<div style="background:var(--surface);border:1px solid #222;border-radius:12px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:900;color:var(--accent)">${s.n}</div><div style="font-size:10px;color:var(--text-dim)">${s.l}</div></div>`).join('');
       }
 
-      // Users
+      // Users with tier toggle
       const usersRes = await fetch((window.NYCKING_API_BASE || '') + '/api/admin/users', { headers: h });
       const data = await usersRes.json();
       const usersEl = $('admin-users');
       if (usersEl && data.users) {
-        usersEl.innerHTML = data.users.map(u => `
-          <div class="social-row" style="margin-bottom:6px">
-            <span class="social-avatar">${u.avatar || '😊'}</span>
-            <div class="social-info">
-              <div class="social-name">${u.displayName || 'User'} <span style="font-size:10px;color:${u.tier==='admin'?'var(--success)':u.tier==='pro'?'var(--accent)':'var(--text-dim)'};font-weight:700">${(u.tier||'free').toUpperCase()}</span></div>
-              <div class="social-sub">@${u.username || '—'} · ⚡${(u.tokenBalance||0).toLocaleString()}</div>
+        usersEl.innerHTML = data.users.map(u => {
+          const tierClass = u.tier === 'admin' ? 'admin-tier' : (u.tier || 'free');
+          const nextTier = u.tier === 'free' ? 'pro' : 'free';
+          const isAdmin = u.tier === 'admin';
+          return `
+            <div class="admin-user-row">
+              <span class="au-avatar">${u.avatar || '😊'}</span>
+              <div class="au-info">
+                <div class="au-name">${u.displayName || 'User'}</div>
+                <div class="au-sub">@${u.username || '—'} · ⚡${(u.tokenBalance||0).toLocaleString()}</div>
+              </div>
+              ${isAdmin ? `<span class="au-tier admin-tier">ADMIN</span>` : `<button class="au-tier ${tierClass}" data-uid="${u.uid}" data-next="${nextTier}">${(u.tier||'free').toUpperCase()}</button>`}
             </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
+
+        // Tier toggle click handler
+        usersEl.querySelectorAll('.au-tier[data-uid]').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.dataset.uid;
+            const next = btn.dataset.next;
+            if (!confirm(`Set user to ${next.toUpperCase()}?`)) return;
+            btn.disabled = true;
+            try {
+              await fetch((window.NYCKING_API_BASE || '') + '/api/admin/set-tier', {
+                method: 'POST',
+                headers: { ...h, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uid, tier: next })
+              });
+              loadAdmin();
+            } catch (e) {
+              alert('Failed: ' + e.message);
+            } finally {
+              btn.disabled = false;
+            }
+          });
+        });
       }
     } catch (err) {
       console.error('[admin] load error:', err);

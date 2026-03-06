@@ -127,4 +127,33 @@ router.get("/users/:uid", authMiddleware, async (req: Request, res: Response) =>
   }
 });
 
+// GET /api/users/ranking — token consumption leaderboard (public)
+router.get("/users/ranking", async (req: Request, res: Response) => {
+  try {
+    const db = await getDB();
+    const snap = await db
+      .collection("users")
+      .orderBy("tokenUsed", "desc")
+      .limit(50)
+      .get();
+
+    const ranking = snap.docs
+      .filter((d) => (d.data().tokenUsed || 0) > 0)
+      .map((doc, i) => ({
+        rank: i + 1,
+        uid: doc.id,
+        displayName: doc.data().displayName || "User",
+        avatar: doc.data().avatar || "😊",
+        username: doc.data().username || "",
+        tier: doc.data().tier || "free",
+        tokenUsed: doc.data().tokenUsed || 0,
+      }));
+
+    return res.json({ ranking });
+  } catch (err) {
+    logger.error("Ranking failed", { error: err });
+    return res.status(500).json({ error: "Failed to get ranking" });
+  }
+});
+
 export default router;

@@ -10,7 +10,7 @@
   // ─── Global token badge (injected into DOM) ───
   const badge = document.createElement('div');
   badge.id = 'token-badge';
-  badge.style.cssText = 'position:fixed;top:env(safe-area-inset-top,10px);left:10px;z-index:190;background:rgba(22,22,22,.85);backdrop-filter:blur(8px);border:1px solid #333;border-radius:10px;padding:3px 8px;font-size:10px;font-weight:700;color:#f97316;display:none;cursor:pointer;';
+  badge.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,10px) + 44px);left:10px;z-index:190;background:rgba(22,22,22,.85);backdrop-filter:blur(8px);border:1px solid #333;border-radius:10px;padding:3px 8px;font-size:10px;font-weight:700;color:#f97316;display:none;cursor:pointer;';
   badge.innerHTML = '<img src="/icons/coins.png" style="width:14px;height:14px;vertical-align:middle;margin-right:3px"><span id="token-count">—</span>';
   document.body.appendChild(badge);
 

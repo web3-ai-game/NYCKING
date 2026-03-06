@@ -206,7 +206,7 @@
     }
 
     /* ===== ALL INNER SCREENS: bottom padding for tab bar ===== */
-    #module-screen, #match-screen, #contacts-screen, #dm-screen, #moments-screen, #me-screen,
+    #module-screen, #ranking-screen, #moments-screen, #messages-screen, #me-screen,
     #game-lobby, #chat-screen {
       padding-bottom:calc(env(safe-area-inset-bottom,8px) + 64px) !important;
     }
@@ -586,6 +586,61 @@
     .coach-loading .dot-pulse { display:inline-block; animation:dotPulse 1.2s infinite; }
     @keyframes dotPulse { 0%,100%{opacity:.3} 50%{opacity:1} }
     @keyframes fadeInUp { 0%{opacity:0;transform:translateX(-50%) translateY(10px)} 100%{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+    /* ===== RANKING SCREEN ===== */
+    #ranking-screen { padding:calc(env(safe-area-inset-top,8px)+8px) 16px calc(env(safe-area-inset-bottom,8px)+72px); gap:8px; overflow-y:auto; }
+    .rank-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface); border:1px solid #222; border-radius:12px; margin-bottom:6px; cursor:pointer; transition:all .15s; }
+    .rank-row:active { border-color:var(--accent); }
+    .rank-row.rank-me { border-color:var(--accent); background:#1a1408; }
+    .rank-pos { font-size:18px; font-weight:800; min-width:28px; text-align:center; color:var(--accent); }
+    .rank-info { flex:1; min-width:0; }
+    .rank-name { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .rank-sub { font-size:11px; color:var(--text-dim); }
+    .rank-tokens { text-align:right; }
+    .rank-token-val { font-size:13px; font-weight:700; color:var(--accent); }
+    .rank-token-label { font-size:9px; color:var(--text-dim); }
+
+    /* ===== MESSAGES SCREEN (merged) ===== */
+    .msg-tabs { display:flex; gap:0; width:100%; border-bottom:1px solid #222; margin-bottom:8px; }
+    .msg-tab { flex:1; padding:10px; background:none; border:none; border-bottom:2px solid transparent; color:var(--text-dim); font-size:13px; font-weight:700; cursor:pointer; transition:all .15s; text-align:center; }
+    .msg-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .msg-panel { display:none; width:100%; }
+    .msg-panel.active { display:block; }
+
+    /* ===== CONFETTI ===== */
+    .confetti-container { position:fixed; inset:0; pointer-events:none; z-index:9999; overflow:hidden; }
+    .confetti-piece { position:absolute; width:10px; height:10px; top:-10px; animation:confettiFall 3s linear forwards; }
+    @keyframes confettiFall { 0%{top:-10px;opacity:1;transform:rotate(0deg)} 100%{top:110vh;opacity:0;transform:rotate(720deg)} }
+    .pro-welcome { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9998; background:rgba(0,0,0,.92); border:2px solid var(--accent); border-radius:20px; padding:30px 24px; text-align:center; max-width:300px; animation:fadeInUp .5s; }
+    .pro-welcome .pw-icon { font-size:48px; margin-bottom:12px; }
+    .pro-welcome .pw-title { font-size:20px; font-weight:800; color:var(--accent); margin-bottom:8px; }
+    .pro-welcome .pw-sub { font-size:13px; color:var(--text-dim); line-height:1.5; margin-bottom:16px; }
+    .pro-welcome .pw-btn { padding:10px 24px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-size:14px; font-weight:700; cursor:pointer; }
+
+    /* ===== USER PROFILE MODAL ===== */
+    .user-profile-modal { position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.85); display:none; align-items:center; justify-content:center; padding:20px; }
+    .user-profile-modal.show { display:flex; }
+    .up-card { background:var(--surface); border:1px solid #333; border-radius:20px; padding:24px; width:100%; max-width:320px; text-align:center; position:relative; }
+    .up-avatar { font-size:48px; margin-bottom:8px; }
+    .up-name { font-size:18px; font-weight:800; }
+    .up-username { font-size:13px; color:var(--text-dim); margin-bottom:4px; }
+    .up-tier { font-size:11px; font-weight:700; padding:3px 10px; border-radius:10px; display:inline-block; margin:8px 0; }
+    .up-bio { font-size:13px; color:var(--text-dim); margin:8px 0; line-height:1.5; }
+    .up-actions { display:flex; gap:8px; margin-top:12px; }
+    .up-actions button { flex:1; padding:10px; border-radius:10px; border:1px solid #333; background:var(--surface); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; }
+    .up-actions button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .up-close { position:absolute; top:12px; right:16px; background:none; border:none; color:#666; font-size:20px; cursor:pointer; }
+
+    /* ===== ADMIN USER ROWS ===== */
+    .admin-user-row { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--surface); border:1px solid #222; border-radius:10px; margin-bottom:4px; }
+    .admin-user-row .au-avatar { font-size:20px; }
+    .admin-user-row .au-info { flex:1; min-width:0; }
+    .admin-user-row .au-name { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .admin-user-row .au-sub { font-size:10px; color:var(--text-dim); }
+    .admin-user-row .au-tier { font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; border:1px solid #333; cursor:pointer; transition:all .15s; background:none; }
+    .admin-user-row .au-tier.free { color:var(--text-dim); }
+    .admin-user-row .au-tier.pro { color:var(--accent); border-color:var(--accent); background:#1a1408; }
+    .admin-user-row .au-tier.admin-tier { color:var(--success); border-color:var(--success); }
 
     /* ===== SHARED TRANSLATOR STYLES ===== */
     .translator-screen {
@@ -1002,14 +1057,14 @@
         <div class="fc-name" data-i18n="text_name">Text Translate</div>
         <div class="fc-desc" data-i18n="hp_feat_text">Gemini neural translation with context memory</div>
       </div>
-      <div class="feat-card" data-goto="dm-screen">
+      <div class="feat-card" data-goto="messages-screen">
         <div class="fc-icon">&#x1F4AC;</div>
         <div class="fc-name" data-i18n="tab_messages">Messages</div>
         <div class="fc-desc" data-i18n="hp_feat_dm">Friend DM with auto-translation</div>
       </div>
-      <div class="feat-card" data-goto="contacts-screen">
-        <div class="fc-icon">&#x1F465;</div>
-        <div class="fc-name" data-i18n="tab_contacts">Contacts</div>
+      <div class="feat-card" data-goto="moments-screen">
+        <div class="fc-icon">&#x1F4E2;</div>
+        <div class="fc-name" data-i18n="tab_moments">Moments</div>
         <div class="fc-desc" data-i18n="hp_feat_social">Add friends, moments feed, social</div>
       </div>
       <div class="feat-card" data-goto="game-lobby">
@@ -1494,38 +1549,32 @@
   </div>
 </div>
 
-<!-- ===== MATCH ===== -->
-<div id="match-screen" class="screen">
-  <div class="match-pulse" id="match-icon">&#x1F4AB;</div>
-  <div class="match-status" id="match-status" data-i18n="match_title">Find Someone to Chat</div>
-  <div class="match-sub" id="match-sub" data-i18n="match_desc">Get randomly matched with another user for a bilingual conversation</div>
-  <div id="match-actions">
-    <button class="match-btn start" id="match-start-btn" data-i18n="match_start">&#x1F50D; Start Matching</button>
-  </div>
-  <div class="match-result" id="match-result" style="display:none">
-    <div class="mr-avatar" id="match-avatar">&#x1F60A;</div>
-    <div class="mr-name" id="match-name">User</div>
-    <button class="match-btn chat" id="match-chat-btn" data-i18n="match_chat">&#x1F4AC; Start Chat</button>
-  </div>
-</div>
-
-<!-- ===== 13. CONTACTS ===== -->
-<div id="contacts-screen" class="screen">
+<!-- ===== RANKING ===== -->
+<div id="ranking-screen" class="screen">
   <div class="header" style="padding:calc(env(safe-area-inset-top,8px)+4px) 0 4px">
-    <span class="logo">&#x1F465; <span data-i18n="tab_contacts">Contacts</span></span>
+    <span class="logo">&#x1F3C6; <span data-i18n="tab_ranking">Ranking</span></span>
   </div>
-  <input class="contacts-search" id="contacts-search" type="text" data-i18n-ph="contacts_search_ph" placeholder="Search by username...">
-  <div id="contacts-search-results"></div>
-  <div id="contacts-requests" style="display:none"></div>
-  <div id="contacts-list"></div>
+  <div id="ranking-list"></div>
 </div>
 
-<!-- ===== 14. DM / MESSAGES ===== -->
-<div id="dm-screen" class="screen">
+<!-- ===== 13. MESSAGES (Contacts + DM merged) ===== -->
+<div id="messages-screen" class="screen">
   <div class="header" style="padding:calc(env(safe-area-inset-top,8px)+4px) 0 4px">
     <span class="logo">&#x1F4AC; <span data-i18n="tab_messages">Messages</span></span>
   </div>
-  <div id="dm-list-view">
+  <div class="msg-tabs">
+    <button class="msg-tab active" data-panel="msg-friends-panel" data-i18n="tab_contacts">Friends</button>
+    <button class="msg-tab" data-panel="msg-chats-panel" data-i18n="tab_chats">Chats</button>
+  </div>
+  <!-- Friends panel -->
+  <div class="msg-panel active" id="msg-friends-panel">
+    <input class="contacts-search" id="contacts-search" type="text" data-i18n-ph="contacts_search_ph" placeholder="Search by username...">
+    <div id="contacts-search-results"></div>
+    <div id="contacts-requests" style="display:none"></div>
+    <div id="contacts-list"></div>
+  </div>
+  <!-- Chats panel -->
+  <div class="msg-panel" id="msg-chats-panel">
     <div id="dm-conv-list"></div>
   </div>
 </div>
@@ -1545,7 +1594,6 @@
 <!-- ===== 15. MOMENTS ===== -->
 <div id="moments-screen" class="screen">
   <div class="header" style="padding:calc(env(safe-area-inset-top,8px)+4px) 0 4px">
-    <button class="back-btn" id="moments-back">&#x2039;</button>
     <span class="logo">&#x1F4E2; <span data-i18n="tab_moments">Moments</span></span>
   </div>
   <div class="moments-post-bar">
@@ -1590,12 +1638,6 @@
 
   <div class="me-section">
     <div class="me-section-title" data-i18n="me_settings">Settings</div>
-    <div class="me-row" id="me-go-moments">
-      <span class="me-row-icon">&#x1F4E2;</span>
-      <span class="me-row-label" data-i18n="tab_moments">Moments</span>
-      <span class="me-row-value"></span>
-      <span class="me-row-arrow">&#x203A;</span>
-    </div>
     <div class="me-row" id="me-edit-lang">
       <span class="me-row-icon">&#x1F310;</span>
       <span class="me-row-label" data-i18n="me_language">Language</span>
@@ -1646,23 +1688,43 @@
     <span class="tab-icon">&#x1F527;</span>
     <span data-i18n="tab_tools">Tools</span>
   </button>
-  <button class="tab-item" data-tab="match-screen">
-    <span class="tab-icon">&#x1F4AB;</span>
-    <span data-i18n="tab_match">Match</span>
+  <button class="tab-item" data-tab="ranking-screen">
+    <span class="tab-icon">&#x1F3C6;</span>
+    <span data-i18n="tab_ranking">Ranking</span>
   </button>
-  <button class="tab-item" data-tab="dm-screen">
+  <button class="tab-item" data-tab="moments-screen">
+    <span class="tab-icon">&#x1F4E2;</span>
+    <span data-i18n="tab_moments">Moments</span>
+  </button>
+  <button class="tab-item" data-tab="messages-screen">
     <span class="tab-icon">&#x1F4AC;</span>
-    <span data-i18n="tab_messages">Chat</span>
-  </button>
-  <button class="tab-item" data-tab="contacts-screen">
-    <span class="tab-icon">&#x1F465;</span>
-    <span data-i18n="tab_contacts">Friends</span>
+    <span data-i18n="tab_messages">Messages</span>
+    <span class="tab-badge" id="msg-badge"></span>
   </button>
   <button class="tab-item" data-tab="me-screen">
     <span class="tab-icon" id="tab-me-icon">&#x1F60A;</span>
     <span data-i18n="tab_me">Me</span>
   </button>
 </div>
+
+<!-- User Profile Modal -->
+<div class="user-profile-modal" id="user-profile-modal">
+  <div class="up-card">
+    <button class="up-close" id="up-close">&times;</button>
+    <div class="up-avatar" id="up-avatar">&#x1F60A;</div>
+    <div class="up-name" id="up-name">User</div>
+    <div class="up-username" id="up-username">@user</div>
+    <div class="up-tier" id="up-tier">FREE</div>
+    <div class="up-bio" id="up-bio"></div>
+    <div class="up-actions">
+      <button id="up-add-friend" data-i18n="up_add_friend">&#x1F465; Add Friend</button>
+      <button class="primary" id="up-send-msg" data-i18n="up_send_msg">&#x1F4AC; Message</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confetti container -->
+<div class="confetti-container" id="confetti-container"></div>
 
 <!-- Token cost badge (global) -->
 <div class="cost-badge" id="cost-badge" style="display:none">
@@ -1675,7 +1737,7 @@
 (function(){
   const screens = document.querySelectorAll('.screen');
   const tabBar = document.getElementById('tab-bar');
-  const TAB_SCREENS = ['module-screen','match-screen','dm-screen','contacts-screen','moments-screen','me-screen'];
+  const TAB_SCREENS = ['module-screen','ranking-screen','moments-screen','messages-screen','me-screen'];
   const HIDE_TAB = ['screen-2048','screen-snake','screen-mole','screen-lb'];
 
   function show(id) {
@@ -1689,7 +1751,7 @@
     const showTab = isLoggedIn && (TAB_SCREENS.includes(id) || id === 'game-lobby' || id === 'chat-screen') && !HIDE_TAB.includes(id);
     if (tabBar) tabBar.classList.toggle('show', showTab);
     // Hash route
-    const routeMap = {'home-screen':'home','auth-screen':'auth','module-screen':'tools','match-screen':'match','dm-screen':'chat','contacts-screen':'friends','moments-screen':'moments','me-screen':'me'};
+    const routeMap = {'home-screen':'home','auth-screen':'auth','module-screen':'tools','ranking-screen':'ranking','moments-screen':'moments','messages-screen':'messages','me-screen':'me'};
     if (routeMap[id]) history.pushState({screen:id}, '', '#/' + routeMap[id]);
   }
 
@@ -1759,10 +1821,20 @@
   // Back buttons
   document.getElementById('voice-back').addEventListener('click', () => show('module-screen'));
   document.getElementById('text-back').addEventListener('click', () => show('module-screen'));
-  document.getElementById('moments-back').addEventListener('click', () => show('me-screen'));
   document.getElementById('chat-back').addEventListener('click', () => {
     if (window.NYCKING_CHAT_RESET) window.NYCKING_CHAT_RESET();
     show('module-screen');
+  });
+
+  // Messages screen tab switching
+  document.querySelectorAll('.msg-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.msg-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.msg-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const panel = document.getElementById(tab.dataset.panel);
+      if (panel) panel.classList.add('active');
+    });
   });
 
   // Expose for app.js
@@ -1782,8 +1854,8 @@
       hp_feat_games:'2048, Snake, Whack-a-Mole + leaderboard',
       hp_feat_coach:'Smart conversation helper powered by Gemini',
       pricing_upgrade:'Upgrade to Pro \u2192',
-      tab_match:'Match', match_title:'Find Someone to Chat', match_desc:'Get randomly matched for a bilingual conversation',
-      match_start:'\uD83D\uDD0D Start Matching', match_chat:'\uD83D\uDCAC Start Chat',
+      tab_ranking:'Ranking', tab_chats:'Chats', ranking_empty:'No activity yet. Start translating!', ranking_used:'used',
+      up_add_friend:'\uD83D\uDC65 Add Friend', up_send_msg:'\uD83D\uDCAC Message',
       choose_mode:'Choose Mode', select_mode:'Select your translation mode',
       voice_name:'Voice Translate', voice_desc:'Speak and translate in real-time',
       text_name:'Text Translate', text_desc:'Type or paste text to translate',
@@ -1831,8 +1903,8 @@
       hp_feat_games:'2048、贪吃蛇、打地鼠 + 排行榜',
       hp_feat_coach:'Gemini 驱动的智能聊天助手',
       pricing_upgrade:'升级 Pro \u2192',
-      tab_match:'匹配', match_title:'找人聊天', match_desc:'随机匹配一个用户开始双语对话',
-      match_start:'\uD83D\uDD0D 开始匹配', match_chat:'\uD83D\uDCAC 开始聊天',
+      tab_ranking:'排行榜', tab_chats:'聊天', ranking_empty:'暂无活跃记录，开始翻译吧！', ranking_used:'已用',
+      up_add_friend:'\uD83D\uDC65 加好友', up_send_msg:'\uD83D\uDCAC 发消息',
       choose_mode:'选择模式', select_mode:'选择你的翻译模式',
       voice_name:'语音翻译', voice_desc:'实时语音翻译',
       text_name:'文字翻译', text_desc:'输入或粘贴文字进行翻译',
@@ -1880,8 +1952,8 @@
       hp_feat_games:'2048, งู, ตีตุ่น + ลีดเดอร์บอร์ด',
       hp_feat_coach:'ผู้ช่วยสนทนาอัจฉริยะจาก Gemini',
       pricing_upgrade:'อัปเกรดเป็น Pro →',
-      tab_match:'จับคู่', match_title:'หาคนคุย', match_desc:'จับคู่แบบสุ่มเพื่อสนทนาสองภาษา',
-      match_start:'\uD83D\uDD0D เริ่มจับคู่', match_chat:'\uD83D\uDCAC เริ่มแชท',
+      tab_ranking:'อันดับ', tab_chats:'แชท', ranking_empty:'ยังไม่มีกิจกรรม เริ่มแปลเลย!', ranking_used:'ใช้แล้ว',
+      up_add_friend:'\uD83D\uDC65 เพิ่มเพื่อน', up_send_msg:'\uD83D\uDCAC ส่งข้อความ',
       choose_mode:'เลือกโหมด', select_mode:'เลือกโหมดการแปลของคุณ',
       voice_name:'แปลเสียง', voice_desc:'พูดแล้วแปลแบบเรียลไทม์',
       text_name:'แปลข้อความ', text_desc:'พิมพ์หรือวางข้อความเพื่อแปล',
@@ -1929,8 +2001,8 @@
       hp_feat_games:'2048, မြွေ, ကြွက်ရိုက် + အဆင့်မြင့်ဆုံး',
       hp_feat_coach:'Gemini ဖြင့် စကားပြောကူညီပေးသူ',
       pricing_upgrade:'Pro သို့ အဆင့်မြှင့်ပါ →',
-      tab_match:'တွဲဖက်', match_title:'စကားဖော်ဖက်ရှာပါ', match_desc:'နှစ်ဘာသာစကားပြောရန် ကျပြတွဲဖက်ပါ',
-      match_start:'\uD83D\uDD0D စတင်ပါ', match_chat:'\uD83D\uDCAC စကားပြောပါ',
+      tab_ranking:'အဆင့်', tab_chats:'ချက်တ်', ranking_empty:'လှုပ်ရှားမှုမရှိသေးပါ။ ဘာသာပြန်စပါ!', ranking_used:'သုံးပြီး',
+      up_add_friend:'\uD83D\uDC65 သူငယ်ချင်းထည့်', up_send_msg:'\uD83D\uDCAC မက်ဆေ့ချ်ပို့',
       choose_mode:'မုဒ်ရွေးပါ', select_mode:'သင့်ဘာသာပြန်မုဒ်ကို ရွေးပါ',
       voice_name:'အသံ ဘာသာပြန်', voice_desc:'ပြောပြီး အချိန်နှင့်တပြေးညီ ဘာသာပြန်ပါ',
       text_name:'စာသား ဘာသာပြန်', text_desc:'စာရိုက်ပြီး ဘာသာပြန်ပါ',
@@ -2107,8 +2179,8 @@
 <script src="/src/profile.js?v=2"></script>
 <!-- Social (Friends, DM, Moments) -->
 <script src="/src/social.js?v=1"></script>
-<!-- Match -->
-<script src="/src/match.js?v=1"></script>
+<!-- Ranking -->
+<script src="/src/ranking.js?v=1"></script>
 <!-- Games -->
 <script src="/src/games.js?v=1"></script>
 <!-- AI Coach -->

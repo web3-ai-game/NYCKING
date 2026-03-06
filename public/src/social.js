@@ -105,7 +105,14 @@
       const res = await fetch(`${API}/api/dm/start`, { method: 'POST', headers: h, body: JSON.stringify({ targetUid: uid }) });
       const data = await res.json();
       if (data.conversationId) {
-        if (window.NYCKING_SHOW) window.NYCKING_SHOW('dm-screen');
+        if (window.NYCKING_SHOW) window.NYCKING_SHOW('messages-screen');
+        // Switch to Chats tab
+        document.querySelectorAll('.msg-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.msg-panel').forEach(p => p.classList.remove('active'));
+        const chatsTab = document.querySelector('.msg-tab[data-panel="msg-chats-panel"]');
+        if (chatsTab) chatsTab.classList.add('active');
+        const chatsPanel = document.getElementById('msg-chats-panel');
+        if (chatsPanel) chatsPanel.classList.add('active');
         setTimeout(() => openDMChat(data.conversationId, msgBtn.dataset.name), 100);
       }
     } catch {}
@@ -202,7 +209,6 @@
   function openDMChat(convId, name) {
     currentConvId = convId;
     $('dm-chat-name').textContent = name || 'Chat';
-    $('dm-list-view').style.display = 'none';
     $('dm-chat-view').style.display = 'flex';
     $('dm-messages').innerHTML = '';
     loadDMMessages();
@@ -212,7 +218,6 @@
   function closeDMChat() {
     stopDMPoll();
     currentConvId = null;
-    $('dm-list-view').style.display = '';
     $('dm-chat-view').style.display = 'none';
     loadConversations();
   }
@@ -330,7 +335,7 @@
       if (data.moments?.length) {
         feed.innerHTML = data.moments.map(m => `
           <div class="moment-card">
-            <div class="moment-header">
+            <div class="moment-header" style="cursor:pointer" data-view-uid="${m.userId}">
               <span class="social-avatar">${escHtml(m.avatar)}</span>
               <div>
                 <div class="social-name">${escHtml(m.displayName)}</div>
@@ -368,6 +373,16 @@
     } catch {}
   });
 
+  // View profile from moment header
+  document.addEventListener('click', (e) => {
+    const header = e.target.closest('[data-view-uid]');
+    if (!header) return;
+    const uid = header.dataset.viewUid;
+    if (uid && uid !== auth?.currentUser?.uid && window.NYCKING_VIEW_PROFILE) {
+      window.NYCKING_VIEW_PROFILE(uid);
+    }
+  });
+
   // Like / Delete
   document.addEventListener('click', async (e) => {
     const btn = e.target.closest('.moment-action-btn');
@@ -389,21 +404,96 @@
     } catch {}
   });
 
-  // Expose openDMChat globally for match.js
+  // Expose openDMChat globally
   window.NYCKING_OPEN_DM = openDMChat;
+
+  // ═══════════════════════════════════════════════
+  // USER PROFILE VIEWING
+  // ═══════════════════════════════════════════════
+  async function viewUserProfile(uid) {
+    const modal = $('user-profile-modal');
+    if (!modal || !uid) return;
+    try {
+      const h = await authHeaders();
+      const res = await fetch(`${API}/api/users/${uid}`, { headers: h });
+      const u = await res.json();
+      $('up-avatar').textContent = u.avatar || '😊';
+      $('up-name').textContent = u.displayName || 'User';
+      $('up-username').textContent = '@' + (u.username || '—');
+      const tierBadge = $('up-tier');
+      tierBadge.textContent = (u.tier || 'FREE').toUpperCase();
+      tierBadge.style.color = u.tier === 'pro' ? 'var(--accent)' : 'var(--text-dim)';
+      tierBadge.style.borderColor = u.tier === 'pro' ? 'var(--accent)' : '#333';
+      tierBadge.style.background = u.tier === 'pro' ? '#1a1408' : 'var(--surface)';
+      $('up-bio').textContent = u.bio || '';
+      $('up-add-friend').dataset.uid = uid;
+      $('up-send-msg').dataset.uid = uid;
+      $('up-send-msg').dataset.name = u.displayName || 'User';
+      modal.classList.add('show');
+    } catch (err) {
+      console.error('[profile view] error:', err);
+    }
+  }
+
+  // Close profile modal
+  $('up-close')?.addEventListener('click', () => {
+    $('user-profile-modal')?.classList.remove('show');
+  });
+  $('user-profile-modal')?.addEventListener('click', (e) => {
+    if (e.target === $('user-profile-modal')) $('user-profile-modal').classList.remove('show');
+  });
+
+  // Add friend from profile modal
+  $('up-add-friend')?.addEventListener('click', async () => {
+    const btn = $('up-add-friend');
+    const uid = btn.dataset.uid;
+    if (!uid) return;
+    btn.disabled = true;
+    try {
+      const h = await authHeaders();
+      const res = await fetch(`${API}/api/friends/request`, { method: 'POST', headers: h, body: JSON.stringify({ targetUid: uid }) });
+      const data = await res.json();
+      btn.textContent = data.ok ? '✅ Sent' : (data.error || 'Error');
+    } catch { btn.textContent = 'Error'; }
+  });
+
+  // Send message from profile modal
+  $('up-send-msg')?.addEventListener('click', async () => {
+    const btn = $('up-send-msg');
+    const uid = btn.dataset.uid;
+    const name = btn.dataset.name;
+    if (!uid) return;
+    btn.disabled = true;
+    try {
+      const h = await authHeaders();
+      const res = await fetch(`${API}/api/dm/start`, { method: 'POST', headers: h, body: JSON.stringify({ targetUid: uid }) });
+      const data = await res.json();
+      if (data.conversationId) {
+        $('user-profile-modal').classList.remove('show');
+        if (window.NYCKING_SHOW) window.NYCKING_SHOW('messages-screen');
+        setTimeout(() => openDMChat(data.conversationId, name), 200);
+      }
+    } catch {}
+    btn.disabled = false;
+  });
+
+  // Expose globally
+  window.NYCKING_VIEW_PROFILE = viewUserProfile;
 
   // ═══════════════════════════════════════════════
   // NAVIGATION HOOKS — load data when tab shown
   // ═══════════════════════════════════════════════
   const origShow = window.NYCKING_SHOW;
   window.NYCKING_SHOW = function (id) {
-    // Stop DM polling when leaving DM
-    if (id !== 'dm-screen' && currentConvId) closeDMChat();
+    // Stop DM polling when leaving messages
+    if (id !== 'messages-screen' && currentConvId) closeDMChat();
 
     if (origShow) origShow(id);
 
-    if (id === 'contacts-screen') loadContacts();
-    else if (id === 'dm-screen') loadConversations();
+    if (id === 'messages-screen') {
+      loadContacts();
+      loadConversations();
+    }
     else if (id === 'moments-screen') loadMoments();
   };
 })();
