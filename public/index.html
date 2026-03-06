@@ -1512,7 +1512,9 @@
 
 <!-- ===== 13. CONTACTS ===== -->
 <div id="contacts-screen" class="screen">
-  <div class="home-logo" style="font-size:20px;padding-top:8px">👥 <span data-i18n="tab_contacts">Contacts</span></div>
+  <div class="header" style="padding:calc(env(safe-area-inset-top,8px)+4px) 0 4px">
+    <span class="logo">&#x1F465; <span data-i18n="tab_contacts">Contacts</span></span>
+  </div>
   <input class="contacts-search" id="contacts-search" type="text" data-i18n-placeholder="contacts_search_ph" placeholder="Search by username...">
   <div id="contacts-search-results"></div>
   <div id="contacts-requests" style="display:none"></div>
@@ -1521,7 +1523,9 @@
 
 <!-- ===== 14. DM / MESSAGES ===== -->
 <div id="dm-screen" class="screen">
-  <div class="home-logo" style="font-size:20px;padding-top:8px">💬 <span data-i18n="tab_messages">Messages</span></div>
+  <div class="header" style="padding:calc(env(safe-area-inset-top,8px)+4px) 0 4px">
+    <span class="logo">&#x1F4AC; <span data-i18n="tab_messages">Messages</span></span>
+  </div>
   <div id="dm-list-view">
     <div id="dm-conv-list"></div>
   </div>
