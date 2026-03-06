@@ -36,17 +36,12 @@
     tabBar.classList.toggle('show', visible);
   }
 
-  // Override show to manage tab bar visibility
+  // Hook into navigation for profile refresh + tab active highlight
   const originalShow = window.NYCKING_SHOW;
   window.NYCKING_SHOW = function (id) {
     if (originalShow) originalShow(id);
 
-    // Show tab bar on "inner" screens (when logged in)
-    const isInner = TAB_SCREENS.includes(id) ||
-      id.startsWith('screen-') || id.startsWith('voice-') || id.startsWith('text-');
-    showTabBar(isInner);
-
-    // Update active tab
+    // Update active tab highlight
     if (TAB_SCREENS.includes(id)) {
       tabBar.querySelectorAll('.tab-item').forEach(t => {
         t.classList.toggle('active', t.dataset.tab === id);
@@ -277,17 +272,11 @@
     }
   });
 
-  // ─── Listen for auth changes to show/hide tab bar ───
+  // ─── Listen for auth changes ───
   if (auth) {
     auth.onAuthStateChanged((user) => {
       if (user) {
-        // Small delay to let auth.js create profile first
-        setTimeout(() => {
-          showTabBar(true);
-          refreshProfile();
-        }, 500);
-      } else {
-        showTabBar(false);
+        setTimeout(refreshProfile, 600);
       }
     });
   }
