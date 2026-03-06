@@ -368,6 +368,37 @@
     .moment-action-btn:active { background:var(--surface2); }
     .moment-action-btn.liked { color:var(--error); }
 
+    /* ===== MATCH SCREEN ===== */
+    #match-screen {
+      align-items:center; justify-content:center; gap:20px;
+      padding:calc(env(safe-area-inset-top,8px)+16px) 24px calc(env(safe-area-inset-bottom,8px)+72px);
+      text-align:center;
+    }
+    .match-pulse {
+      width:120px; height:120px; border-radius:50%;
+      background:radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      display:flex; align-items:center; justify-content:center;
+      font-size:48px; animation:matchPulse 2s ease-in-out infinite;
+    }
+    @keyframes matchPulse { 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.15);opacity:1} }
+    .match-status { font-size:16px; font-weight:700; color:var(--text); }
+    .match-sub { font-size:12px; color:var(--text-dim); max-width:260px; }
+    .match-btn {
+      width:100%; max-width:280px; padding:16px; border-radius:14px; border:none;
+      font-size:16px; font-weight:700; cursor:pointer; transition:all .2s;
+    }
+    .match-btn.start { background:linear-gradient(135deg, var(--accent), #ea580c); color:#fff; box-shadow:0 4px 20px var(--accent-glow); }
+    .match-btn.start:active { transform:scale(0.96); }
+    .match-btn.cancel { background:var(--surface); border:1px solid #333; color:var(--text-dim); }
+    .match-result {
+      background:var(--surface); border:1px solid #222; border-radius:16px;
+      padding:20px; display:flex; flex-direction:column; align-items:center; gap:10px;
+      width:100%; max-width:280px;
+    }
+    .match-result .mr-avatar { font-size:48px; }
+    .match-result .mr-name { font-size:18px; font-weight:700; }
+    .match-btn.chat { background:var(--success); color:#fff; }
+
     /* ===== MODULE SELECTOR ===== */
     #module-screen {
       align-items:center; justify-content:center; gap:20px;
@@ -1454,6 +1485,21 @@
   </div>
 </div>
 
+<!-- ===== MATCH ===== -->
+<div id="match-screen" class="screen">
+  <div class="match-pulse" id="match-icon">&#x1F4AB;</div>
+  <div class="match-status" id="match-status" data-i18n="match_title">Find Someone to Chat</div>
+  <div class="match-sub" id="match-sub" data-i18n="match_desc">Get randomly matched with another user for a bilingual conversation</div>
+  <div id="match-actions">
+    <button class="match-btn start" id="match-start-btn" data-i18n="match_start">&#x1F50D; Start Matching</button>
+  </div>
+  <div class="match-result" id="match-result" style="display:none">
+    <div class="mr-avatar" id="match-avatar">&#x1F60A;</div>
+    <div class="mr-name" id="match-name">User</div>
+    <button class="match-btn chat" id="match-chat-btn" data-i18n="match_chat">&#x1F4AC; Start Chat</button>
+  </div>
+</div>
+
 <!-- ===== 13. CONTACTS ===== -->
 <div id="contacts-screen" class="screen">
   <div class="home-logo" style="font-size:20px;padding-top:8px">👥 <span data-i18n="tab_contacts">Contacts</span></div>
@@ -1557,20 +1603,20 @@
     <span class="tab-icon">&#x1F527;</span>
     <span data-i18n="tab_tools">Tools</span>
   </button>
+  <button class="tab-item" data-tab="match-screen">
+    <span class="tab-icon">&#x1F4AB;</span>
+    <span data-i18n="tab_match">Match</span>
+  </button>
   <button class="tab-item" data-tab="dm-screen">
-    <span class="tab-icon">💬</span>
-    <span data-i18n="tab_messages">Messages</span>
+    <span class="tab-icon">&#x1F4AC;</span>
+    <span data-i18n="tab_messages">Chat</span>
   </button>
   <button class="tab-item" data-tab="contacts-screen">
-    <span class="tab-icon">👥</span>
-    <span data-i18n="tab_contacts">Contacts</span>
-  </button>
-  <button class="tab-item" data-tab="moments-screen">
-    <span class="tab-icon">&#x1F4E2;</span>
-    <span data-i18n="tab_moments">Moments</span>
+    <span class="tab-icon">&#x1F465;</span>
+    <span data-i18n="tab_contacts">Friends</span>
   </button>
   <button class="tab-item" data-tab="me-screen">
-    <span class="tab-icon" id="tab-me-icon">😊</span>
+    <span class="tab-icon" id="tab-me-icon">&#x1F60A;</span>
     <span data-i18n="tab_me">Me</span>
   </button>
 </div>
@@ -2003,6 +2049,8 @@
 <script src="/src/profile.js?v=2"></script>
 <!-- Social (Friends, DM, Moments) -->
 <script src="/src/social.js?v=1"></script>
+<!-- Match -->
+<script src="/src/match.js?v=1"></script>
 <!-- Games -->
 <script src="/src/games.js?v=1"></script>
 <!-- AI Coach -->

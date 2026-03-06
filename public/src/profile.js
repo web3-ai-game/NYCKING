@@ -8,7 +8,7 @@
   const auth = window.NYCKING_AUTH;
   const db = window.NYCKING_DB;
 
-  const TAB_SCREENS = ['module-screen', 'dm-screen', 'contacts-screen', 'moments-screen', 'me-screen'];
+  const TAB_SCREENS = ['module-screen', 'match-screen', 'dm-screen', 'contacts-screen', 'moments-screen', 'me-screen'];
   const tabBar = $('tab-bar');
 
   // ─── Tab bar logic ───
