@@ -426,9 +426,14 @@
       tierBadge.style.borderColor = u.tier === 'pro' ? 'var(--accent)' : '#333';
       tierBadge.style.background = u.tier === 'pro' ? '#1a1408' : 'var(--surface)';
       $('up-bio').textContent = u.bio || '';
-      $('up-add-friend').dataset.uid = uid;
-      $('up-send-msg').dataset.uid = uid;
-      $('up-send-msg').dataset.name = u.displayName || 'User';
+      const addBtn = $('up-add-friend');
+      addBtn.dataset.uid = uid;
+      addBtn.disabled = false;
+      addBtn.textContent = '👥 Add Friend';
+      const msgBtn2 = $('up-send-msg');
+      msgBtn2.dataset.uid = uid;
+      msgBtn2.dataset.name = u.displayName || 'User';
+      msgBtn2.disabled = false;
       modal.classList.add('show');
     } catch (err) {
       console.error('[profile view] error:', err);

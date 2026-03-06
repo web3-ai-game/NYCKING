@@ -177,16 +177,16 @@
       <button class="pw-btn" id="pw-dismiss">Let\'s Go!</button>
     `;
     document.body.appendChild(welcome);
-    // Dismiss
-    document.getElementById('pw-dismiss').addEventListener('click', () => {
-      welcome.remove();
+    // Dismiss helper (safe to call multiple times)
+    let dismissed = false;
+    function dismiss() {
+      if (dismissed) return;
+      dismissed = true;
+      if (welcome.parentNode) welcome.remove();
       container.innerHTML = '';
-    });
-    // Auto-dismiss after 5s
-    setTimeout(() => {
-      welcome.remove();
-      container.innerHTML = '';
-    }, 5000);
+    }
+    document.getElementById('pw-dismiss').addEventListener('click', dismiss);
+    setTimeout(dismiss, 5000);
   }
 
   // ─── Sign out (called from settings) ───

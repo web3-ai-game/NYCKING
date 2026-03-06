@@ -105,29 +105,8 @@ router.get("/users/search", authMiddleware, async (req: Request, res: Response) 
   }
 });
 
-// GET /api/users/:uid
-router.get("/users/:uid", authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const db = await getDB();
-    const snap = await db.collection("users").doc(req.params.uid).get();
-    if (!snap.exists) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    const data = snap.data()!;
-    return res.json({
-      uid: req.params.uid,
-      displayName: data.displayName,
-      username: data.username,
-      avatar: data.avatar,
-      bio: data.bio,
-    });
-  } catch (err) {
-    logger.error("Get user failed", { error: err });
-    return res.status(500).json({ error: "Failed to get user" });
-  }
-});
-
 // GET /api/users/ranking — token consumption leaderboard (public)
+// NOTE: Must be defined BEFORE /users/:uid to avoid Express matching 'ranking' as :uid
 router.get("/users/ranking", async (req: Request, res: Response) => {
   try {
     const db = await getDB();
@@ -153,6 +132,29 @@ router.get("/users/ranking", async (req: Request, res: Response) => {
   } catch (err) {
     logger.error("Ranking failed", { error: err });
     return res.status(500).json({ error: "Failed to get ranking" });
+  }
+});
+
+// GET /api/users/:uid
+router.get("/users/:uid", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const db = await getDB();
+    const snap = await db.collection("users").doc(req.params.uid).get();
+    if (!snap.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const data = snap.data()!;
+    return res.json({
+      uid: req.params.uid,
+      displayName: data.displayName,
+      username: data.username,
+      avatar: data.avatar,
+      bio: data.bio,
+      tier: data.tier || "free",
+    });
+  } catch (err) {
+    logger.error("Get user failed", { error: err });
+    return res.status(500).json({ error: "Failed to get user" });
   }
 });
 
