@@ -94,17 +94,22 @@
     } catch {}
   });
 
-  // Message button → start DM
+  // Message button → start DM and open chat
   document.addEventListener('click', async (e) => {
     const msgBtn = e.target.closest('.social-btn.msg');
     if (!msgBtn) return;
     const uid = msgBtn.dataset.uid;
+    msgBtn.disabled = true;
     try {
       const h = await authHeaders();
       const res = await fetch(`${API}/api/dm/start`, { method: 'POST', headers: h, body: JSON.stringify({ targetUid: uid }) });
       const data = await res.json();
-      if (data.conversationId) openDMChat(data.conversationId, msgBtn.dataset.name);
+      if (data.conversationId) {
+        if (window.NYCKING_SHOW) window.NYCKING_SHOW('dm-screen');
+        setTimeout(() => openDMChat(data.conversationId, msgBtn.dataset.name), 100);
+      }
     } catch {}
+    msgBtn.disabled = false;
   });
 
   // Search friends

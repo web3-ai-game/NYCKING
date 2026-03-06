@@ -77,16 +77,16 @@
           btn.style.color = 'var(--success)';
         } catch { btn.textContent = 'Error'; }
       });
-      // Start Chat
+      // Start Chat — directly open DM conversation
       $('match-chat-btn').addEventListener('click', () => {
         if (!matchedConvId) return;
-        // Navigate to DM and open this conversation
         if (window.NYCKING_SHOW) window.NYCKING_SHOW('dm-screen');
-        // Trigger DM chat open if social.js exposes it
+        // Use exposed openDMChat from social.js
         setTimeout(() => {
-          const convRow = document.querySelector('.dm-conv[data-cid="' + matchedConvId + '"]');
-          if (convRow) convRow.click();
-        }, 500);
+          if (window.NYCKING_OPEN_DM) {
+            window.NYCKING_OPEN_DM(matchedConvId, nameEl.textContent || 'Chat');
+          }
+        }, 200);
       });
       // Match Again
       $('match-again-btn').addEventListener('click', () => setState('idle'));
