@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════
-// NYCKING Match — Random user matching for chat
+// NYCKING Match — Random user matching → Add Friend → Chat
 // ═══════════════════════════════════════════════════
 
 (function () {
@@ -7,7 +7,6 @@
   const API = window.NYCKING_API_BASE || '';
   const auth = window.NYCKING_AUTH;
 
-  const startBtn = $('match-start-btn');
   const statusEl = $('match-status');
   const subEl = $('match-sub');
   const iconEl = $('match-icon');
@@ -15,10 +14,10 @@
   const resultEl = $('match-result');
   const avatarEl = $('match-avatar');
   const nameEl = $('match-name');
-  const chatBtn = $('match-chat-btn');
 
   let pollTimer = null;
   let matchedConvId = null;
+  let matchedUid = null;
 
   async function authHeaders() {
     if (!auth?.currentUser) return {};
@@ -28,31 +27,69 @@
 
   function setState(state, data) {
     if (state === 'idle') {
-      iconEl.textContent = '\u{1F4AB}';
+      iconEl.innerHTML = '&#x1F4AB;';
       iconEl.style.animationPlayState = 'paused';
       statusEl.textContent = 'Find Someone to Chat';
       subEl.textContent = 'Get randomly matched with another user for a bilingual conversation';
-      actionsEl.innerHTML = '<button class="match-btn start" id="match-start-btn">\u{1F50D} Start Matching</button>';
+      actionsEl.innerHTML = '<button class="match-btn start" id="match-start-btn">&#x1F50D; Start Matching</button>';
       resultEl.style.display = 'none';
+      matchedConvId = null;
+      matchedUid = null;
       $('match-start-btn').addEventListener('click', startMatch);
     } else if (state === 'waiting') {
-      iconEl.textContent = '\u{1F4AB}';
+      iconEl.innerHTML = '&#x1F4AB;';
       iconEl.style.animationPlayState = 'running';
       statusEl.textContent = 'Searching...';
-      subEl.textContent = 'Looking for someone to chat with. Please wait...';
-      actionsEl.innerHTML = '<button class="match-btn cancel" id="match-cancel-btn">\u2715 Cancel</button>';
+      subEl.textContent = 'Looking for someone to chat with...';
+      actionsEl.innerHTML = '<button class="match-btn cancel" id="match-cancel-btn">&#x2715; Cancel</button>';
       resultEl.style.display = 'none';
       $('match-cancel-btn').addEventListener('click', cancelMatch);
     } else if (state === 'matched') {
-      iconEl.textContent = '\u{1F389}';
+      iconEl.innerHTML = '&#x1F389;';
       iconEl.style.animationPlayState = 'paused';
       statusEl.textContent = 'Match Found!';
       subEl.textContent = '';
-      actionsEl.innerHTML = '';
-      resultEl.style.display = '';
-      avatarEl.textContent = data?.avatar || '\u{1F60A}';
-      nameEl.textContent = data?.displayName || 'User';
       matchedConvId = data?.conversationId;
+      matchedUid = data?.uid;
+      avatarEl.textContent = data?.avatar || '😊';
+      nameEl.textContent = data?.displayName || 'User';
+      resultEl.style.display = '';
+      // Show both "Add Friend" and "Start Chat" buttons
+      actionsEl.innerHTML =
+        '<button class="match-btn start" id="match-addfriend-btn" style="margin-bottom:8px">&#x1F465; Add Friend</button>' +
+        '<button class="match-btn chat" id="match-chat-btn" style="background:var(--success);color:#fff">&#x1F4AC; Start Chat</button>' +
+        '<button class="match-btn cancel" id="match-again-btn" style="margin-top:8px">&#x1F504; Match Again</button>';
+      // Add Friend
+      $('match-addfriend-btn').addEventListener('click', async () => {
+        if (!matchedUid) return;
+        const btn = $('match-addfriend-btn');
+        btn.disabled = true;
+        btn.textContent = '...';
+        try {
+          const h = await authHeaders();
+          const res = await fetch(API + '/api/friends/request', {
+            method: 'POST', headers: h,
+            body: JSON.stringify({ targetUid: matchedUid })
+          });
+          const d = await res.json();
+          btn.textContent = d.ok ? '✓ Request Sent' : (d.error || 'Already friends');
+          btn.style.borderColor = 'var(--success)';
+          btn.style.color = 'var(--success)';
+        } catch { btn.textContent = 'Error'; }
+      });
+      // Start Chat
+      $('match-chat-btn').addEventListener('click', () => {
+        if (!matchedConvId) return;
+        // Navigate to DM and open this conversation
+        if (window.NYCKING_SHOW) window.NYCKING_SHOW('dm-screen');
+        // Trigger DM chat open if social.js exposes it
+        setTimeout(() => {
+          const convRow = document.querySelector('.dm-conv[data-cid="' + matchedConvId + '"]');
+          if (convRow) convRow.click();
+        }, 500);
+      });
+      // Match Again
+      $('match-again-btn').addEventListener('click', () => setState('idle'));
     }
   }
 
@@ -60,7 +97,7 @@
     setState('waiting');
     try {
       const h = await authHeaders();
-      const res = await fetch(`${API}/api/match/join`, { method: 'POST', headers: h, body: JSON.stringify({}) });
+      const res = await fetch(API + '/api/match/join', { method: 'POST', headers: h, body: JSON.stringify({}) });
       const d = await res.json();
       if (d.status === 'matched') {
         stopPoll();
@@ -78,7 +115,7 @@
     stopPoll();
     try {
       const h = await authHeaders();
-      await fetch(`${API}/api/match/leave`, { method: 'POST', headers: h });
+      await fetch(API + '/api/match/leave', { method: 'POST', headers: h });
     } catch {}
     setState('idle');
   }
@@ -86,7 +123,7 @@
   async function checkStatus() {
     try {
       const h = await authHeaders();
-      const res = await fetch(`${API}/api/match/status`, { headers: h });
+      const res = await fetch(API + '/api/match/status', { headers: h });
       const d = await res.json();
       if (d.status === 'matched') {
         stopPoll();
@@ -95,30 +132,16 @@
     } catch {}
   }
 
-  function startPoll() {
-    stopPoll();
-    pollTimer = setInterval(checkStatus, 3000);
-  }
-  function stopPoll() {
-    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-  }
-
-  // Chat button → open DM
-  chatBtn.addEventListener('click', () => {
-    if (!matchedConvId) return;
-    // Use social.js's openDMChat if available, or navigate to dm-screen
-    if (window.NYCKING_SHOW) window.NYCKING_SHOW('dm-screen');
-  });
+  function startPoll() { stopPoll(); pollTimer = setInterval(checkStatus, 3000); }
+  function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
   // Init
-  startBtn.addEventListener('click', startMatch);
+  $('match-start-btn').addEventListener('click', startMatch);
 
   // Cleanup when leaving match screen
   const origShow = window.NYCKING_SHOW;
   window.NYCKING_SHOW = function (id) {
-    if (id !== 'match-screen' && pollTimer) {
-      cancelMatch();
-    }
+    if (id !== 'match-screen' && pollTimer) cancelMatch();
     if (origShow) origShow(id);
   };
 })();

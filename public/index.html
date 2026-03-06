@@ -205,8 +205,18 @@
       border-radius:50%; background:var(--error); display:none;
     }
 
-    /* ===== TAB SCREENS (with bottom padding for tab bar) ===== */
-    .tab-screen { padding-bottom:64px !important; }
+    /* ===== ALL INNER SCREENS: bottom padding for tab bar ===== */
+    .tab-bar.show ~ .screen,
+    .screen.translator-screen,
+    #module-screen, #match-screen, #contacts-screen, #dm-screen, #moments-screen, #me-screen,
+    #game-lobby, #screen-coach, #chat-screen {
+      padding-bottom:calc(env(safe-area-inset-bottom,8px) + 64px) !important;
+    }
+    #home-screen, #auth-screen { padding-bottom:0 !important; }
+    /* Chat input bar: lift above tab bar */
+    #chat-screen .chat-input-bar,
+    #chat-screen .chat-setup { margin-bottom:0; }
+    #c-input-bar { padding-bottom:8px !important; }
 
     /* ===== PROFILE / ME PAGE ===== */
     #me-screen {
