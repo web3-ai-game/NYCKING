@@ -87,17 +87,9 @@
       const data = await res.json();
       renderResult(data.result);
 
-      // Show cost badge
-      if (data.costTHB !== undefined) {
-        const costBadge = $('cost-badge');
-        const costVal = $('cost-val');
-        const costTokens = $('cost-tokens');
-        if (costBadge && costVal && costTokens) {
-          costVal.textContent = '฿' + data.costTHB.toFixed(4);
-          costTokens.textContent = (data.tokensIn + data.tokensOut) + ' tokens';
-          costBadge.style.display = '';
-          setTimeout(() => { costBadge.style.display = 'none'; }, 5000);
-        }
+      // Deduct tokens
+      if (data.tokensIn || data.tokensOut) {
+        if (window.NYCKING_DEDUCT_TOKENS) window.NYCKING_DEDUCT_TOKENS(data.tokensIn || 0, data.tokensOut || 0);
       }
     } catch (err) {
       resultEl.innerHTML = `<div style="color:#f87171;text-align:center;padding:16px">⚠️ ${err.message}</div>`;
@@ -130,13 +122,28 @@
 
     if (items.length > 0) {
       resultEl.innerHTML = items.map((item, i) => `
-        <div class="cr-item" onclick="navigator.clipboard.writeText(this.textContent.trim()).then(()=>{this.style.color='var(--accent)';setTimeout(()=>this.style.color='',800)})" title="Tap to copy">
+        <div class="cr-item" data-copy="${escapeHtml(item)}" title="Tap to copy">
           <span style="color:var(--accent);font-weight:700">${i + 1}.</span> ${escapeHtml(item)}
         </div>
       `).join('');
+      // Copy handler with toast
+      resultEl.querySelectorAll('.cr-item').forEach(el => {
+        el.addEventListener('click', () => {
+          const text = el.dataset.copy || el.textContent.trim();
+          navigator.clipboard.writeText(text).then(() => showToast('Copied!')).catch(() => {});
+        });
+      });
     } else {
       resultEl.innerHTML = `<div style="padding:8px">${escapeHtml(text)}</div>`;
     }
+  }
+
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;padding:8px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:999;pointer-events:none;animation:fadeInUp .3s ease';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 1500);
   }
 
   function escapeHtml(str) {
