@@ -31,6 +31,31 @@ async function checkAdmin(req: Request, res: Response): Promise<boolean> {
   return true;
 }
 
+// POST /api/admin/promote — self-promote to admin with secret key
+// Usage: POST /api/admin/promote { "secret": "<ADMIN_SECRET>" }
+router.post("/admin/promote", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { secret } = req.body;
+    const adminSecret = process.env.ADMIN_SECRET;
+    if (!adminSecret) {
+      return res.status(500).json({ error: "ADMIN_SECRET not configured" });
+    }
+    if (!secret || secret !== adminSecret) {
+      return res.status(403).json({ error: "Invalid secret" });
+    }
+    const db = await getDB();
+    await db.collection("users").doc(req.uid!).update({
+      tier: "admin",
+      tokenBalance: 999999,
+    });
+    logger.info("Admin self-promote", { uid: req.uid });
+    return res.json({ ok: true, tier: "admin", tokenBalance: 999999 });
+  } catch (err) {
+    logger.error("Admin promote failed", { error: err });
+    return res.status(500).json({ error: "Failed to promote" });
+  }
+});
+
 // GET /api/admin/stats
 router.get("/admin/stats", authMiddleware, async (req: Request, res: Response) => {
   try {
