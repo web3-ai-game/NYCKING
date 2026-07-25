@@ -1,0 +1,11 @@
+node_modules/
+functions/node_modules/
+server/node_modules/
+server/dist/
+functions/.env
+server/.env
+.env
+*.log
+.firebase/
+.idea/
+.DS_Store

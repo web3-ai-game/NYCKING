@@ -1,0 +1,15 @@
+{
+  "name": "nycking",
+  "version": "1.0.0",
+  "description": "Thai-Chinese Real-time Voice Translator PWA",
+  "private": true,
+  "scripts": {
+    "serve": "firebase emulators:start --only hosting,functions",
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:functions": "firebase deploy --only functions"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

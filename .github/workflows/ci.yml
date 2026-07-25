@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run build
+
+  build-functions:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: functions/package-lock.json
+      - run: npm ci
+      - run: node -e "require('./index.js'); console.log('Functions load OK')"
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t nycking-server-ci ./server
+      - run: |
+          docker run --rm -e XAI_API_KEY=ci_test -e GEMINI_API_KEY=ci_test -d --name nycking-ci nycking-server-ci
+          sleep 3
+          docker exec nycking-ci node -e "
+            const http = require('http');
+            http.get('http://localhost:8080/api/health', (res) => {
+              let data = '';
+              res.on('data', (c) => data += c);
+              res.on('end', () => {
+                console.log('Health check:', data);
+                process.exit(res.statusCode === 200 ? 0 : 1);
+              });
+            }).on('error', (e) => { console.error(e); process.exit(1); });
+          "
+          docker stop nycking-ci

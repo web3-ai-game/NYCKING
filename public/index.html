@@ -1,0 +1,2191 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="google" content="notranslate">
+  <title>NYCKING — Social Translation Platform</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #161616;
+      --surface2: #222;
+      --accent: #f97316;
+      --accent2: #fb923c;
+      --accent-glow: rgba(249,115,22,0.25);
+      --text: #f0f0f0;
+      --text-dim: #777;
+      --success: #22c55e;
+      --error: #ef4444;
+      --warning: #eab308;
+      --radius: 14px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height:100dvh; overflow-x:hidden;
+      -webkit-tap-highlight-color:transparent; user-select:none;
+    }
+    .screen { display:none; flex-direction:column; min-height:100dvh; }
+    .screen.active { display:flex; }
+
+    /* ===== HOMEPAGE — VERTICAL SCROLL LANDING ===== */
+    #home-screen {
+      align-items:center; gap:0; overflow-y:auto; overflow-x:hidden;
+      padding:0;
+    }
+    .hp-section {
+      width:100%; display:flex; flex-direction:column; align-items:center;
+      padding:48px 24px 32px; text-align:center; gap:16px; position:relative;
+    }
+    .hp-section:first-child { padding-top:calc(env(safe-area-inset-top,20px) + 48px); }
+    .hp-section:last-child { padding-bottom:calc(env(safe-area-inset-bottom,20px) + 32px); }
+    .hp-divider {
+      width:60px; height:1px; margin:0 auto;
+      background:linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+    /* Glow */
+    .hero-glow {
+      position:absolute; top:-100px; left:50%; transform:translateX(-50%);
+      width:320px; height:320px; border-radius:50%; pointer-events:none;
+      background:radial-gradient(circle, rgba(249,115,22,.12) 0%, transparent 70%);
+      animation:glowPulse 4s ease-in-out infinite;
+    }
+    @keyframes glowPulse { 0%,100%{opacity:.5;transform:translateX(-50%) scale(1)} 50%{opacity:1;transform:translateX(-50%) scale(1.12)} }
+    /* Logo */
+    .home-logo {
+      font-size:48px; font-weight:900; letter-spacing:3px;
+      background:linear-gradient(135deg, var(--accent), #fbbf24, var(--accent2));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      background-clip:text; position:relative; z-index:1;
+    }
+    .home-version { font-size:11px; color:#555; letter-spacing:1px; }
+    .home-tagline { font-size:15px; color:var(--text-dim); line-height:1.6; max-width:320px; }
+    .home-flags { display:flex; gap:12px; font-size:28px; }
+    .home-stats { display:flex; gap:24px; }
+    .home-stat { text-align:center; }
+    .home-stat .stat-num { font-size:28px; font-weight:900; color:var(--accent); }
+    .home-stat .stat-label { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+    /* CTA */
+    .home-enter-btn {
+      width:100%; max-width:300px; padding:16px;
+      background:linear-gradient(135deg, var(--accent), #ea580c);
+      border:none; border-radius:var(--radius); color:#fff;
+      font-size:17px; font-weight:700; cursor:pointer;
+      box-shadow:0 4px 24px var(--accent-glow); transition:all .2s;
+      position:relative; overflow:hidden;
+    }
+    .home-enter-btn:active { transform:scale(0.96); }
+    .home-footer { font-size:10px; color:#444; line-height:1.5; }
+    /* Section title */
+    .hp-title { font-size:20px; font-weight:800; color:var(--text); }
+    .hp-subtitle { font-size:12px; color:var(--text-dim); max-width:300px; }
+    /* Feature Grid */
+    .feat-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
+      width:100%; max-width:340px;
+    }
+    .feat-card {
+      background:rgba(22,22,22,.7); backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.06); border-radius:16px;
+      padding:16px 12px; cursor:pointer; transition:all .25s;
+      display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center;
+    }
+    .feat-card:active { transform:scale(0.96); border-color:var(--accent); }
+    .feat-card .fc-icon { font-size:28px; }
+    .feat-card .fc-name { font-size:13px; font-weight:700; color:var(--text); }
+    .feat-card .fc-desc { font-size:10px; color:var(--text-dim); line-height:1.3; }
+    /* Tech rows */
+    .tech-highlights {
+      display:flex; flex-direction:column; gap:8px; width:100%; max-width:340px; text-align:left;
+    }
+    .tech-row {
+      display:flex; align-items:flex-start; gap:12px;
+      background:rgba(22,22,22,.6); backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.05); border-radius:14px;
+      padding:12px 14px;
+    }
+    .tech-row .tr-icon { font-size:20px; flex-shrink:0; }
+    .tech-row .tr-info { flex:1; }
+    .tech-row .tr-title { font-size:12px; font-weight:700; color:var(--text); }
+    .tech-row .tr-desc { font-size:10px; color:var(--text-dim); line-height:1.4; margin-top:2px; }
+    .tech-tags {
+      display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-width:340px;
+    }
+    .tech-tag {
+      font-size:10px; padding:4px 10px; border-radius:20px;
+      background:rgba(22,22,22,.8); border:1px solid rgba(249,115,22,.2);
+      color:var(--accent2); font-weight:600;
+    }
+    .home-brand-footer {
+      font-size:10px; color:#444; display:flex; flex-direction:column;
+      align-items:center; gap:4px;
+    }
+    .home-brand-footer .divider {
+      width:60px; height:1px;
+      background:linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+
+    /* ===== AUTH SCREEN ===== */
+    #auth-screen {
+      align-items:center; justify-content:center; gap:16px;
+      padding:env(safe-area-inset-top,20px) 24px env(safe-area-inset-bottom,20px);
+    }
+    .auth-icon { font-size:56px; margin-bottom:4px; }
+    .auth-title { font-size:24px; font-weight:800; color:var(--accent); }
+    .auth-sub { font-size:13px; color:var(--text-dim); text-align:center; max-width:280px; }
+    .auth-form { display:flex; flex-direction:column; gap:10px; width:100%; max-width:300px; }
+    .auth-input {
+      width:100%; padding:14px 16px; border-radius:12px;
+      background:var(--surface); border:1px solid #333;
+      color:var(--text); font-size:15px; outline:none;
+      font-family:inherit; transition:border-color .2s;
+    }
+    .auth-input:focus { border-color:var(--accent); }
+    .auth-input::placeholder { color:var(--text-dim); }
+    .auth-btn {
+      width:100%; padding:14px; border-radius:12px; border:none;
+      font-size:16px; font-weight:700; cursor:pointer; transition:all .2s;
+    }
+    .auth-btn:active { transform:scale(0.97); }
+    .auth-btn.primary {
+      background:linear-gradient(135deg, var(--accent), #ea580c);
+      color:#fff; box-shadow:0 4px 16px var(--accent-glow);
+    }
+    .auth-btn.google {
+      background:var(--surface); border:1px solid #333; color:var(--text);
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .auth-btn.google img { width:20px; height:20px; }
+    .auth-divider {
+      display:flex; align-items:center; gap:12px; width:100%; max-width:300px;
+      color:var(--text-dim); font-size:12px;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content:''; flex:1; height:1px; background:#333;
+    }
+    .auth-toggle {
+      background:none; border:none; color:var(--accent);
+      font-size:13px; cursor:pointer; text-decoration:underline;
+    }
+    .auth-error {
+      color:var(--error); font-size:12px; text-align:center;
+      max-width:300px; min-height:16px;
+    }
+    .auth-back {
+      margin-top:4px; background:none; border:none;
+      color:var(--text-dim); font-size:14px; cursor:pointer;
+    }
+
+    /* ===== BOTTOM TAB BAR ===== */
+    .tab-bar {
+      display:none; position:fixed; bottom:0; left:0; right:0; z-index:100;
+      background:var(--surface); border-top:1px solid #222;
+      padding:4px 0 calc(env(safe-area-inset-bottom,4px)+4px);
+      justify-content:space-around; align-items:center;
+    }
+    .tab-bar.show { display:flex; }
+    .tab-item {
+      display:flex; flex-direction:column; align-items:center; gap:2px;
+      background:none; border:none; color:var(--text-dim);
+      font-size:10px; cursor:pointer; padding:4px 8px; min-width:56px;
+      transition:color .15s; position:relative;
+    }
+    .tab-item .tab-icon { font-size:22px; line-height:1; }
+    .tab-item.active { color:var(--accent); }
+    .tab-item .tab-badge {
+      position:absolute; top:-2px; right:8px; width:8px; height:8px;
+      border-radius:50%; background:var(--error); display:none;
+    }
+
+    /* ===== ALL INNER SCREENS: bottom padding for tab bar ===== */
+    #module-screen, #ranking-screen, #moments-screen, #messages-screen, #me-screen,
+    #game-lobby, #chat-screen {
+      padding-bottom:calc(env(safe-area-inset-bottom,8px) + 64px) !important;
+    }
+    #home-screen, #auth-screen { padding-bottom:0 !important; }
+    /* Chat input bar: lift above tab bar */
+    #chat-screen .chat-input-bar,
+    #chat-screen .chat-setup { margin-bottom:0; }
+    #c-input-bar { padding-bottom:8px !important; }
+
+    /* ===== PROFILE / ME PAGE ===== */
+    #me-screen {
+      align-items:center; gap:16px;
+      padding:calc(env(safe-area-inset-top,8px)+16px) 24px calc(env(safe-area-inset-bottom,8px)+72px);
+      overflow-y:auto;
+    }
+    .me-avatar { font-size:64px; line-height:1; }
+    .me-name { font-size:20px; font-weight:800; color:var(--text); }
+    .me-username { font-size:13px; color:var(--text-dim); }
+    .me-uid { font-size:10px; color:#555; font-family:monospace; }
+    .me-section { width:100%; max-width:340px; margin-top:8px; }
+    .me-section-title { font-size:12px; color:var(--text-dim); font-weight:700; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
+    .me-row {
+      display:flex; align-items:center; gap:12px; padding:14px 16px;
+      background:var(--surface); border:1px solid #222; border-radius:12px;
+      margin-bottom:6px; cursor:pointer; transition:all .15s;
+    }
+    .me-row:active { border-color:var(--accent); }
+    .me-row .me-row-icon { font-size:18px; flex-shrink:0; }
+    .me-row .me-row-label { flex:1; font-size:14px; }
+    .me-row .me-row-value { font-size:13px; color:var(--text-dim); }
+    .me-row .me-row-arrow { color:var(--text-dim); font-size:16px; }
+    .me-logout {
+      width:100%; max-width:340px; padding:14px; border-radius:12px;
+      border:1px solid var(--error); background:none;
+      color:var(--error); font-size:14px; font-weight:700;
+      cursor:pointer; margin-top:12px; transition:all .2s;
+    }
+    .me-logout:active { background:var(--error); color:#fff; }
+
+    /* ===== EDIT PROFILE MODAL ===== */
+    .edit-modal {
+      display:none; position:fixed; inset:0; z-index:300;
+      background:rgba(0,0,0,.7); align-items:center; justify-content:center;
+      padding:20px;
+    }
+    .edit-modal.show { display:flex; }
+    .edit-modal-box {
+      background:var(--bg); border:1px solid #333; border-radius:16px;
+      padding:24px; width:100%; max-width:320px;
+    }
+    .edit-modal-title { font-size:18px; font-weight:700; margin-bottom:16px; }
+    .edit-modal-box .auth-input { margin-bottom:10px; }
+    .edit-modal-actions { display:flex; gap:8px; margin-top:12px; }
+    .edit-modal-actions button { flex:1; }
+    .btn-cancel {
+      padding:12px; border-radius:10px; background:var(--surface);
+      border:1px solid #333; color:var(--text); font-size:14px; cursor:pointer;
+    }
+    .btn-save {
+      padding:12px; border-radius:10px; background:var(--accent);
+      border:none; color:#fff; font-size:14px; font-weight:700; cursor:pointer;
+    }
+
+    /* Avatar picker grid */
+    .avatar-grid {
+      display:grid; grid-template-columns:repeat(6,1fr); gap:6px;
+      margin:8px 0;
+    }
+    .avatar-grid span {
+      font-size:28px; text-align:center; cursor:pointer;
+      padding:6px; border-radius:10px; border:2px solid transparent;
+    }
+    .avatar-grid span:active, .avatar-grid span.selected {
+      border-color:var(--accent); background:var(--surface);
+    }
+
+    /* ===== SOCIAL SHARED ===== */
+    .social-loading { text-align:center; color:var(--text-dim); padding:30px 0; }
+    .social-empty { text-align:center; color:var(--text-dim); padding:30px 0; font-size:13px; }
+    .social-section-title { font-size:12px; color:var(--accent); font-weight:700; padding:8px 0 4px; text-transform:uppercase; }
+    .social-row {
+      display:flex; align-items:center; gap:12px; padding:12px 14px;
+      background:var(--surface); border:1px solid #222; border-radius:12px;
+      margin-bottom:6px; transition:all .15s;
+    }
+    .social-row:active { border-color:var(--accent); }
+    .social-avatar { font-size:28px; flex-shrink:0; }
+    .social-info { flex:1; min-width:0; }
+    .social-name { font-size:14px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .social-sub { font-size:11px; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .social-time { font-size:10px; color:var(--text-dim); flex-shrink:0; }
+    .social-btn {
+      padding:6px 12px; border-radius:8px; border:1px solid #333;
+      background:var(--surface2); color:var(--text); font-size:12px; font-weight:700;
+      cursor:pointer; flex-shrink:0; transition:all .15s;
+    }
+    .social-btn:active { border-color:var(--accent); }
+    .social-btn.accept { color:var(--success); border-color:var(--success); }
+    .social-btn.reject { color:var(--error); border-color:var(--error); }
+    .social-btn.add { color:var(--accent); border-color:var(--accent); }
+
+    /* Contacts screen */
+    #contacts-screen {
+      padding:calc(env(safe-area-inset-top,8px)+8px) 16px 72px; gap:8px; overflow-y:auto;
+    }
+    .contacts-search {
+      width:100%; padding:12px 14px; border-radius:12px;
+      background:var(--surface); border:1px solid #333; color:var(--text);
+      font-size:14px; outline:none; font-family:inherit;
+    }
+    .contacts-search:focus { border-color:var(--accent); }
+
+    /* DM screen */
+    #dm-screen { padding:calc(env(safe-area-inset-top,8px)+8px) 16px 72px; gap:8px; overflow-y:auto; }
+    #dm-chat-view {
+      display:none; flex-direction:column; position:fixed; inset:0; z-index:150;
+      background:var(--bg);
+    }
+    .dm-chat-header {
+      display:flex; align-items:center; gap:10px;
+      padding:calc(env(safe-area-inset-top,8px)+8px) 16px 8px;
+      background:var(--surface); border-bottom:1px solid #222;
+    }
+    .dm-chat-header .logo { font-size:16px; }
+    #dm-messages {
+      flex:1; overflow-y:auto; padding:12px 16px;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .dm-input-bar {
+      display:flex; gap:8px; padding:8px 16px calc(env(safe-area-inset-bottom,8px)+8px);
+      background:var(--surface); border-top:1px solid #222;
+    }
+    .dm-input-bar input {
+      flex:1; padding:10px 12px; border-radius:10px;
+      background:var(--surface2); border:1px solid #333; color:var(--text);
+      font-size:14px; outline:none;
+    }
+    .dm-input-bar input:focus { border-color:var(--accent); }
+
+    /* Moments screen */
+    #moments-screen { padding:calc(env(safe-area-inset-top,8px)+8px) 16px 72px; gap:10px; overflow-y:auto; }
+    .moments-post-bar {
+      display:flex; gap:8px; width:100%;
+    }
+    .moments-post-bar textarea {
+      flex:1; padding:10px 12px; border-radius:12px; min-height:44px; max-height:100px;
+      background:var(--surface); border:1px solid #333; color:var(--text);
+      font-size:14px; resize:none; font-family:inherit; outline:none;
+    }
+    .moments-post-bar textarea:focus { border-color:var(--accent); }
+    .moments-post-bar button {
+      padding:10px 16px; border-radius:12px; border:none;
+      background:var(--accent); color:#fff; font-weight:700; font-size:13px;
+      cursor:pointer; flex-shrink:0; align-self:flex-end;
+    }
+    .moment-card {
+      background:var(--surface); border:1px solid #222; border-radius:14px;
+      padding:14px; width:100%;
+    }
+    .moment-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+    .moment-content { font-size:14px; line-height:1.5; margin-bottom:10px; white-space:pre-wrap; word-break:break-word; }
+    .moment-actions { display:flex; gap:12px; }
+    .moment-action-btn {
+      background:none; border:none; color:var(--text-dim); font-size:13px;
+      cursor:pointer; padding:4px 8px; border-radius:6px; transition:all .15s;
+    }
+    .moment-action-btn:active { background:var(--surface2); }
+    .moment-action-btn.liked { color:var(--error); }
+
+    /* ===== MATCH SCREEN ===== */
+    #match-screen {
+      align-items:center; justify-content:center; gap:20px;
+      padding:calc(env(safe-area-inset-top,8px)+16px) 24px calc(env(safe-area-inset-bottom,8px)+72px);
+      text-align:center;
+    }
+    .match-pulse {
+      width:120px; height:120px; border-radius:50%;
+      background:radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      display:flex; align-items:center; justify-content:center;
+      font-size:48px; animation:matchPulse 2s ease-in-out infinite;
+    }
+    @keyframes matchPulse { 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.15);opacity:1} }
+    .match-status { font-size:16px; font-weight:700; color:var(--text); }
+    .match-sub { font-size:12px; color:var(--text-dim); max-width:260px; }
+    .match-btn {
+      width:100%; max-width:280px; padding:16px; border-radius:14px; border:none;
+      font-size:16px; font-weight:700; cursor:pointer; transition:all .2s;
+    }
+    .match-btn.start { background:linear-gradient(135deg, var(--accent), #ea580c); color:#fff; box-shadow:0 4px 20px var(--accent-glow); }
+    .match-btn.start:active { transform:scale(0.96); }
+    .match-btn.cancel { background:var(--surface); border:1px solid #333; color:var(--text-dim); }
+    .match-result {
+      background:var(--surface); border:1px solid #222; border-radius:16px;
+      padding:20px; display:flex; flex-direction:column; align-items:center; gap:10px;
+      width:100%; max-width:280px;
+    }
+    .match-result .mr-avatar { font-size:48px; }
+    .match-result .mr-name { font-size:18px; font-weight:700; }
+    .match-btn.chat { background:var(--success); color:#fff; }
+
+    /* ===== MODULE SELECTOR ===== */
+    #module-screen {
+      align-items:center; justify-content:center; gap:20px;
+      padding:env(safe-area-inset-top,20px) 24px env(safe-area-inset-bottom,20px);
+    }
+    .module-title { font-size:20px; font-weight:700; }
+    .module-sub { font-size:14px; color:var(--text-dim); }
+    .module-cards { display:flex; flex-direction:column; gap:14px; width:100%; max-width:340px; }
+    .module-card {
+      background:var(--surface); border:1px solid #333;
+      border-radius:16px; padding:24px 20px; cursor:pointer;
+      transition:all .2s; display:flex; align-items:center; gap:16px;
+    }
+    .module-card:active { transform:scale(0.97); border-color:var(--accent); }
+    .module-card .mod-icon { font-size:36px; flex-shrink:0; }
+    .module-card .mod-info { flex:1; }
+    .module-card .mod-name { font-size:18px; font-weight:700; }
+    .module-card .mod-desc { font-size:12px; color:var(--text-dim); margin-top:3px; }
+    .module-card .mod-arrow { color:var(--text-dim); font-size:20px; }
+
+    /* Install banner */
+    .install-banner {
+      width:100%; max-width:340px; padding:14px 16px;
+      background:linear-gradient(135deg, #1a1a2e, #16213e);
+      border:1px solid var(--accent); border-radius:16px;
+      display:none; align-items:center; gap:12px;
+      position:relative; animation:installPulse 2s ease-in-out infinite;
+    }
+    .install-banner.show { display:flex; }
+    @keyframes installPulse {
+      0%,100% { box-shadow:0 0 8px rgba(249,115,22,0.2); }
+      50% { box-shadow:0 0 20px rgba(249,115,22,0.4); }
+    }
+    .install-icon { font-size:32px; flex-shrink:0; }
+    .install-info { flex:1; }
+    .install-title { font-size:14px; font-weight:700; color:#fff; }
+    .install-desc { font-size:11px; color:var(--text-dim); margin-top:2px; line-height:1.3; }
+    .install-btn {
+      padding:8px 16px; border-radius:10px; border:none;
+      background:var(--accent); color:#fff; font-size:13px;
+      font-weight:700; cursor:pointer; white-space:nowrap;
+      flex-shrink:0; transition:all .2s;
+    }
+    .install-btn:active { transform:scale(0.95); }
+    .install-dismiss {
+      position:absolute; top:6px; right:8px; background:none;
+      border:none; color:#666; font-size:16px; cursor:pointer;
+      padding:2px 6px; line-height:1;
+    }
+
+    /* ===== GAMES ===== */
+    #game-lobby { align-items:center; justify-content:flex-start; gap:16px;
+      padding:calc(env(safe-area-inset-top,12px)+12px) 20px 20px; overflow-y:auto; }
+    .game-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; max-width:340px; }
+    .game-card {
+      background:var(--surface); border:1px solid #333; border-radius:16px;
+      padding:18px 14px; cursor:pointer; text-align:center; transition:all .2s;
+    }
+    .game-card:active { transform:scale(0.95); border-color:var(--accent); }
+    .game-card .gc-icon { font-size:36px; }
+    .game-card .gc-name { font-size:14px; font-weight:700; margin-top:6px; }
+    .game-card .gc-desc { font-size:10px; color:var(--text-dim); margin-top:2px; }
+    .lb-btn {
+      width:100%; max-width:340px; padding:12px; border-radius:12px;
+      background:linear-gradient(135deg,#1a1a2e,#16213e); border:1px solid #444;
+      color:#fff; font-size:14px; font-weight:700; cursor:pointer; text-align:center;
+    }
+    .lb-btn:active { border-color:var(--accent); }
+    /* Game screen shared */
+    .game-screen {
+      padding:calc(env(safe-area-inset-top,8px)+8px) 12px 12px;
+      gap:8px; align-items:center;
+    }
+    .game-score-bar { display:flex; gap:16px; align-items:center; font-size:13px; font-weight:700; }
+    .game-score-bar .gs-label { color:var(--text-dim); font-size:11px; }
+    .game-score-bar .gs-val { color:var(--accent); font-size:18px; }
+    .game-over-overlay {
+      position:absolute; inset:0; background:rgba(0,0,0,.8);
+      display:none; flex-direction:column; align-items:center; justify-content:center;
+      gap:16px; z-index:50; border-radius:12px;
+    }
+    .game-over-overlay.show { display:flex; }
+    .game-over-overlay .go-title { font-size:28px; font-weight:800; color:var(--accent); }
+    .game-over-overlay .go-score { font-size:16px; color:var(--text); }
+    .game-over-overlay .go-btn {
+      padding:10px 28px; border-radius:12px; border:none;
+      background:var(--accent); color:#fff; font-size:14px; font-weight:700; cursor:pointer;
+    }
+    /* 2048 */
+    .grid-2048 {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:6px;
+      background:#1a1a1a; border-radius:12px; padding:6px;
+      width:100%; max-width:320px; aspect-ratio:1;
+    }
+    .tile-2048 {
+      border-radius:8px; display:flex; align-items:center; justify-content:center;
+      font-weight:800; font-size:22px; transition:all .12s;
+      background:var(--surface2); color:var(--text);
+    }
+    .tile-2048[data-v="2"]   { background:#eee4da; color:#776e65; }
+    .tile-2048[data-v="4"]   { background:#ede0c8; color:#776e65; }
+    .tile-2048[data-v="8"]   { background:#f2b179; color:#fff; }
+    .tile-2048[data-v="16"]  { background:#f59563; color:#fff; }
+    .tile-2048[data-v="32"]  { background:#f67c5f; color:#fff; }
+    .tile-2048[data-v="64"]  { background:#f65e3b; color:#fff; }
+    .tile-2048[data-v="128"] { background:#edcf72; color:#fff; font-size:18px; }
+    .tile-2048[data-v="256"] { background:#edcc61; color:#fff; font-size:18px; }
+    .tile-2048[data-v="512"] { background:#edc850; color:#fff; font-size:18px; }
+    .tile-2048[data-v="1024"]{ background:#edc53f; color:#fff; font-size:15px; }
+    .tile-2048[data-v="2048"]{ background:#edc22e; color:#fff; font-size:15px; }
+    /* Snake */
+    .snake-canvas { border-radius:12px; background:#111; touch-action:none; width:100%; max-width:320px; }
+    /* Whack-a-mole */
+    .mole-grid {
+      display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+      width:100%; max-width:300px;
+    }
+    .mole-hole {
+      aspect-ratio:1; border-radius:50%; background:var(--surface2);
+      border:2px solid #333; display:flex; align-items:center; justify-content:center;
+      font-size:36px; cursor:pointer; transition:all .15s; user-select:none;
+    }
+    .mole-hole:active { transform:scale(0.9); }
+    .mole-hole.active { background:#2a2a1a; border-color:var(--accent); animation:moleUp .3s; }
+    @keyframes moleUp { 0%{transform:scale(0.5)} 100%{transform:scale(1)} }
+    /* Leaderboard */
+    .lb-list { width:100%; max-width:340px; }
+    .lb-row {
+      display:flex; align-items:center; gap:12px; padding:10px 14px;
+      background:var(--surface); border:1px solid #222; border-radius:10px; margin-bottom:6px;
+    }
+    .lb-row .lb-rank { font-size:18px; font-weight:800; color:var(--accent); min-width:28px; }
+    .lb-row .lb-game { font-size:12px; color:var(--text-dim); }
+    .lb-row .lb-score { margin-left:auto; font-size:16px; font-weight:700; color:var(--accent); }
+
+    /* ===== AI COACH ===== */
+    #screen-coach { padding:calc(env(safe-area-inset-top,8px)+8px) 16px 16px; gap:10px; overflow-y:auto; }
+    .coach-tabs { display:flex; gap:6px; width:100%; max-width:360px; }
+    .coach-tab {
+      flex:1; padding:10px 6px; border-radius:10px; border:1px solid #333;
+      background:var(--surface); color:var(--text-dim); font-size:12px; font-weight:700;
+      cursor:pointer; text-align:center; transition:all .2s;
+    }
+    .coach-tab.active { border-color:var(--accent); color:var(--accent); background:#1a1a2e; }
+    .coach-stage-bar { display:flex; gap:6px; width:100%; max-width:360px; }
+    .coach-stage {
+      flex:1; padding:6px; border-radius:8px; border:1px solid #333;
+      background:var(--surface); color:var(--text-dim); font-size:11px;
+      cursor:pointer; text-align:center; transition:all .15s;
+    }
+    .coach-stage.active { border-color:var(--accent); color:#fff; background:var(--accent); }
+    .coach-input-area { width:100%; max-width:360px; }
+    .coach-input {
+      width:100%; min-height:80px; padding:12px; border-radius:12px;
+      border:1px solid #333; background:var(--surface); color:var(--text);
+      font-size:14px; resize:none; font-family:inherit;
+    }
+    .coach-input:focus { border-color:var(--accent); outline:none; }
+    .coach-send {
+      width:100%; max-width:360px; padding:12px; border-radius:12px; border:none;
+      background:var(--accent); color:#fff; font-size:14px; font-weight:700;
+      cursor:pointer; transition:all .2s;
+    }
+    .coach-send:active { transform:scale(0.97); }
+    .coach-send:disabled { opacity:.5; cursor:not-allowed; }
+    .coach-result {
+      width:100%; max-width:360px; padding:14px; border-radius:12px;
+      background:var(--surface); border:1px solid #222; min-height:60px;
+      font-size:14px; line-height:1.6; white-space:pre-wrap; color:var(--text);
+    }
+    .coach-result .cr-item {
+      padding:8px 0; border-bottom:1px solid #222; cursor:pointer; transition:all .15s;
+    }
+    .coach-result .cr-item:last-child { border-bottom:none; }
+    .coach-result .cr-item:active { color:var(--accent); }
+    .coach-loading { text-align:center; color:var(--text-dim); padding:20px; }
+    .coach-loading .dot-pulse { display:inline-block; animation:dotPulse 1.2s infinite; }
+    @keyframes dotPulse { 0%,100%{opacity:.3} 50%{opacity:1} }
+    @keyframes fadeInUp { 0%{opacity:0;transform:translateX(-50%) translateY(10px)} 100%{opacity:1;transform:translateX(-50%) translateY(0)} }
+
+    /* ===== RANKING SCREEN ===== */
+    #ranking-screen { padding:calc(env(safe-area-inset-top,8px)+8px) 16px calc(env(safe-area-inset-bottom,8px)+72px); gap:8px; overflow-y:auto; }
+    .rank-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface); border:1px solid #222; border-radius:12px; margin-bottom:6px; cursor:pointer; transition:all .15s; }
+    .rank-row:active { border-color:var(--accent); }
+    .rank-row.rank-me { border-color:var(--accent); background:#1a1408; }
+    .rank-pos { font-size:18px; font-weight:800; min-width:28px; text-align:center; color:var(--accent); }
+    .rank-info { flex:1; min-width:0; }
+    .rank-name { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .rank-sub { font-size:11px; color:var(--text-dim); }
+    .rank-tokens { text-align:right; }
+    .rank-token-val { font-size:13px; font-weight:700; color:var(--accent); }
+    .rank-token-label { font-size:9px; color:var(--text-dim); }
+
+    /* ===== MESSAGES SCREEN (merged) ===== */
+    .msg-tabs { display:flex; gap:0; width:100%; border-bottom:1px solid #222; margin-bottom:8px; }
+    .msg-tab { flex:1; padding:10px; background:none; border:none; border-bottom:2px solid transparent; color:var(--text-dim); font-size:13px; font-weight:700; cursor:pointer; transition:all .15s; text-align:center; }
+    .msg-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .msg-panel { display:none; width:100%; }
+    .msg-panel.active { display:block; }
+
+    /* ===== CONFETTI ===== */
+    .confetti-container { position:fixed; inset:0; pointer-events:none; z-index:9999; overflow:hidden; }
+    .confetti-piece { position:absolute; width:10px; height:10px; top:-10px; animation:confettiFall 3s linear forwards; }
+    @keyframes confettiFall { 0%{top:-10px;opacity:1;transform:rotate(0deg)} 100%{top:110vh;opacity:0;transform:rotate(720deg)} }
+    .pro-welcome { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9998; background:rgba(0,0,0,.92); border:2px solid var(--accent); border-radius:20px; padding:30px 24px; text-align:center; max-width:300px; animation:fadeInUp .5s; }
+    .pro-welcome .pw-icon { font-size:48px; margin-bottom:12px; }
+    .pro-welcome .pw-title { font-size:20px; font-weight:800; color:var(--accent); margin-bottom:8px; }
+    .pro-welcome .pw-sub { font-size:13px; color:var(--text-dim); line-height:1.5; margin-bottom:16px; }
+    .pro-welcome .pw-btn { padding:10px 24px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-size:14px; font-weight:700; cursor:pointer; }
+
+    /* ===== USER PROFILE MODAL ===== */
+    .user-profile-modal { position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.85); display:none; align-items:center; justify-content:center; padding:20px; }
+    .user-profile-modal.show { display:flex; }
+    .up-card { background:var(--surface); border:1px solid #333; border-radius:20px; padding:24px; width:100%; max-width:320px; text-align:center; position:relative; }
+    .up-avatar { font-size:48px; margin-bottom:8px; }
+    .up-name { font-size:18px; font-weight:800; }
+    .up-username { font-size:13px; color:var(--text-dim); margin-bottom:4px; }
+    .up-tier { font-size:11px; font-weight:700; padding:3px 10px; border-radius:10px; display:inline-block; margin:8px 0; }
+    .up-bio { font-size:13px; color:var(--text-dim); margin:8px 0; line-height:1.5; }
+    .up-actions { display:flex; gap:8px; margin-top:12px; }
+    .up-actions button { flex:1; padding:10px; border-radius:10px; border:1px solid #333; background:var(--surface); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; }
+    .up-actions button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .up-close { position:absolute; top:12px; right:16px; background:none; border:none; color:#666; font-size:20px; cursor:pointer; }
+
+    /* ===== ADMIN USER ROWS ===== */
+    .admin-user-row { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--surface); border:1px solid #222; border-radius:10px; margin-bottom:4px; }
+    .admin-user-row .au-avatar { font-size:20px; }
+    .admin-user-row .au-info { flex:1; min-width:0; }
+    .admin-user-row .au-name { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .admin-user-row .au-sub { font-size:10px; color:var(--text-dim); }
+    .admin-user-row .au-tier { font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; border:1px solid #333; cursor:pointer; transition:all .15s; background:none; }
+    .admin-user-row .au-tier.free { color:var(--text-dim); }
+    .admin-user-row .au-tier.pro { color:var(--accent); border-color:var(--accent); background:#1a1408; }
+    .admin-user-row .au-tier.admin-tier { color:var(--success); border-color:var(--success); }
+
+    /* ===== SHARED TRANSLATOR STYLES ===== */
+    .translator-screen {
+      padding:calc(env(safe-area-inset-top,8px)+8px) 16px calc(env(safe-area-inset-bottom,8px)+8px);
+      gap:10px; flex:1;
+    }
+    .header {
+      display:flex; align-items:center; justify-content:space-between; padding:4px 0;
+    }
+    .logo { font-size:20px; font-weight:800; color:var(--accent); letter-spacing:1px; cursor:pointer; }
+    .header-badge {
+      font-size:11px; color:var(--text-dim); background:var(--surface);
+      padding:4px 10px; border-radius:20px;
+    }
+    .back-btn {
+      background:none; border:none; color:var(--text-dim);
+      font-size:22px; cursor:pointer; padding:4px 8px;
+    }
+    .back-btn:active { color:var(--accent); }
+
+    /* Language bar */
+    .lang-bar {
+      display:flex; align-items:center; gap:8px;
+      background:var(--surface); border-radius:var(--radius); padding:10px 12px;
+    }
+    .lang-select {
+      flex:1; background:var(--surface2); border:1px solid #333;
+      color:var(--text); font-size:15px; font-weight:600;
+      padding:10px 12px; border-radius:10px;
+      appearance:none; cursor:pointer; text-align:center;
+    }
+    .lang-select:focus { outline:none; border-color:var(--accent); }
+    .swap-btn {
+      width:44px; height:44px; border-radius:50%;
+      background:var(--accent); border:none; color:#fff;
+      font-size:20px; cursor:pointer; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      transition:transform .3s;
+    }
+    .swap-btn:active { transform:rotate(180deg) scale(0.9); }
+
+    /* Scene bar */
+    .scene-bar {
+      display:flex; gap:6px; overflow-x:auto;
+      -webkit-overflow-scrolling:touch; padding:2px 0;
+    }
+    .scene-btn {
+      flex-shrink:0; padding:7px 14px; border-radius:20px;
+      background:var(--surface); border:1px solid #333;
+      color:var(--text-dim); font-size:12px; font-weight:600;
+      cursor:pointer; transition:all .2s; white-space:nowrap;
+    }
+    .scene-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .scene-btn:active { transform:scale(0.95); }
+
+    /* Text panels */
+    .text-panel {
+      background:var(--surface); border-radius:var(--radius);
+      padding:14px 16px; flex:1; min-height:80px;
+      display:flex; flex-direction:column; gap:8px;
+      border:1px solid transparent; transition:border-color .3s;
+    }
+    .text-panel.active { border-color:var(--accent); }
+    .panel-label {
+      font-size:12px; font-weight:600; color:var(--text-dim);
+      text-transform:uppercase; letter-spacing:1px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .panel-text {
+      font-size:18px; line-height:1.6; flex:1;
+      overflow-y:auto; word-break:break-word;
+    }
+    .panel-text.placeholder { color:var(--text-dim); font-size:15px; }
+    .panel-text.interim { color:var(--accent2); opacity:0.7; }
+    .speak-btn {
+      background:none; border:none; color:var(--accent);
+      font-size:18px; cursor:pointer; padding:4px;
+    }
+    .speak-btn:active { opacity:0.6; }
+
+    /* Mic section */
+    .mic-section {
+      display:flex; flex-direction:column; align-items:center; gap:8px; padding:6px 0;
+    }
+    .mic-btn {
+      width:76px; height:76px; border-radius:50%;
+      background:linear-gradient(135deg, var(--accent), #ea580c);
+      border:none; color:#fff; font-size:34px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .2s; box-shadow:0 4px 20px var(--accent-glow);
+    }
+    .mic-btn:active { transform:scale(0.92); }
+    .mic-btn.listening {
+      background:linear-gradient(135deg, var(--error), #dc2626);
+      box-shadow:0 4px 30px rgba(239,68,68,0.4);
+      animation:pulse-mic 1.5s ease-in-out infinite;
+    }
+    .mic-btn:disabled { opacity:0.4; cursor:not-allowed; }
+    @keyframes pulse-mic {
+      0%,100%{box-shadow:0 4px 20px rgba(239,68,68,0.3);}
+      50%{box-shadow:0 4px 40px rgba(239,68,68,0.6);}
+    }
+    .mic-label { font-size:13px; color:var(--text-dim); text-align:center; }
+
+    /* Text input bar */
+    .text-input-bar {
+      display:flex; gap:8px;
+      background:var(--surface); border-radius:var(--radius); padding:8px 10px;
+    }
+    .text-input-bar input, .text-input-bar textarea {
+      flex:1; background:var(--surface2); border:1px solid #333;
+      color:var(--text); font-size:15px; padding:10px 12px;
+      border-radius:10px; outline:none; font-family:inherit;
+    }
+    .text-input-bar input:focus, .text-input-bar textarea:focus { border-color:var(--accent); }
+    .text-input-bar input::placeholder, .text-input-bar textarea::placeholder { color:var(--text-dim); }
+    .send-btn {
+      width:44px; height:44px; border-radius:50%;
+      background:var(--accent); border:none; color:#fff;
+      font-size:20px; cursor:pointer; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .15s; align-self:flex-end;
+    }
+    .send-btn:active { transform:scale(0.9); }
+    .send-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+    /* Text translator textarea */
+    .text-area-input {
+      background:var(--surface); border-radius:var(--radius); padding:10px;
+    }
+    .text-area-input textarea {
+      width:100%; min-height:100px; background:var(--surface2);
+      border:1px solid #333; color:var(--text); font-size:16px;
+      padding:12px; border-radius:10px; outline:none;
+      font-family:inherit; resize:vertical; line-height:1.6;
+    }
+    .text-area-input textarea:focus { border-color:var(--accent); }
+    .text-area-input textarea::placeholder { color:var(--text-dim); }
+    .text-area-actions {
+      display:flex; justify-content:flex-end; gap:8px; margin-top:8px;
+    }
+    .text-area-actions button {
+      padding:10px 20px; border-radius:10px; font-size:14px;
+      font-weight:600; cursor:pointer; border:none; transition:all .15s;
+    }
+    .text-area-actions .clear-btn {
+      background:var(--surface2); color:var(--text-dim); border:1px solid #333;
+    }
+    .text-area-actions .translate-btn {
+      background:var(--accent); color:#fff;
+    }
+    .text-area-actions button:active { transform:scale(0.95); }
+    .text-area-actions button:disabled { opacity:0.4; }
+
+    /* Status */
+    .status-bar {
+      text-align:center; font-size:13px; padding:6px; border-radius:8px; transition:all .3s;
+    }
+    .status-bar.error { color:var(--error); background:rgba(239,68,68,0.1); }
+    .status-bar.success { color:var(--success); background:rgba(34,197,94,0.1); }
+    .status-bar.warning { color:var(--warning); background:rgba(234,179,8,0.1); }
+    .status-bar.info { color:var(--accent); background:rgba(249,115,22,0.1); }
+    .status-bar.listening { color:var(--error); background:rgba(239,68,68,0.1); }
+    .status-bar:empty { display:none; }
+
+    /* Controls */
+    .controls {
+      display:flex; flex-wrap:wrap; gap:12px; justify-content:center; padding:4px 0;
+    }
+    .toggle-label {
+      display:flex; align-items:center; gap:5px;
+      font-size:12px; color:var(--text-dim); cursor:pointer;
+    }
+    .toggle-label input[type="checkbox"] { width:16px; height:16px; accent-color:var(--accent); }
+
+    /* History */
+    .history-section { margin-top:2px; }
+    .history-header {
+      font-size:12px; color:var(--text-dim); font-weight:600;
+      text-transform:uppercase; letter-spacing:1px;
+      padding:4px 0; display:flex; align-items:center; gap:6px;
+    }
+    .history-list {
+      display:flex; flex-direction:column; gap:6px;
+      max-height:180px; overflow-y:auto;
+    }
+    .history-item {
+      background:var(--surface); border-radius:10px; padding:8px 12px; font-size:12px;
+    }
+    .history-source { color:var(--text-dim); margin-bottom:3px; }
+    .history-target { color:var(--text); }
+
+    /* Token cost badge */
+    .cost-badge {
+      position:fixed; bottom:env(safe-area-inset-bottom,12px);
+      right:12px; z-index:100;
+      background:var(--surface); border:1px solid #333;
+      border-radius:20px; padding:6px 12px;
+      font-size:11px; color:var(--text-dim);
+      display:flex; align-items:center; gap:4px;
+      backdrop-filter:blur(8px);
+    }
+    .cost-badge .cost-val { color:var(--accent); font-weight:700; }
+
+    /* Pivot badge */
+    .pivot-badge {
+      font-size:10px; color:var(--warning); background:rgba(234,179,8,0.1);
+      padding:2px 8px; border-radius:8px; display:inline-block;
+    }
+
+    /* Not supported */
+    .not-supported {
+      background:rgba(239,68,68,0.15); border:1px solid var(--error);
+      border-radius:var(--radius); padding:16px;
+      text-align:center; color:var(--error); font-size:14px;
+    }
+
+    /* ===== CHAT ROOM ===== */
+    #chat-screen {
+      padding: env(safe-area-inset-top,0) 12px env(safe-area-inset-bottom,0);
+      height:100dvh; overflow:hidden;
+    }
+    .chat-setup {
+      background:var(--surface); border-radius:var(--radius); padding:16px;
+      display:flex; flex-direction:column; gap:12px; margin:8px 0;
+    }
+    .chat-setup-row {
+      display:flex; gap:8px; align-items:center;
+    }
+    .chat-setup-row input {
+      flex:1; background:var(--surface2); border:1px solid #333;
+      color:var(--text); font-size:15px; padding:10px 12px;
+      border-radius:10px; outline:none;
+    }
+    .chat-setup-row input:focus { border-color:var(--accent); }
+    .chat-setup-row input::placeholder { color:var(--text-dim); }
+    .chat-join-btn {
+      padding:10px 20px; border-radius:10px;
+      background:var(--accent); border:none; color:#fff;
+      font-size:14px; font-weight:700; cursor:pointer;
+    }
+    .chat-join-btn:active { transform:scale(0.95); }
+    .chat-area {
+      flex:1; overflow-y:auto; display:flex; flex-direction:column;
+      gap:8px; padding:6px 0; min-height:0;
+      -webkit-overflow-scrolling:touch;
+    }
+    .bubble {
+      max-width:80%; padding:8px 12px; border-radius:14px;
+      font-size:13px; line-height:1.45; position:relative;
+      word-break:break-word; flex-shrink:0;
+    }
+    .bubble.mine {
+      align-self:flex-end; background:#2d4a1e; border-bottom-right-radius:4px;
+    }
+    .bubble.theirs {
+      align-self:flex-start; background:var(--surface2); border-bottom-left-radius:4px;
+    }
+    .bubble .b-name {
+      font-size:10px; font-weight:700; color:var(--accent); margin-bottom:2px;
+    }
+    .bubble .b-original { margin-bottom:3px; }
+    .bubble .b-translated {
+      font-size:12px; color:var(--text-dim); border-top:1px solid #333;
+      padding-top:3px; margin-top:3px;
+    }
+    .bubble .b-delete {
+      position:absolute; top:3px; right:5px;
+      background:none; border:none; color:#555; font-size:11px;
+      cursor:pointer; opacity:0; transition:opacity .2s;
+    }
+    .bubble:hover .b-delete, .bubble:active .b-delete { opacity:1; }
+    .chat-input-bar {
+      display:flex; gap:8px; padding:8px 0; flex-shrink:0;
+    }
+    .chat-input-bar input {
+      flex:1; background:var(--surface2); border:1px solid #333;
+      color:var(--text); font-size:15px; padding:10px 12px;
+      border-radius:10px; outline:none;
+    }
+    .chat-input-bar input:focus { border-color:var(--accent); }
+    .chat-input-bar input::placeholder { color:var(--text-dim); }
+    .chat-empty {
+      text-align:center; color:var(--text-dim); font-size:13px;
+      padding:30px 0;
+    }
+    .chat-clear-btn {
+      background:none; border:none; color:var(--text-dim);
+      font-size:12px; cursor:pointer; text-decoration:underline;
+    }
+    .online-badge {
+      font-size:11px; color:var(--success); display:inline-flex;
+      align-items:center; gap:4px;
+    }
+    .online-dot {
+      width:7px; height:7px; border-radius:50%; background:var(--success);
+      display:inline-block; animation:pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* i18n switcher */
+    .i18n-btn {
+      position:fixed; top:env(safe-area-inset-top,10px); right:10px; z-index:200;
+      background:var(--surface); border:1px solid #333; border-radius:10px;
+      padding:6px 10px; color:var(--text); font-size:12px; font-weight:700;
+      cursor:pointer; display:flex; align-items:center; gap:4px;
+      backdrop-filter:blur(8px);
+    }
+    .i18n-btn:active { border-color:var(--accent); }
+    .i18n-menu {
+      position:fixed; top:calc(env(safe-area-inset-top,10px)+36px); right:10px; z-index:200;
+      background:var(--surface); border:1px solid #333; border-radius:12px;
+      padding:6px 0; display:none; min-width:130px;
+      box-shadow:0 8px 24px rgba(0,0,0,.5);
+    }
+    .i18n-menu.open { display:block; }
+    .i18n-opt {
+      display:block; width:100%; background:none; border:none;
+      color:var(--text); font-size:13px; padding:8px 14px;
+      text-align:left; cursor:pointer;
+    }
+    .i18n-opt:hover, .i18n-opt.active { background:var(--surface2); color:var(--accent); }
+
+    /* Emoji picker */
+    .emoji-btn {
+      width:40px; height:40px; border-radius:10px; flex-shrink:0;
+      background:var(--surface2); border:1px solid #333;
+      font-size:20px; cursor:pointer; display:flex;
+      align-items:center; justify-content:center;
+    }
+    .emoji-btn:active { border-color:var(--accent); }
+    .emoji-panel {
+      display:none; position:absolute; bottom:52px; left:0; right:0;
+      background:var(--surface); border:1px solid #333; border-radius:12px;
+      padding:10px; max-height:160px; overflow-y:auto;
+      box-shadow:0 -4px 20px rgba(0,0,0,.4);
+    }
+    .emoji-panel.open { display:block; }
+    .emoji-grid {
+      display:grid; grid-template-columns:repeat(8,1fr); gap:4px; text-align:center;
+    }
+    .emoji-grid span {
+      font-size:22px; cursor:pointer; padding:4px; border-radius:8px;
+    }
+    .emoji-grid span:active { background:var(--surface2); }
+
+    @media (min-width:600px) {
+      .translator-screen { max-width:500px; margin:0 auto; }
+    }
+  </style>
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyAfvhJHP9l7sniPWH9o0gWWm11TDTSKhnE",
+      authDomain: "ai-oece.firebaseapp.com",
+      projectId: "ai-oece",
+      storageBucket: "ai-oece.firebasestorage.app",
+      messagingSenderId: "364611412074",
+      appId: "1:364611412074:web:4f7117c056b8d836496a13"
+    });
+    window.NYCKING_AUTH = firebase.auth();
+    window.NYCKING_DB = firebase.firestore();
+  </script>
+</head>
+<body>
+
+<!-- i18n switcher -->
+<button class="i18n-btn" id="i18n-btn">🌐 EN</button>
+<div class="i18n-menu" id="i18n-menu">
+  <button class="i18n-opt active" data-lang="en">🇺🇸 English</button>
+  <button class="i18n-opt" data-lang="zh">🇨🇳 中文</button>
+  <button class="i18n-opt" data-lang="th">🇹🇭 ไทย</button>
+  <button class="i18n-opt" data-lang="my">🇲🇲 မြန်မာ</button>
+</div>
+
+<!-- ===== 1. HOMEPAGE — VERTICAL SCROLL LANDING ===== -->
+<div id="home-screen" class="screen active">
+
+  <!-- HERO -->
+  <div class="hp-section">
+    <div class="hero-glow"></div>
+    <div class="home-logo">NYCKING</div>
+    <div class="home-version">v3.0 &#x2014; Social Translation Platform</div>
+    <div class="home-tagline" data-i18n="tagline">AI Translation &#x00D7; Social &#x00D7; Games</div>
+    <div class="home-flags">
+      <span>&#x1F1E8;&#x1F1F3;</span><span>&#x1F1FA;&#x1F1F8;</span><span>&#x1F1F9;&#x1F1ED;</span><span>&#x1F1F1;&#x1F1E6;</span><span>&#x1F1F2;&#x1F1F2;</span>
+    </div>
+    <div class="home-stats">
+      <div class="home-stat"><div class="stat-num">5</div><div class="stat-label">Languages</div></div>
+      <div class="home-stat"><div class="stat-num">9</div><div class="stat-label">Tools</div></div>
+      <div class="home-stat"><div class="stat-num">3</div><div class="stat-label">Games</div></div>
+    </div>
+    <button class="home-enter-btn" id="home-enter-btn" data-i18n="enter_btn">Get Started &#x2192;</button>
+    <div class="home-footer">Powered by Gemini 2.5 Flash &amp; Firebase</div>
+  </div>
+
+  <div class="hp-divider"></div>
+
+  <!-- FEATURES -->
+  <div class="hp-section">
+    <div class="hp-title">&#x2728; Features</div>
+    <div class="hp-subtitle">Everything you need for cross-language communication</div>
+    <div class="feat-grid">
+      <div class="feat-card" data-goto="voice-screen">
+        <div class="fc-icon">&#x1F3A4;</div>
+        <div class="fc-name" data-i18n="voice_name">Voice Translate</div>
+        <div class="fc-desc" data-i18n="hp_feat_voice">Real-time speech recognition + auto-speak</div>
+      </div>
+      <div class="feat-card" data-goto="text-screen">
+        <div class="fc-icon">&#x1F4DD;</div>
+        <div class="fc-name" data-i18n="text_name">Text Translate</div>
+        <div class="fc-desc" data-i18n="hp_feat_text">Gemini neural translation with context memory</div>
+      </div>
+      <div class="feat-card" data-goto="messages-screen">
+        <div class="fc-icon">&#x1F4AC;</div>
+        <div class="fc-name" data-i18n="tab_messages">Messages</div>
+        <div class="fc-desc" data-i18n="hp_feat_dm">Friend DM with auto-translation</div>
+      </div>
+      <div class="feat-card" data-goto="moments-screen">
+        <div class="fc-icon">&#x1F4E2;</div>
+        <div class="fc-name" data-i18n="tab_moments">Moments</div>
+        <div class="fc-desc" data-i18n="hp_feat_social">Add friends, moments feed, social</div>
+      </div>
+      <div class="feat-card" data-goto="game-lobby">
+        <div class="fc-icon">&#x1F3AE;</div>
+        <div class="fc-name" data-i18n="games_name">Mini Games</div>
+        <div class="fc-desc" data-i18n="hp_feat_games">2048, Snake, Whack-a-Mole + leaderboard</div>
+      </div>
+      <div class="feat-card" data-goto="screen-coach">
+        <div class="fc-icon">&#x1F4A1;</div>
+        <div class="fc-name" data-i18n="coach_name">AI Assistant</div>
+        <div class="fc-desc" data-i18n="hp_feat_coach">Smart conversation helper powered by Gemini</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hp-divider"></div>
+
+  <!-- PRICING -->
+  <div class="hp-section">
+    <div class="hp-title">&#x1F4B0; Plans</div>
+    <div style="display:flex;gap:10px;width:100%;max-width:340px">
+      <div style="flex:1;background:rgba(22,22,22,.7);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:var(--text)">Free</div>
+        <div style="font-size:28px;font-weight:900;color:var(--accent);margin:8px 0">$0</div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px">10K tokens/month</div>
+        <div style="font-size:11px;color:var(--text-dim);text-align:left;line-height:1.8">&#x2705; Voice Translate<br>&#x2705; Text Translate<br>&#x2705; Chat Room<br>&#x2705; Mini Games<br>&#x274C; AI Assistant<br>&#x274C; Unlimited Friends</div>
+      </div>
+      <div style="flex:1;background:rgba(22,22,22,.7);backdrop-filter:blur(12px);border:2px solid var(--accent);border-radius:16px;padding:16px;text-align:center;position:relative">
+        <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:10px">POPULAR</div>
+        <div style="font-size:20px;font-weight:800;color:var(--accent)">Pro</div>
+        <div style="font-size:28px;font-weight:900;color:var(--accent);margin:8px 0">$3<span style="font-size:12px;color:var(--text-dim)">/mo</span></div>
+        <div style="font-size:10px;color:var(--text-dim);margin-bottom:12px">100K tokens/month</div>
+        <div style="font-size:11px;color:var(--text-dim);text-align:left;line-height:1.8">&#x2705; Everything in Free<br>&#x2705; AI Assistant<br>&#x2705; Unlimited Friends<br>&#x2705; Moments Feed<br>&#x2705; Priority Translation<br>&#x2705; No Limits</div>
+      </div>
+    </div>
+    <button class="home-enter-btn" id="upgrade-btn" style="margin-top:8px;max-width:300px" data-i18n="pricing_upgrade">Upgrade to Pro &#x2192;</button>
+  </div>
+
+  <div class="hp-divider"></div>
+
+  <!-- TECH -->
+  <div class="hp-section">
+    <div class="hp-title">&#x26A1; Under the Hood</div>
+    <div class="tech-highlights">
+      <div class="tech-row"><span class="tr-icon">&#x1F6E1;</span><div class="tr-info"><div class="tr-title">Anti-Drift Engine</div><div class="tr-desc">English-pivot prevents Burmese/Lao/Thai drift</div></div></div>
+      <div class="tech-row"><span class="tr-icon">&#x1F525;</span><div class="tr-info"><div class="tr-title">Firebase Full Stack</div><div class="tr-desc">Auth + Firestore + Hosting + Cloud Run</div></div></div>
+      <div class="tech-row"><span class="tr-icon">&#x26A1;</span><div class="tr-info"><div class="tr-title">Gemini 2.5 Flash</div><div class="tr-desc">Low-latency neural translation</div></div></div>
+      <div class="tech-row"><span class="tr-icon">&#x1F310;</span><div class="tr-info"><div class="tr-title">PWA + i18n</div><div class="tr-desc">Offline + 4-language UI</div></div></div>
+      <div class="tech-row"><span class="tr-icon">&#x1F512;</span><div class="tr-info"><div class="tr-title">Secure Social</div><div class="tr-desc">ID token + Firestore persistence</div></div></div>
+    </div>
+    <div class="tech-tags">
+      <span class="tech-tag">Gemini 2.5</span><span class="tech-tag">Cloud Run</span><span class="tech-tag">Firestore</span>
+      <span class="tech-tag">Firebase Auth</span><span class="tech-tag">Web Speech</span><span class="tech-tag">TTS</span>
+      <span class="tech-tag">PWA</span><span class="tech-tag">i18n</span>
+    </div>
+  </div>
+
+  <!-- BOTTOM CTA -->
+  <div class="hp-section" style="padding-top:24px">
+    <button class="home-enter-btn" id="home-enter-btn2" data-i18n="enter_btn">Get Started &#x2192;</button>
+    <div class="home-brand-footer">
+      <div class="divider"></div>
+      <span>Made with &#x2764;&#xFE0F; &mdash; NYCKING v3.0 &copy; 2026</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== 2. AUTH SCREEN ===== -->
+<div id="auth-screen" class="screen">
+  <div class="auth-icon">&#x1F44B;</div>
+  <div class="auth-title">NYCKING</div>
+  <div class="auth-sub" data-i18n="auth_welcome">Sign in to access all features</div>
+  <div class="auth-error" id="auth-error"></div>
+  <div class="auth-form" id="auth-form">
+    <input class="auth-input" id="auth-email" type="email" placeholder="Email" autocomplete="email">
+    <input class="auth-input" id="auth-password" type="password" placeholder="Password" autocomplete="current-password">
+    <button class="auth-btn primary" id="auth-submit" data-i18n="auth_login">Sign In</button>
+  </div>
+  <div class="auth-divider" data-i18n="auth_or">or</div>
+  <button class="auth-btn google" id="auth-google" style="max-width:300px">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+    <span data-i18n="auth_google">Continue with Google</span>
+  </button>
+  <button class="auth-toggle" id="auth-toggle" data-i18n="auth_no_account">No account? Register</button>
+  <button class="auth-back" id="auth-back" data-i18n="back">← Back</button>
+</div>
+
+<!-- ===== 3. MODULE SELECTOR ===== -->
+<div id="module-screen" class="screen">
+  <button class="back-btn" id="module-back" style="position:absolute;top:env(safe-area-inset-top,12px);left:12px;z-index:10">‹</button>
+  <div class="home-logo">NYCKING</div>
+  <div class="module-title" data-i18n="choose_mode">Choose Mode</div>
+  <div class="module-sub" data-i18n="select_mode">Select your translation mode</div>
+  <div class="module-cards">
+    <div class="module-card" id="go-voice">
+      <div class="mod-icon">🎙️</div>
+      <div class="mod-info">
+        <div class="mod-name" data-i18n="voice_name">Voice Translate</div>
+        <div class="mod-desc" data-i18n="voice_desc">Speak and translate in real-time</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </div>
+    <div class="module-card" id="go-text">
+      <div class="mod-icon">📝</div>
+      <div class="mod-info">
+        <div class="mod-name" data-i18n="text_name">Text Translate</div>
+        <div class="mod-desc" data-i18n="text_desc">Type or paste text to translate</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </div>
+    <div class="module-card" id="go-chat">
+      <div class="mod-icon">&#x1F4AC;</div>
+      <div class="mod-info">
+        <div class="mod-name" data-i18n="chat_name">Chat Room</div>
+        <div class="mod-desc" data-i18n="chat_desc">Bilingual chat with your partner</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </div>
+    <div class="module-card" id="go-games">
+      <div class="mod-icon">&#x1F3AE;</div>
+      <div class="mod-info">
+        <div class="mod-name" data-i18n="games_name">Mini Games</div>
+        <div class="mod-desc" data-i18n="games_desc">Play & compete on the leaderboard</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </div>
+    <div class="module-card" id="go-coach">
+      <div class="mod-icon">&#x1F4A1;</div>
+      <div class="mod-info">
+        <div class="mod-name" data-i18n="coach_name">AI Assistant</div>
+        <div class="mod-desc" data-i18n="coach_desc">Smart conversation helper</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </div>
+  </div>
+
+  <!-- Module action buttons -->
+  <div style="display:flex;gap:10px;width:100%;max-width:340px;margin-top:8px">
+    <button id="mod-home-btn" style="flex:1;padding:12px;border-radius:12px;background:var(--surface);border:1px solid #333;color:var(--text-dim);font-size:13px;cursor:pointer" data-i18n="back">&#x2190; Home</button>
+    <button id="mod-signout-btn" style="flex:1;padding:12px;border-radius:12px;background:none;border:1px solid var(--error);color:var(--error);font-size:13px;cursor:pointer" data-i18n="me_logout">Sign Out</button>
+  </div>
+
+  <!-- Install App Banner -->
+  <div class="install-banner" id="install-banner">
+    <button class="install-dismiss" id="install-dismiss">&times;</button>
+    <div class="install-icon">📲</div>
+    <div class="install-info">
+      <div class="install-title" data-i18n="install_title">Install NYCKING App</div>
+      <div class="install-desc" data-i18n="install_desc">Add to home screen for quick access. Works offline like a native app.</div>
+    </div>
+    <button class="install-btn" id="install-btn" data-i18n="install_btn">Install</button>
+  </div>
+</div>
+
+<!-- ===== 4. VOICE TRANSLATOR ===== -->
+<div id="voice-screen" class="screen translator-screen">
+  <div class="header">
+    <button class="back-btn" id="voice-back">‹</button>
+    <span class="logo" id="voice-logo">🎙️ Voice</span>
+    <span class="header-badge">Gemini 2.5</span>
+  </div>
+
+  <div class="lang-bar">
+    <select id="v-source-lang" class="lang-select">
+      <option value="zh-CN">🇨🇳 中文</option>
+      <option value="en-US">🇺🇸 English</option>
+      <option value="th-TH">🇹🇭 ไทย</option>
+      <option value="lo-LA">🇱🇦 ລາວ</option>
+      <option value="my-MM">🇲🇲 မြန်မာ</option>
+    </select>
+    <button class="swap-btn" id="v-swap-btn" title="Swap">⇄</button>
+    <select id="v-target-lang" class="lang-select">
+      <option value="th-TH">🇹🇭 ไทย</option>
+      <option value="en-US">🇺🇸 English</option>
+      <option value="zh-CN">🇨🇳 中文</option>
+      <option value="lo-LA">🇱🇦 ລາວ</option>
+      <option value="my-MM">🇲🇲 မြန်မာ</option>
+    </select>
+  </div>
+
+  <div class="scene-bar" id="v-scene-bar">
+    <button class="scene-btn active" data-scene="travel" data-i18n="scene_travel">✈️ Travel</button>
+    <button class="scene-btn" data-scene="romance" data-i18n="scene_romance">💕 Romance</button>
+    <button class="scene-btn" data-scene="business" data-i18n="scene_business">💼 Business</button>
+    <button class="scene-btn" data-scene="phrases" data-i18n="scene_phrases">📖 Phrases</button>
+  </div>
+
+  <div class="text-panel" id="v-source-panel">
+    <div class="panel-label"><span>🎙️ SOURCE</span></div>
+    <div class="panel-text placeholder" id="v-source-text" data-i18n="tap_mic">Tap the mic to speak</div>
+  </div>
+  <div class="text-panel" id="v-target-panel">
+    <div class="panel-label">
+      <span>🔊 TRANSLATION</span>
+      <button class="speak-btn" id="v-speak-btn">🔊</button>
+    </div>
+    <div class="panel-text placeholder" id="v-target-text" data-i18n="translation_here">Translation appears here</div>
+  </div>
+
+  <div class="status-bar" id="v-status"></div>
+
+  <div class="mic-section">
+    <button class="mic-btn" id="v-mic-btn">🎤</button>
+    <div class="mic-label" id="v-mic-label" data-i18n="tap_speak">Tap to speak</div>
+  </div>
+
+  <div class="text-input-bar">
+    <input type="text" id="v-text-input" data-i18n-ph="or_type" placeholder="Or type here..." autocomplete="off" enterkeyhint="send">
+    <button class="send-btn" id="v-send-btn">➤</button>
+  </div>
+
+  <div class="controls">
+    <label class="toggle-label"><input type="checkbox" id="v-auto-speak" checked><span data-i18n="auto_speak">🔊 Auto-speak</span></label>
+    <label class="toggle-label"><input type="checkbox" id="v-continuous"><span data-i18n="continuous">🔄 Continuous</span></label>
+    <label class="toggle-label"><input type="checkbox" id="v-noisy"><span data-i18n="noisy">📢 Noisy env</span></label>
+  </div>
+
+  <div class="history-section">
+    <div class="history-header"><span data-i18n="history">📝 History</span> <span id="v-history-count"></span></div>
+    <div class="history-list" id="v-history-list"></div>
+  </div>
+
+  <div class="not-supported" id="v-not-supported" style="display:none">
+    ❌ Speech recognition not supported in this browser<br>Use Chrome, Edge, or Safari
+  </div>
+</div>
+
+<!-- ===== 5. TEXT TRANSLATOR ===== -->
+<div id="text-screen" class="screen translator-screen">
+  <div class="header">
+    <button class="back-btn" id="text-back">‹</button>
+    <span class="logo">📝 Text</span>
+    <span class="header-badge">Gemini 2.5</span>
+  </div>
+
+  <div class="lang-bar">
+    <select id="t-source-lang" class="lang-select">
+      <option value="zh-CN">🇨🇳 中文</option>
+      <option value="en-US">🇺🇸 English</option>
+      <option value="th-TH">🇹🇭 ไทย</option>
+      <option value="lo-LA">🇱🇦 ລາວ</option>
+      <option value="my-MM">🇲🇲 မြန်မာ</option>
+    </select>
+    <button class="swap-btn" id="t-swap-btn" title="Swap">⇄</button>
+    <select id="t-target-lang" class="lang-select">
+      <option value="th-TH">🇹🇭 ไทย</option>
+      <option value="en-US">🇺🇸 English</option>
+      <option value="zh-CN">🇨🇳 中文</option>
+      <option value="lo-LA">🇱🇦 ລາວ</option>
+      <option value="my-MM">🇲🇲 မြန်မာ</option>
+    </select>
+  </div>
+
+  <div class="scene-bar" id="t-scene-bar">
+    <button class="scene-btn active" data-scene="travel" data-i18n="scene_travel">✈️ Travel</button>
+    <button class="scene-btn" data-scene="romance" data-i18n="scene_romance">💕 Romance</button>
+    <button class="scene-btn" data-scene="business" data-i18n="scene_business">💼 Business</button>
+    <button class="scene-btn" data-scene="phrases" data-i18n="scene_phrases">📖 Phrases</button>
+  </div>
+
+  <div class="text-area-input">
+    <textarea id="t-input" rows="4" data-i18n-ph="type_paste" placeholder="Type or paste text to translate..."></textarea>
+    <div class="text-area-actions">
+      <button class="clear-btn" id="t-clear-btn" data-i18n="clear">Clear</button>
+      <button class="translate-btn" id="t-translate-btn" data-i18n="translate_btn">Translate ➤</button>
+    </div>
+  </div>
+
+  <div class="text-panel" id="t-target-panel">
+    <div class="panel-label">
+      <span>🔊 TRANSLATION</span>
+      <button class="speak-btn" id="t-speak-btn">🔊</button>
+    </div>
+    <div class="panel-text placeholder" id="t-target-text" data-i18n="translation_here">Translation appears here</div>
+  </div>
+
+  <div class="status-bar" id="t-status"></div>
+
+  <div class="controls">
+    <label class="toggle-label"><input type="checkbox" id="t-auto-speak"><span data-i18n="auto_speak">🔊 Auto-speak</span></label>
+    <label class="toggle-label"><input type="checkbox" id="t-noisy"><span data-i18n="noisy">📢 Noisy env</span></label>
+  </div>
+
+  <div class="history-section">
+    <div class="history-header"><span data-i18n="history">📝 History</span> <span id="t-history-count"></span></div>
+    <div class="history-list" id="t-history-list"></div>
+  </div>
+</div>
+
+<!-- ===== 6. CHAT ROOM ===== -->
+<div id="chat-screen" class="screen translator-screen">
+  <div class="header">
+    <button class="back-btn" id="chat-back">‹</button>
+    <span class="logo">&#x1F4AC; Chat <span class="online-badge" id="c-online"><span class="online-dot"></span><span id="c-online-count">0</span> online</span></span>
+    <span class="header-badge" id="c-lang-badge" style="font-size:10px;opacity:.6">EN</span>
+    <button class="chat-clear-btn" id="c-settings-btn" style="margin-right:4px">&#x2699;&#xFE0F;</button>
+    <button class="chat-clear-btn" id="c-clear-all" data-i18n="clear_all">Clear all</button>
+  </div>
+
+  <!-- Setup (shown before joining) -->
+  <div class="chat-setup" id="c-setup">
+    <div style="text-align:center;font-size:14px;color:var(--text-dim)" data-i18n="chat_setup">Enter your name & language to start chatting</div>
+    <div class="chat-setup-row">
+      <input type="text" id="c-username" data-i18n-ph="your_name" placeholder="Your name..." maxlength="20" autocomplete="off">
+    </div>
+    <div class="chat-setup-row">
+      <select id="c-my-lang" class="lang-select">
+        <option value="zh-CN">🇨🇳 中文</option>
+        <option value="en-US">🇺🇸 English</option>
+        <option value="th-TH">🇹🇭 ไทย</option>
+        <option value="lo-LA">🇱🇦 ລາວ</option>
+        <option value="my-MM">🇲🇲 မြန်မာ</option>
+      </select>
+      <span style="color:var(--text-dim)">→</span>
+      <select id="c-partner-lang" class="lang-select">
+        <option value="my-MM">🇲🇲 မြန်မာ</option>
+        <option value="zh-CN">🇨🇳 中文</option>
+        <option value="en-US">🇺🇸 English</option>
+        <option value="th-TH">🇹🇭 ไทย</option>
+        <option value="lo-LA">🇱🇦 ລາວ</option>
+      </select>
+    </div>
+    <button class="chat-join-btn" id="c-join-btn" data-i18n="join_chat">💕 Join Chat</button>
+  </div>
+
+  <!-- Chat area (shown after joining) -->
+  <div class="chat-area" id="c-chat-area" style="display:none">
+    <div class="chat-empty" id="c-empty" data-i18n="no_msg">No messages yet. Say hi! 👋</div>
+  </div>
+
+  <div class="status-bar" id="c-status"></div>
+
+  <!-- Chat input (shown after joining) -->
+  <div class="chat-input-bar" id="c-input-bar" style="display:none;position:relative">
+    <input type="text" id="c-msg-input" data-i18n-ph="type_msg" placeholder="Type a message..." autocomplete="off" enterkeyhint="send">
+    <button class="emoji-btn" id="c-emoji-btn">😊</button>
+    <button class="send-btn" id="c-send-btn">➤</button>
+    <div class="emoji-panel" id="c-emoji-panel">
+      <div class="emoji-grid">
+        <span>❤️</span><span>💕</span><span>😘</span><span>🥰</span><span>😍</span><span>😊</span><span>😂</span><span>😅</span>
+        <span>👍</span><span>👋</span><span>🙏</span><span>🤣</span><span>😢</span><span>😤</span><span>😱</span><span>🤔</span>
+        <span>🌹</span><span>🌟</span><span>🎉</span><span>🍎</span><span>☕</span><span>🍜</span><span>🍔</span><span>🍰</span>
+        <span>🚗</span><span>✈️</span><span>🏠</span><span>🌍</span><span>☀️</span><span>🌙</span><span>⚡</span><span>🌈</span>
+        <span>💪</span><span>🔥</span><span>👌</span><span>✌️</span><span>🤟</span><span>🤗</span><span>😎</span><span>🐶</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 7. GAME LOBBY ===== -->
+<div id="game-lobby" class="screen">
+  <button class="back-btn" id="games-back" style="position:absolute;top:env(safe-area-inset-top,12px);left:12px;z-index:10">&#x2039;</button>
+  <div class="home-logo">&#x1F3AE; <span data-i18n="games_name">Mini Games</span></div>
+  <div class="game-cards">
+    <div class="game-card" id="go-2048">
+      <div class="gc-icon">&#x1F522;</div>
+      <div class="gc-name">2048</div>
+      <div class="gc-desc" data-i18n="g_2048_desc">Slide & merge tiles</div>
+    </div>
+    <div class="game-card" id="go-snake">
+      <div class="gc-icon">&#x1F40D;</div>
+      <div class="gc-name">Snake</div>
+      <div class="gc-desc" data-i18n="g_snake_desc">Eat & grow longer</div>
+    </div>
+    <div class="game-card" id="go-mole">
+      <div class="gc-icon">&#x1F439;</div>
+      <div class="gc-name" data-i18n="g_mole_name">Whack-a-Mole</div>
+      <div class="gc-desc" data-i18n="g_mole_desc">Tap the moles fast!</div>
+    </div>
+    <div class="game-card" id="go-leaderboard">
+      <div class="gc-icon">&#x1F3C6;</div>
+      <div class="gc-name" data-i18n="leaderboard">Leaderboard</div>
+      <div class="gc-desc" data-i18n="lb_desc">View high scores</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 8. GAME: 2048 ===== -->
+<div id="screen-2048" class="screen game-screen" style="position:relative">
+  <div class="header">
+    <button class="back-btn" id="back-2048">&#x2039;</button>
+    <span class="logo">2048</span>
+    <span class="header-badge" data-i18n="g_best">Best</span>
+  </div>
+  <div class="game-score-bar">
+    <div><div class="gs-label" data-i18n="g_score">Score</div><div class="gs-val" id="s2048-score">0</div></div>
+    <div><div class="gs-label" data-i18n="g_best">Best</div><div class="gs-val" id="s2048-best">0</div></div>
+  </div>
+  <div class="grid-2048" id="grid-2048"></div>
+  <div style="font-size:11px;color:var(--text-dim);text-align:center" data-i18n="g_2048_hint">Swipe to move tiles. Merge same numbers!</div>
+  <div class="game-over-overlay" id="go-2048-over">
+    <div class="go-title" data-i18n="g_gameover">Game Over</div>
+    <div class="go-score" id="go-2048-fscore"></div>
+    <button class="go-btn" id="go-2048-retry" data-i18n="g_retry">Play Again</button>
+  </div>
+</div>
+
+<!-- ===== 9. GAME: SNAKE ===== -->
+<div id="screen-snake" class="screen game-screen" style="position:relative">
+  <div class="header">
+    <button class="back-btn" id="back-snake">&#x2039;</button>
+    <span class="logo">&#x1F40D; Snake</span>
+    <span class="header-badge" data-i18n="g_best">Best</span>
+  </div>
+  <div class="game-score-bar">
+    <div><div class="gs-label" data-i18n="g_score">Score</div><div class="gs-val" id="snake-score">0</div></div>
+    <div><div class="gs-label" data-i18n="g_best">Best</div><div class="gs-val" id="snake-best">0</div></div>
+  </div>
+  <canvas class="snake-canvas" id="snake-canvas" width="320" height="320"></canvas>
+  <div style="font-size:11px;color:var(--text-dim);text-align:center" data-i18n="g_snake_hint">Swipe to change direction</div>
+  <div class="game-over-overlay" id="go-snake-over">
+    <div class="go-title" data-i18n="g_gameover">Game Over</div>
+    <div class="go-score" id="go-snake-fscore"></div>
+    <button class="go-btn" id="go-snake-retry" data-i18n="g_retry">Play Again</button>
+  </div>
+</div>
+
+<!-- ===== 10. GAME: WHACK-A-MOLE ===== -->
+<div id="screen-mole" class="screen game-screen" style="position:relative">
+  <div class="header">
+    <button class="back-btn" id="back-mole">&#x2039;</button>
+    <span class="logo">&#x1F439; <span data-i18n="g_mole_name">Whack-a-Mole</span></span>
+    <span class="header-badge" id="mole-timer">30s</span>
+  </div>
+  <div class="game-score-bar">
+    <div><div class="gs-label" data-i18n="g_score">Score</div><div class="gs-val" id="mole-score">0</div></div>
+    <div><div class="gs-label" data-i18n="g_best">Best</div><div class="gs-val" id="mole-best">0</div></div>
+  </div>
+  <div class="mole-grid" id="mole-grid">
+    <div class="mole-hole" data-i="0"></div><div class="mole-hole" data-i="1"></div><div class="mole-hole" data-i="2"></div>
+    <div class="mole-hole" data-i="3"></div><div class="mole-hole" data-i="4"></div><div class="mole-hole" data-i="5"></div>
+    <div class="mole-hole" data-i="6"></div><div class="mole-hole" data-i="7"></div><div class="mole-hole" data-i="8"></div>
+  </div>
+  <button class="go-btn" id="mole-start" style="margin-top:12px" data-i18n="g_start">Start!</button>
+  <div class="game-over-overlay" id="go-mole-over">
+    <div class="go-title" data-i18n="g_timesup">Time's Up!</div>
+    <div class="go-score" id="go-mole-fscore"></div>
+    <button class="go-btn" id="go-mole-retry" data-i18n="g_retry">Play Again</button>
+  </div>
+</div>
+
+<!-- ===== 11. LEADERBOARD ===== -->
+<div id="screen-lb" class="screen game-screen">
+  <div class="header">
+    <button class="back-btn" id="back-lb">&#x2039;</button>
+    <span class="logo">&#x1F3C6; <span data-i18n="leaderboard">Leaderboard</span></span>
+    <button class="chat-clear-btn" id="lb-clear" data-i18n="clear_all">Clear all</button>
+  </div>
+  <div class="lb-list" id="lb-list">
+    <div style="text-align:center;color:var(--text-dim);padding:40px 0" data-i18n="lb_empty">No scores yet. Play a game first!</div>
+  </div>
+</div>
+
+<!-- ===== 12. AI COACH ===== -->
+<div id="screen-coach" class="screen">
+  <div class="header">
+    <button class="back-btn" id="back-coach">&#x2039;</button>
+    <span class="logo">&#x1F4A1; <span data-i18n="coach_name">AI Assistant</span></span>
+  </div>
+  <!-- Mode tabs -->
+  <div class="coach-tabs">
+    <button class="coach-tab active" data-mode="topics">&#x1F4A1; <span data-i18n="coach_topics">Topics</span></button>
+    <button class="coach-tab" data-mode="polish">&#x2728; <span data-i18n="coach_polish">Polish</span></button>
+    <button class="coach-tab" data-mode="reply">&#x1F3AF; <span data-i18n="coach_reply">Reply</span></button>
+  </div>
+  <!-- Stage selector -->
+  <div class="coach-stage-bar">
+    <button class="coach-stage active" data-stage="new" data-i18n="coach_new">Just Met</button>
+    <button class="coach-stage" data-stage="friends" data-i18n="coach_friends">Friends</button>
+    <button class="coach-stage" data-stage="close" data-i18n="coach_close">Close</button>
+  </div>
+  <!-- Input area (hidden for topics mode) -->
+  <div class="coach-input-area" id="coach-input-area" style="display:none">
+    <textarea class="coach-input" id="coach-input" rows="3" data-i18n-ph="coach_placeholder" placeholder="Type your message or paste theirs..."></textarea>
+  </div>
+  <!-- Send button -->
+  <button class="coach-send" id="coach-send" data-i18n="coach_go">&#x2728; Get Suggestions</button>
+  <!-- Result area -->
+  <div class="coach-result" id="coach-result">
+    <div style="text-align:center;color:var(--text-dim);padding:10px" data-i18n="coach_hint">Choose a mode and tap the button!</div>
+  </div>
+</div>
+
+<!-- ===== RANKING ===== -->
+<div id="ranking-screen" class="screen">
+  <div class="header" style="padding:calc(env(safe-area-inset-top,8px)+4px) 0 4px">
+    <span class="logo">&#x1F3C6; <span data-i18n="tab_ranking">Ranking</span></span>
+  </div>
+  <div id="ranking-list"></div>
+</div>
+
+<!-- ===== 13. MESSAGES (Contacts + DM merged) ===== -->
+<div id="messages-screen" class="screen">
+  <div class="header" style="padding:calc(env(safe-area-inset-top,8px)+4px) 0 4px">
+    <span class="logo">&#x1F4AC; <span data-i18n="tab_messages">Messages</span></span>
+  </div>
+  <div class="msg-tabs">
+    <button class="msg-tab active" data-panel="msg-friends-panel" data-i18n="tab_contacts">Friends</button>
+    <button class="msg-tab" data-panel="msg-chats-panel" data-i18n="tab_chats">Chats</button>
+  </div>
+  <!-- Friends panel -->
+  <div class="msg-panel active" id="msg-friends-panel">
+    <input class="contacts-search" id="contacts-search" type="text" data-i18n-ph="contacts_search_ph" placeholder="Search by username...">
+    <div id="contacts-search-results"></div>
+    <div id="contacts-requests" style="display:none"></div>
+    <div id="contacts-list"></div>
+  </div>
+  <!-- Chats panel -->
+  <div class="msg-panel" id="msg-chats-panel">
+    <div id="dm-conv-list"></div>
+  </div>
+</div>
+<!-- DM Chat (fullscreen overlay) -->
+<div id="dm-chat-view">
+  <div class="dm-chat-header">
+    <button class="back-btn" id="dm-chat-back">&#x2039;</button>
+    <span class="logo" id="dm-chat-name">Chat</span>
+  </div>
+  <div id="dm-messages"></div>
+  <div class="dm-input-bar">
+    <input type="text" id="dm-msg-input" placeholder="Type a message..." autocomplete="off" enterkeyhint="send">
+    <button class="send-btn" id="dm-send-btn">➤</button>
+  </div>
+</div>
+
+<!-- ===== 15. MOMENTS ===== -->
+<div id="moments-screen" class="screen">
+  <div class="header" style="padding:calc(env(safe-area-inset-top,8px)+4px) 0 4px">
+    <span class="logo">&#x1F4E2; <span data-i18n="tab_moments">Moments</span></span>
+  </div>
+  <div class="moments-post-bar">
+    <textarea id="moments-input" rows="2" data-i18n-ph="moments_placeholder" placeholder="What's on your mind?"></textarea>
+    <button id="moments-post-btn" data-i18n="moments_post">Post</button>
+  </div>
+  <div id="moments-feed"></div>
+</div>
+
+<!-- ===== 16. ME / PROFILE ===== -->
+<div id="me-screen" class="screen">
+  <div class="me-avatar" id="me-avatar">😊</div>
+  <div class="me-name" id="me-name">User</div>
+  <div class="me-username" id="me-username">@user</div>
+  <div class="me-uid" id="me-uid">UID: —</div>
+  <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+    <span id="me-tier-badge" style="padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;background:var(--surface);border:1px solid #333;color:var(--text-dim)">FREE</span>
+    <span style="font-size:12px;color:var(--text-dim)">&#x26A1; <span id="me-token-bal">10,000</span> tokens</span>
+  </div>
+
+  <div class="me-section">
+    <div class="me-section-title" data-i18n="me_profile">Profile</div>
+    <div class="me-row" id="me-edit-name">
+      <span class="me-row-icon">✏️</span>
+      <span class="me-row-label" data-i18n="me_display_name">Display Name</span>
+      <span class="me-row-value" id="me-name-val">—</span>
+      <span class="me-row-arrow">›</span>
+    </div>
+    <div class="me-row" id="me-edit-username">
+      <span class="me-row-icon">@</span>
+      <span class="me-row-label" data-i18n="me_username">Username</span>
+      <span class="me-row-value" id="me-uname-val">—</span>
+      <span class="me-row-arrow">›</span>
+    </div>
+    <div class="me-row" id="me-edit-avatar">
+      <span class="me-row-icon">🎨</span>
+      <span class="me-row-label" data-i18n="me_avatar">Avatar</span>
+      <span class="me-row-value" id="me-avatar-val">😊</span>
+      <span class="me-row-arrow">›</span>
+    </div>
+  </div>
+
+  <div class="me-section">
+    <div class="me-section-title" data-i18n="me_settings">Settings</div>
+    <div class="me-row" id="me-edit-lang">
+      <span class="me-row-icon">&#x1F310;</span>
+      <span class="me-row-label" data-i18n="me_language">Language</span>
+      <span class="me-row-value" id="me-lang-val">EN</span>
+      <span class="me-row-arrow">&#x203A;</span>
+    </div>
+  </div>
+
+  <!-- Admin entry (hidden for non-admin) -->
+  <div class="me-row" id="me-go-admin" style="display:none;border-color:var(--success)">
+    <span class="me-row-icon">&#x1F6E1;</span>
+    <span class="me-row-label" style="color:var(--success);font-weight:700">Admin Panel</span>
+    <span class="me-row-value"></span>
+    <span class="me-row-arrow" style="color:var(--success)">&#x203A;</span>
+  </div>
+
+  <button class="me-logout" id="me-logout" data-i18n="me_logout">Sign Out</button>
+</div>
+
+<!-- ===== ADMIN SCREEN ===== -->
+<div id="admin-screen" class="screen" style="padding:calc(env(safe-area-inset-top,8px)+16px) 16px calc(env(safe-area-inset-bottom,8px)+72px);gap:12px;overflow-y:auto;align-items:center">
+  <div class="header" style="padding:0 0 8px">
+    <button class="back-btn" id="admin-back">&#x2039;</button>
+    <span class="logo">&#x1F6E1; Admin Panel</span>
+  </div>
+  <!-- Stats -->
+  <div id="admin-stats" style="width:100%;max-width:340px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
+  <!-- User list -->
+  <div style="width:100%;max-width:340px;font-size:12px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:1px">Users</div>
+  <div id="admin-users" style="width:100%;max-width:340px"></div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="edit-modal" id="edit-modal">
+  <div class="edit-modal-box">
+    <div class="edit-modal-title" id="edit-modal-title">Edit</div>
+    <div id="edit-modal-body"></div>
+    <div class="edit-modal-actions">
+      <button class="btn-cancel" id="edit-cancel" data-i18n="me_cancel">Cancel</button>
+      <button class="btn-save" id="edit-save" data-i18n="me_save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Tab Bar -->
+<div class="tab-bar" id="tab-bar">
+  <button class="tab-item active" data-tab="module-screen">
+    <span class="tab-icon">&#x1F527;</span>
+    <span data-i18n="tab_tools">Tools</span>
+  </button>
+  <button class="tab-item" data-tab="ranking-screen">
+    <span class="tab-icon">&#x1F3C6;</span>
+    <span data-i18n="tab_ranking">Ranking</span>
+  </button>
+  <button class="tab-item" data-tab="moments-screen">
+    <span class="tab-icon">&#x1F4E2;</span>
+    <span data-i18n="tab_moments">Moments</span>
+  </button>
+  <button class="tab-item" data-tab="messages-screen">
+    <span class="tab-icon">&#x1F4AC;</span>
+    <span data-i18n="tab_messages">Messages</span>
+    <span class="tab-badge" id="msg-badge"></span>
+  </button>
+  <button class="tab-item" data-tab="me-screen">
+    <span class="tab-icon" id="tab-me-icon">&#x1F60A;</span>
+    <span data-i18n="tab_me">Me</span>
+  </button>
+</div>
+
+<!-- User Profile Modal -->
+<div class="user-profile-modal" id="user-profile-modal">
+  <div class="up-card">
+    <button class="up-close" id="up-close">&times;</button>
+    <div class="up-avatar" id="up-avatar">&#x1F60A;</div>
+    <div class="up-name" id="up-name">User</div>
+    <div class="up-username" id="up-username">@user</div>
+    <div class="up-tier" id="up-tier">FREE</div>
+    <div class="up-bio" id="up-bio"></div>
+    <div class="up-actions">
+      <button id="up-add-friend" data-i18n="up_add_friend">&#x1F465; Add Friend</button>
+      <button class="primary" id="up-send-msg" data-i18n="up_send_msg">&#x1F4AC; Message</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confetti container -->
+<div class="confetti-container" id="confetti-container"></div>
+
+<!-- Token cost badge (global) -->
+<div class="cost-badge" id="cost-badge" style="display:none">
+  ⚡ <span class="cost-val" id="cost-val">฿0.0000</span>
+  <span id="cost-tokens">0 tokens</span>
+</div>
+
+<!-- Navigation logic -->
+<script>
+(function(){
+  const screens = document.querySelectorAll('.screen');
+  const tabBar = document.getElementById('tab-bar');
+  const TAB_SCREENS = ['module-screen','ranking-screen','moments-screen','messages-screen','me-screen'];
+  const HIDE_TAB = ['screen-2048','screen-snake','screen-mole','screen-lb'];
+
+  function show(id) {
+    screens.forEach(s => s.classList.remove('active'));
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+    // Scroll to top when going home
+    if (id === 'home-screen') el.scrollTop = 0;
+    // Tab bar: show on main tabs + module sub-screens, hide in games/translators
+    const isLoggedIn = !!window.NYCKING_AUTH?.currentUser;
+    const showTab = isLoggedIn && (TAB_SCREENS.includes(id) || id === 'game-lobby' || id === 'chat-screen') && !HIDE_TAB.includes(id);
+    if (tabBar) tabBar.classList.toggle('show', showTab);
+    // Hash route
+    const routeMap = {'home-screen':'home','auth-screen':'auth','module-screen':'tools','ranking-screen':'ranking','moments-screen':'moments','messages-screen':'messages','me-screen':'me'};
+    if (routeMap[id]) history.pushState({screen:id}, '', '#/' + routeMap[id]);
+  }
+
+  // ─── Homepage CTA buttons ───
+  function handleCTA() {
+    const user = window.NYCKING_AUTH && window.NYCKING_AUTH.currentUser;
+    show(user ? 'module-screen' : 'auth-screen');
+  }
+  document.getElementById('home-enter-btn').addEventListener('click', handleCTA);
+  const btn2 = document.getElementById('home-enter-btn2');
+  if (btn2) btn2.addEventListener('click', handleCTA);
+
+  // Feature cards on homepage → navigate if logged in
+  document.querySelectorAll('.feat-card[data-goto]').forEach(card => {
+    card.addEventListener('click', () => {
+      const user = window.NYCKING_AUTH && window.NYCKING_AUTH.currentUser;
+      if (user) show(card.dataset.goto);
+      else show('auth-screen');
+    });
+  });
+
+  // ─── Hash router: handle back button ───
+  window.addEventListener('popstate', (e) => {
+    if (e.state?.screen) {
+      screens.forEach(s => s.classList.remove('active'));
+      const el = document.getElementById(e.state.screen);
+      if (el) el.classList.add('active');
+    }
+  });
+
+  // Module back → home
+  document.getElementById('module-back').addEventListener('click', () => show('home-screen'));
+  document.getElementById('mod-home-btn').addEventListener('click', () => show('home-screen'));
+  document.getElementById('mod-signout-btn').addEventListener('click', () => {
+    if (window.NYCKING_SIGN_OUT) window.NYCKING_SIGN_OUT();
+  });
+  // Upgrade btn on pricing page
+  const upgradeBtn = document.getElementById('upgrade-btn');
+  if (upgradeBtn) upgradeBtn.addEventListener('click', () => {
+    const user = window.NYCKING_AUTH && window.NYCKING_AUTH.currentUser;
+    if (user) alert('Contact admin for Pro upgrade or use invite code.');
+    else show('auth-screen');
+  });
+
+  // Module selection
+  document.getElementById('go-voice').addEventListener('click', () => show('voice-screen'));
+  document.getElementById('go-text').addEventListener('click', () => show('text-screen'));
+  document.getElementById('go-chat').addEventListener('click', () => {
+    show('chat-screen');
+    if (window.NYCKING_CHAT_RESET) window.NYCKING_CHAT_RESET();
+  });
+  document.getElementById('go-games').addEventListener('click', () => show('game-lobby'));
+  document.getElementById('go-coach').addEventListener('click', () => show('screen-coach'));
+  document.getElementById('back-coach').addEventListener('click', () => show('module-screen'));
+
+  // Game lobby navigation
+  document.getElementById('games-back').addEventListener('click', () => show('module-screen'));
+  document.getElementById('go-2048').addEventListener('click', () => { show('screen-2048'); if(window.NYCKING_GAME_START) window.NYCKING_GAME_START('2048'); });
+  document.getElementById('go-snake').addEventListener('click', () => { show('screen-snake'); if(window.NYCKING_GAME_START) window.NYCKING_GAME_START('snake'); });
+  document.getElementById('go-mole').addEventListener('click', () => { show('screen-mole'); if(window.NYCKING_GAME_START) window.NYCKING_GAME_START('mole'); });
+  document.getElementById('go-leaderboard').addEventListener('click', () => { show('screen-lb'); if(window.NYCKING_GAME_START) window.NYCKING_GAME_START('lb'); });
+  document.getElementById('back-2048').addEventListener('click', () => { if(window.NYCKING_GAME_STOP) window.NYCKING_GAME_STOP('2048'); show('game-lobby'); });
+  document.getElementById('back-snake').addEventListener('click', () => { if(window.NYCKING_GAME_STOP) window.NYCKING_GAME_STOP('snake'); show('game-lobby'); });
+  document.getElementById('back-mole').addEventListener('click', () => { if(window.NYCKING_GAME_STOP) window.NYCKING_GAME_STOP('mole'); show('game-lobby'); });
+  document.getElementById('back-lb').addEventListener('click', () => show('game-lobby'));
+
+  // Back buttons
+  document.getElementById('voice-back').addEventListener('click', () => show('module-screen'));
+  document.getElementById('text-back').addEventListener('click', () => show('module-screen'));
+  document.getElementById('chat-back').addEventListener('click', () => {
+    if (window.NYCKING_CHAT_RESET) window.NYCKING_CHAT_RESET();
+    show('module-screen');
+  });
+
+  // Messages screen tab switching
+  document.querySelectorAll('.msg-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.msg-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.msg-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const panel = document.getElementById(tab.dataset.panel);
+      if (panel) panel.classList.add('active');
+    });
+  });
+
+  // Expose for app.js
+  window.NYCKING_SHOW = show;
+})();
+
+// ═══ i18n ═══
+(function(){
+  const T = {
+    en: {
+      tagline:'AI Translation \u00D7 Social \u00D7 Games',
+      enter_btn:'Get Started \u2192', back:'\u2190 Back',
+      hp_feat_voice:'Real-time speech recognition + auto-speak',
+      hp_feat_text:'Gemini neural translation with context memory',
+      hp_feat_dm:'Friend DM with auto-translation',
+      hp_feat_social:'Add friends, moments feed, social',
+      hp_feat_games:'2048, Snake, Whack-a-Mole + leaderboard',
+      hp_feat_coach:'Smart conversation helper powered by Gemini',
+      pricing_upgrade:'Upgrade to Pro \u2192',
+      tab_ranking:'Ranking', tab_chats:'Chats', ranking_empty:'No activity yet. Start translating!', ranking_used:'used',
+      up_add_friend:'\uD83D\uDC65 Add Friend', up_send_msg:'\uD83D\uDCAC Message',
+      choose_mode:'Choose Mode', select_mode:'Select your translation mode',
+      voice_name:'Voice Translate', voice_desc:'Speak and translate in real-time',
+      text_name:'Text Translate', text_desc:'Type or paste text to translate',
+      chat_name:'Chat Room', chat_desc:'Bilingual chat with your partner',
+      tap_mic:'Tap the mic to speak', translation_here:'Translation appears here',
+      tap_speak:'Tap to speak', or_type:'Or type here...',
+      auto_speak:'🔊 Auto-speak', continuous:'🔄 Continuous', noisy:'📢 Noisy env',
+      history:'📝 History', type_paste:'Type or paste text to translate...',
+      scene_travel:'✈️ Travel', scene_romance:'💕 Romance', scene_business:'💼 Business', scene_phrases:'📖 Phrases',
+      clear:'Clear', translate_btn:'Translate ➤',
+      clear_all:'Clear all', chat_setup:'Enter your name & language to start chatting',
+      your_name:'Your name...', join_chat:'💕 Join Chat',
+      no_msg:'No messages yet. Say hi! 👋', type_msg:'Type a message...',
+      install_title:'Install NYCKING App', install_desc:'Add to home screen for quick access. Works offline like a native app.', install_btn:'Install',
+      games_name:'Mini Games', games_desc:'Play & compete on the leaderboard',
+      g_2048_desc:'Slide & merge tiles', g_snake_desc:'Eat & grow longer', g_mole_name:'Whack-a-Mole', g_mole_desc:'Tap the moles fast!',
+      leaderboard:'Leaderboard', lb_desc:'View high scores', lb_empty:'No scores yet. Play a game first!',
+      g_score:'Score', g_best:'Best', g_retry:'Play Again', g_start:'Start!', g_timesup:"Time's Up!",
+      g_2048_hint:'Swipe to move tiles. Merge same numbers!', g_snake_hint:'Swipe to change direction', g_gameover:'Game Over',
+      coach_name:'AI Assistant', coach_desc:'Smart conversation helper',
+      coach_topics:'Topics', coach_polish:'Polish', coach_reply:'Reply',
+      coach_new:'Just Met', coach_friends:'Friends', coach_close:'Close',
+      coach_go:'✨ Get Suggestions', coach_hint:'Choose a mode and tap the button!',
+      coach_placeholder:'Type your message or paste theirs...',
+      auth_welcome:'Sign in to access all features',
+      auth_login:'Sign In', auth_register:'Register',
+      auth_or:'or', auth_google:'Continue with Google',
+      auth_no_account:'No account? Register', auth_have_account:'Have an account? Sign In',
+      tab_tools:'Tools', tab_chat:'Chat', tab_games:'Games', tab_ai:'AI', tab_me:'Me',
+      me_profile:'Profile', me_settings:'Settings', me_display_name:'Display Name',
+      me_username:'Username', me_avatar:'Avatar', me_language:'Language',
+      me_logout:'Sign Out', me_cancel:'Cancel', me_save:'Save',
+      tab_contacts:'Contacts', tab_messages:'Messages', tab_moments:'Moments',
+      contacts_empty:'No friends yet. Search to add!', contacts_search_ph:'Search by username...',
+      dm_empty:'No conversations yet', moments_empty:'No moments yet. Post something!',
+      moments_placeholder:"What's on your mind?", moments_post:'Post',
+    },
+    zh: {
+      tagline:'AI 翻译 × 社交 × 游戏',
+      enter_btn:'开始使用 →', back:'← 返回',
+      hp_feat_voice:'实时语音识别 + 自动朗读',
+      hp_feat_text:'Gemini 神经翻译 + 上下文记忆',
+      hp_feat_dm:'好友私聊 + 自动翻译',
+      hp_feat_social:'加好友、朋友圈动态',
+      hp_feat_games:'2048、贪吃蛇、打地鼠 + 排行榜',
+      hp_feat_coach:'Gemini 驱动的智能聊天助手',
+      pricing_upgrade:'升级 Pro \u2192',
+      tab_ranking:'排行榜', tab_chats:'聊天', ranking_empty:'暂无活跃记录，开始翻译吧！', ranking_used:'已用',
+      up_add_friend:'\uD83D\uDC65 加好友', up_send_msg:'\uD83D\uDCAC 发消息',
+      choose_mode:'选择模式', select_mode:'选择你的翻译模式',
+      voice_name:'语音翻译', voice_desc:'实时语音翻译',
+      text_name:'文字翻译', text_desc:'输入或粘贴文字进行翻译',
+      chat_name:'聊天室', chat_desc:'与伴侣双语聊天',
+      tap_mic:'点击麦克风说话', translation_here:'翻译结果显示在这里',
+      tap_speak:'点击说话', or_type:'或在此输入...',
+      auto_speak:'🔊 自动朗读', continuous:'🔄 连续模式', noisy:'📢 嘈杂环境',
+      history:'📝 历史记录', type_paste:'输入或粘贴要翻译的文字...',
+      scene_travel:'✈️ 旅游', scene_romance:'💕 恋爱', scene_business:'💼 商务', scene_phrases:'📖 常用句子',
+      clear:'清除', translate_btn:'翻译 ➤',
+      clear_all:'全部清除', chat_setup:'输入你的名字和语言开始聊天',
+      your_name:'你的名字...', join_chat:'💕 加入聊天',
+      no_msg:'还没有消息，打个招呼吧！👋', type_msg:'输入消息...',
+      install_title:'安装 NYCKING 应用', install_desc:'添加到桌面，一键快速访问。支持离线使用，如原生应用一般。', install_btn:'安装',
+      games_name:'小游戏', games_desc:'玩游戏，冲排行榜',
+      g_2048_desc:'滑动合并方块', g_snake_desc:'吃东西变更长', g_mole_name:'打地鼠', g_mole_desc:'快速点击地鼠！',
+      leaderboard:'排行榜', lb_desc:'查看最高分', lb_empty:'还没有分数，先去玩个游戏吧！',
+      g_score:'得分', g_best:'最高', g_retry:'再来一局', g_start:'开始！', g_timesup:'时间到！',
+      g_2048_hint:'滑动移动方块，相同数字合并！', g_snake_hint:'滑动改变方向', g_gameover:'游戏结束',
+      coach_name:'AI 助手', coach_desc:'智能沟通小帮手',
+      coach_topics:'话题灵感', coach_polish:'消息润色', coach_reply:'回复建议',
+      coach_new:'刚认识', coach_friends:'朋友', coach_close:'亲密',
+      coach_go:'✨ 获取建议', coach_hint:'选择模式，点击按钮！',
+      coach_placeholder:'输入你想说的，或粘贴对方的消息...',
+      auth_welcome:'登录解锁所有功能',
+      auth_login:'登录', auth_register:'注册',
+      auth_or:'或者', auth_google:'使用 Google 登录',
+      auth_no_account:'没有账号？注册', auth_have_account:'已有账号？登录',
+      tab_tools:'工具', tab_chat:'聊天', tab_games:'游戏', tab_ai:'AI', tab_me:'我的',
+      me_profile:'个人资料', me_settings:'设置', me_display_name:'昵称',
+      me_username:'用户名', me_avatar:'头像', me_language:'语言',
+      me_logout:'退出登录', me_cancel:'取消', me_save:'保存',
+      tab_contacts:'通讯录', tab_messages:'消息', tab_moments:'动态',
+      contacts_empty:'还没有好友，搜索添加吧！', contacts_search_ph:'按用户名搜索...',
+      dm_empty:'还没有对话', moments_empty:'还没有动态，发一条吧！',
+      moments_placeholder:'此刻的想法...', moments_post:'发布',
+    },
+    th: {
+      tagline:'แปลด้วย AI × โซเชียล × เกม',
+      enter_btn:'เริ่มใช้งาน →', back:'← กลับ',
+      hp_feat_voice:'จดจำเสียงพูดเรียลไทม์ + อ่านอัตโนมัติ',
+      hp_feat_text:'แปลด้วย Gemini + หน่วยความจำบริบท',
+      hp_feat_dm:'แชทส่วนตัว + แปลอัตโนมัติ',
+      hp_feat_social:'เพิ่มเพื่อน, โพสต์, โซเชียล',
+      hp_feat_games:'2048, งู, ตีตุ่น + ลีดเดอร์บอร์ด',
+      hp_feat_coach:'ผู้ช่วยสนทนาอัจฉริยะจาก Gemini',
+      pricing_upgrade:'อัปเกรดเป็น Pro →',
+      tab_ranking:'อันดับ', tab_chats:'แชท', ranking_empty:'ยังไม่มีกิจกรรม เริ่มแปลเลย!', ranking_used:'ใช้แล้ว',
+      up_add_friend:'\uD83D\uDC65 เพิ่มเพื่อน', up_send_msg:'\uD83D\uDCAC ส่งข้อความ',
+      choose_mode:'เลือกโหมด', select_mode:'เลือกโหมดการแปลของคุณ',
+      voice_name:'แปลเสียง', voice_desc:'พูดแล้วแปลแบบเรียลไทม์',
+      text_name:'แปลข้อความ', text_desc:'พิมพ์หรือวางข้อความเพื่อแปล',
+      chat_name:'ห้องแชท', chat_desc:'แชทสองภาษากับคู่ของคุณ',
+      tap_mic:'แตะไมค์เพื่อพูด', translation_here:'คำแปลจะแสดงที่นี่',
+      tap_speak:'แตะเพื่อพูด', or_type:'หรือพิมพ์ที่นี่...',
+      auto_speak:'🔊 อ่านอัตโนมัติ', continuous:'🔄 ต่อเนื่อง', noisy:'📢 เสียงดัง',
+      history:'📝 ประวัติ', type_paste:'พิมพ์หรือวางข้อความเพื่อแปล...',
+      scene_travel:'✈️ ท่องเที่ยว', scene_romance:'💕 ความรัก', scene_business:'💼 ธุรกิจ', scene_phrases:'📖 วลีทั่วไป',
+      clear:'ล้าง', translate_btn:'แปล ➤',
+      clear_all:'ล้างทั้งหมด', chat_setup:'ใส่ชื่อและภาษาเพื่อเริ่มแชท',
+      your_name:'ชื่อของคุณ...', join_chat:'💕 เข้าร่วมแชท',
+      no_msg:'ยังไม่มีข้อความ ทักทายสิ! 👋', type_msg:'พิมพ์ข้อความ...',
+      install_title:'ติดตั้งแอป NYCKING', install_desc:'เพิ่มลงหน้าจอเพื่อเข้าถึงอย่างรวดเร็ว ใช้งานแบบออฟไลน์ได้', install_btn:'ติดตั้ง',
+      games_name:'เกมมินิ', games_desc:'เล่นและแข่งขันบนลีดเดอร์บอร์ด',
+      g_2048_desc:'เลื่อนและรวมบล็อก', g_snake_desc:'กินและโตยาวขึ้น', g_mole_name:'ตีตุ่น', g_mole_desc:'แตะตุ่นให้เร็ว!',
+      leaderboard:'ลีดเดอร์บอร์ด', lb_desc:'ดูคะแนนสูงสุด', lb_empty:'ยังไม่มีคะแนน เล่นเกมก่อน!',
+      g_score:'คะแนน', g_best:'สูงสุด', g_retry:'เล่นอีกครั้ง', g_start:'เริ่ม!', g_timesup:'หมดเวลา!',
+      g_2048_hint:'เลื่อนเพื่อย้ายบล็อก รวมตัวเลขเดียวกัน!', g_snake_hint:'เลื่อนเพื่อเปลี่ยนทิศทาง', g_gameover:'จบเกม',
+      coach_name:'ผู้ช่วย AI', coach_desc:'ตัวช่วยสนทนาอัจฉริยะ',
+      coach_topics:'หัวข้อ', coach_polish:'ปรับแต่ง', coach_reply:'แนะนำ',
+      coach_new:'เพิ่งรู้จัก', coach_friends:'เพื่อน', coach_close:'สนิท',
+      coach_go:'✨ รับคำแนะนำ', coach_hint:'เลือกโหมดแล้วกดปุ่ม!',
+      coach_placeholder:'พิมพ์ข้อความหรือวางข้อความของเขา...',
+      auth_welcome:'เข้าสู่ระบบเพื่อใช้งานทุกฟีเจอร์',
+      auth_login:'เข้าสู่ระบบ', auth_register:'ลงทะเบียน',
+      auth_or:'หรือ', auth_google:'เข้าสู่ระบบด้วย Google',
+      auth_no_account:'ยังไม่มีบัญชี? ลงทะเบียน', auth_have_account:'มีบัญชีแล้ว? เข้าสู่ระบบ',
+      tab_tools:'เครื่องมือ', tab_chat:'แชท', tab_games:'เกม', tab_ai:'AI', tab_me:'ของฉัน',
+      me_profile:'โปรไฟล์', me_settings:'ตั้งค่า', me_display_name:'ชื่อที่แสดง',
+      me_username:'ชื่อผู้ใช้', me_avatar:'รูปโปรไฟล์', me_language:'ภาษา',
+      me_logout:'ออกจากระบบ', me_cancel:'ยกเลิก', me_save:'บันทึก',
+      tab_contacts:'รายชื่อ', tab_messages:'ข้อความ', tab_moments:'โพสต์',
+      contacts_empty:'ยังไม่มีเพื่อน ค้นหาเพื่อเพิ่ม!', contacts_search_ph:'ค้นหาตามชื่อผู้ใช้...',
+      dm_empty:'ยังไม่มีการสนทนา', moments_empty:'ยังไม่มีโพสต์ โพสต์อะไรสักอย่าง!',
+      moments_placeholder:'คิดอะไรอยู่...', moments_post:'โพสต์',
+    },
+    my: {
+      tagline:'AI ဘာသာပြန် × လူမှုကွန်ယက် × ဂိမ်း',
+      enter_btn:'စတင်ပါ →', back:'← နောက်သို့',
+      hp_feat_voice:'အချိန်နှင့်တပြေးညီ အသံမှတ်သား + အလိုအလျောက်ဖတ်',
+      hp_feat_text:'Gemini ဘာသာပြန် + အကြောင်းအရာမှတ်ဉာဏ်',
+      hp_feat_dm:'သူငယ်ချင်းစကားပြော + အလိုအလျောက်ဘာသာပြန်',
+      hp_feat_social:'သူငယ်ချင်းထည့်, အခိုက်အရာ, လူမှုကွန်ယက်',
+      hp_feat_games:'2048, မြွေ, ကြွက်ရိုက် + အဆင့်မြင့်ဆုံး',
+      hp_feat_coach:'Gemini ဖြင့် စကားပြောကူညီပေးသူ',
+      pricing_upgrade:'Pro သို့ အဆင့်မြှင့်ပါ →',
+      tab_ranking:'အဆင့်', tab_chats:'ချက်တ်', ranking_empty:'လှုပ်ရှားမှုမရှိသေးပါ။ ဘာသာပြန်စပါ!', ranking_used:'သုံးပြီး',
+      up_add_friend:'\uD83D\uDC65 သူငယ်ချင်းထည့်', up_send_msg:'\uD83D\uDCAC မက်ဆေ့ချ်ပို့',
+      choose_mode:'မုဒ်ရွေးပါ', select_mode:'သင့်ဘာသာပြန်မုဒ်ကို ရွေးပါ',
+      voice_name:'အသံ ဘာသာပြန်', voice_desc:'ပြောပြီး အချိန်နှင့်တပြေးညီ ဘာသာပြန်ပါ',
+      text_name:'စာသား ဘာသာပြန်', text_desc:'စာရိုက်ပြီး ဘာသာပြန်ပါ',
+      chat_name:'ချက်တ်အခန်း', chat_desc:'သင့်အဖော်နှင့် နှစ်ဘာသာ ချက်တ်',
+      tap_mic:'မိုက်ကိုနှိပ်၍ပြောပါ', translation_here:'ဘာသာပြန်ချက် ဒီမှာပေါ်မယ်',
+      tap_speak:'နှိပ်ပြီး ပြောပါ', or_type:'ဒါမှမဟုတ် ဒီမှာရိုက်ပါ...',
+      auto_speak:'🔊 အလိုအလျောက်ဖတ်', continuous:'🔄 ဆက်တိုက်', noisy:'📢 ဆူညံ',
+      history:'📝 မှတ်တမ်း', type_paste:'ဘာသာပြန်ရန် စာရိုက်ပါ...',
+      scene_travel:'✈️ ခရီးသွား', scene_romance:'💕 အချစ်', scene_business:'💼 စီးပွားရေး', scene_phrases:'📖 အသုံးများ',
+      clear:'ရှင်းပါ', translate_btn:'ဘာသာပြန် ➤',
+      clear_all:'အားလုံးရှင်းပါ', chat_setup:'ချက်တ်စရန် နာမည်နှင့် ဘာသာစကားထည့်ပါ',
+      your_name:'သင့်နာမည်...', join_chat:'💕 ချက်တ်ဝင်ပါ',
+      no_msg:'မက်ဆေ့ချ် မရှိသေးပါ။ နှုတ်ဆက်ပါ! 👋', type_msg:'မက်ဆေ့ချ် ရိုက်ပါ...',
+      install_title:'NYCKING အပ်ပြီ ထည့်သွင်းပါ', install_desc:'ဖုန်းမျက်နှာသို့ ထည့်သွင်းပါ။ အိုင်းမှာ အပ်ပြီကဲ့သို့ အသုံးပြုနိုင်ပါတယ်။', install_btn:'ထည့်သွင်းပါ',
+      games_name:'ဂိမ်းငယ်များ', games_desc:'ဂိမ်းကြိုက်မယ်။ အဆင့်မြင့်ဆုံးပါ',
+      g_2048_desc:'ပွတ်ပြီး ပေါင်းစပ်ပါ', g_snake_desc:'စားပြီး ရှည်သွားပါ', g_mole_name:'ကြွက်ရိုက်', g_mole_desc:'ကြွက်ကို မြန်မြန်နှိပ်ပါ!',
+      leaderboard:'အဆင့်မြင့်ဆုံး', lb_desc:'အမြင့်ဆုံးစကိုက်များကြည့်ပါ', lb_empty:'အမှတ်မရှိသေးပါ။ ဂိမ်းတစ်ခု ကြိုက်ကြည့်ပါ!',
+      g_score:'အမှတ်', g_best:'အမြင့်ဆုံး', g_retry:'ထပ်ကြိုက်မယ်', g_start:'စတင်!', g_timesup:'အချိန်ကုန်ပြီ!',
+      g_2048_hint:'ပွတ်ပြီး တူညီနံပါတ်များ ပေါင်းစပ်ပါ!', g_snake_hint:'ပွတ်ပြီး အရပ်ပြောင်းပါ', g_gameover:'ဂိမ်းပြီး',
+      coach_name:'AI လက်ထောက်', coach_desc:'စကားပြောကူညီပေးသူ',
+      coach_topics:'ခေါင်းစဉ်', coach_polish:'ပြင်ဆင်', coach_reply:'အကြံပြု',
+      coach_new:'အသစ်', coach_friends:'သူငယ်ချင်း', coach_close:'ရင်းနှီး',
+      coach_go:'✨ အကြံပြုချက်ယူပါ', coach_hint:'မုဒ်ရွေးပြီး ခလုတ်နှိပ်ပါ!',
+      coach_placeholder:'သင့်မက်ဆေ့ချ်ရိုက်ပါ သို့ သူတို့ရဲ့ကိုကူးထည့်ပါ...',
+      auth_welcome:'အင်္ဂလိပ်စမ်းရည်းများအားလုံး ဝင်ရောက်ပါ',
+      auth_login:'ဝင်ရောက်ပါ', auth_register:'စာရင်းသွင်းပါ',
+      auth_or:'သို့', auth_google:'Google နဲ့ ဝင်ရောက်ပါ',
+      auth_no_account:'အကောင့်မရှိသေး? စာရင်းသွင်းပါ', auth_have_account:'အကောင့်ရှိပြီ? ဝင်ရောက်ပါ',
+      tab_tools:'ကိရိယာများ', tab_chat:'ချက်တ်', tab_games:'ဂိမ်း', tab_ai:'AI', tab_me:'ကျွန်ုပ်',
+      me_profile:'ပရိုဖိုင်', me_settings:'ဆက်တင်များ', me_display_name:'ပြစ်ရမည်',
+      me_username:'အသုံးပြုသူအမည်', me_avatar:'ပရိုဖိုင်ပုံ', me_language:'ဘာသာစကား',
+      me_logout:'ထွက်ပါ', me_cancel:'ပယ်ဖျက်ပါ', me_save:'သိမ်းပါ',
+      tab_contacts:'အဆက်အသိ', tab_messages:'မက်ဆေ့ချ်', tab_moments:'အခိုက်အရာ',
+      contacts_empty:'သူငယ်ချင်းမရှိသေးပါ။ ရှာပါ!', contacts_search_ph:'အသုံးပြုသူအမည်ဖြင့်ရှာပါ...',
+      dm_empty:'စကားပြောချက်မရှိသေးပါ', moments_empty:'အခိုက်အရာမရှိသေးပါ။ တစ်ခုရေးပါ!',
+      moments_placeholder:'ဘာစဉ်းစားမလဲ...', moments_post:'တင်ပါ',
+    }
+  };
+
+  const LABELS = { en:'EN', zh:'中', th:'TH', my:'MY' };
+  let lang = localStorage.getItem('nycking_i18n') || 'en';
+
+  function apply(l) {
+    lang = l;
+    localStorage.setItem('nycking_i18n', l);
+    const d = T[l] || T.en;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const k = el.dataset.i18n;
+      if (!d[k]) return;
+      if (k.startsWith('feat_')) { el.innerHTML = d[k]; } else { el.textContent = d[k]; }
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+      const k = el.dataset.i18nPh;
+      if (d[k]) el.placeholder = d[k];
+    });
+    document.getElementById('i18n-btn').textContent = '🌐 ' + LABELS[l];
+    const cBadge = document.getElementById('c-lang-badge');
+    if (cBadge) cBadge.textContent = LABELS[l];
+    document.querySelectorAll('.i18n-opt').forEach(o => o.classList.toggle('active', o.dataset.lang === l));
+  }
+
+  const btn = document.getElementById('i18n-btn');
+  const menu = document.getElementById('i18n-menu');
+  btn.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('open'); });
+  menu.addEventListener('click', (e) => {
+    const opt = e.target.closest('[data-lang]');
+    if (opt) { apply(opt.dataset.lang); menu.classList.remove('open'); }
+  });
+  document.addEventListener('click', () => menu.classList.remove('open'));
+
+  // Apply saved language on load
+  apply(lang);
+
+  // Emoji picker
+  const emojiBtn = document.getElementById('c-emoji-btn');
+  const emojiPanel = document.getElementById('c-emoji-panel');
+  const msgInput = document.getElementById('c-msg-input');
+  if (emojiBtn && emojiPanel && msgInput) {
+    emojiBtn.addEventListener('click', (e) => { e.stopPropagation(); emojiPanel.classList.toggle('open'); });
+    emojiPanel.addEventListener('click', (e) => {
+      if (e.target.tagName === 'SPAN') {
+        msgInput.value += e.target.textContent;
+        msgInput.focus();
+      }
+    });
+    document.addEventListener('click', () => emojiPanel.classList.remove('open'));
+  }
+})();
+</script>
+
+<!-- PWA Install Prompt -->
+<script>
+(function(){
+  let deferredPrompt = null;
+  const banner = document.getElementById('install-banner');
+  const installBtn = document.getElementById('install-btn');
+  const dismissBtn = document.getElementById('install-dismiss');
+  const DISMISS_KEY = 'nycking_install_dismissed';
+
+  // Already installed as standalone?
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches
+      || window.navigator.standalone === true;
+  }
+
+  // Show banner if not dismissed and not already installed
+  function maybeShow() {
+    if (isStandalone()) return;
+    if (localStorage.getItem(DISMISS_KEY)) return;
+    banner.classList.add('show');
+  }
+
+  // Chrome/Edge/Samsung: intercept native install prompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    maybeShow();
+  });
+
+  // For browsers without beforeinstallprompt (Firefox, etc.), show after 3s
+  setTimeout(() => {
+    if (!deferredPrompt && !isStandalone()) maybeShow();
+  }, 3000);
+
+  // Install button click
+  installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const result = await deferredPrompt.userChoice;
+      if (result.outcome === 'accepted') {
+        banner.classList.remove('show');
+      }
+      deferredPrompt = null;
+    } else {
+      // Fallback: show manual instructions
+      const ua = navigator.userAgent.toLowerCase();
+      let msg = 'Tap the browser menu (⋮) → "Add to Home screen" or "Install app"';
+      if (ua.includes('firefox')) {
+        msg = 'Tap ⋮ menu → "Install" or "Add to Home screen"';
+      } else if (ua.includes('samsung')) {
+        msg = 'Tap ☰ menu → "Add page to" → "Home screen"';
+      }
+      alert(msg);
+    }
+  });
+
+  // Dismiss
+  dismissBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    banner.classList.remove('show');
+    localStorage.setItem(DISMISS_KEY, '1');
+  });
+
+  // Hide after successful install
+  window.addEventListener('appinstalled', () => {
+    banner.classList.remove('show');
+    deferredPrompt = null;
+  });
+})();
+</script>
+
+<!-- Dev mode -->
+<script>
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    window.NYCKING_API_BASE = 'http://localhost:8080';
+  }
+</script>
+
+<!-- Auth -->
+<script src="/src/auth.js?v=2"></script>
+<!-- Token Accounting -->
+<script src="/src/tokens.js?v=1"></script>
+<!-- Profile & Tab Nav -->
+<script src="/src/profile.js?v=2"></script>
+<!-- Social (Friends, DM, Moments) -->
+<script src="/src/social.js?v=1"></script>
+<!-- Ranking -->
+<script src="/src/ranking.js?v=1"></script>
+<!-- Games -->
+<script src="/src/games.js?v=1"></script>
+<!-- AI Coach -->
+<script src="/src/coach.js?v=1"></script>
+<!-- App -->
+<script type="module" src="/src/app.js?v=10"></script>
+</body>
+</html>
