@@ -735,11 +735,9 @@ document.addEventListener('DOMContentLoaded', () => {
     speechSynthesis.getVoices();
     speechSynthesis.onvoiceschanged = () => {
       voiceCache = {};
-      console.log('[tts] voices loaded:', speechSynthesis.getVoices().length);
     };
   }
 
-  console.log('[app] NYCKING v2.1 ready — Voice + Text + Chat modules');
 });
 
 // Service Worker

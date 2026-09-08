@@ -23,6 +23,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: server/package-lock.json
       - run: npm ci
+      - run: npm audit
       - run: npx tsc --noEmit
       - run: npm run build
 
@@ -39,6 +40,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: functions/package-lock.json
       - run: npm ci
+      - run: npm audit
       - run: node -e "require('./index.js'); console.log('Functions load OK')"
 
   docker-build:
