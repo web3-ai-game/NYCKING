@@ -5,6 +5,8 @@
 import rateLimit from "express-rate-limit";
 import { config } from "../config";
 
+// Note: express-rate-limit uses memory store by default which is per-instance.
+// For multi-instance deployments, consider using RedisStore.
 export const apiLimiter = rateLimit({
   windowMs: config.rateLimitWindowMs,
   max: config.rateLimitMax,

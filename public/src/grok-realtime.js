@@ -85,7 +85,6 @@ export class GrokRealtime extends EventTarget {
         this._wasConnected = true;
         this._reconnectAttempts = 0;
         this._lastPong = Date.now();
-        console.log("[ws] connected");
         this._emit("connected");
         this._startHeartbeat();
         resolve();
@@ -98,7 +97,6 @@ export class GrokRealtime extends EventTarget {
         this.sessionId = null;
         this._stopHeartbeat();
 
-        console.log("[ws] closed", e.code, e.reason);
         this._emit("disconnected", {
           code: e.code,
           reason: e.reason,
@@ -173,7 +171,6 @@ export class GrokRealtime extends EventTarget {
 
   _scheduleReconnect() {
     if (this._reconnectAttempts >= this._maxReconnectAttempts) {
-      console.log("[ws] max reconnect attempts reached");
       this._emit("reconnect_failed", {
         message: `重连失败 (${this._maxReconnectAttempts} attempts exhausted)`,
       });
@@ -186,10 +183,6 @@ export class GrokRealtime extends EventTarget {
       16000
     );
     this._reconnectAttempts++;
-
-    console.log(
-      `[ws] reconnecting in ${delay}ms (attempt ${this._reconnectAttempts}/${this._maxReconnectAttempts})`
-    );
 
     this._emit("reconnecting", {
       attempt: this._reconnectAttempts,
@@ -261,7 +254,6 @@ export class GrokRealtime extends EventTarget {
     if (typeof window === "undefined") return;
 
     window.addEventListener("online", () => {
-      console.log("[network] back online");
       this._emit("network_change", { online: true });
       // If we were connected, try to reconnect
       if (this._wasConnected && !this.connected && !this._intentionalClose) {
@@ -271,7 +263,6 @@ export class GrokRealtime extends EventTarget {
     });
 
     window.addEventListener("offline", () => {
-      console.log("[network] went offline");
       this._emit("network_change", { online: false });
     });
 
@@ -439,7 +430,6 @@ export class GrokRealtime extends EventTarget {
       return;
     }
 
-    console.log("[ws] unhandled:", t);
   }
 
   _emit(name, detail = {}) {
